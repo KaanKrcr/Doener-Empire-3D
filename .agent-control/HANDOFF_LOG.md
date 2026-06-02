@@ -1,5 +1,59 @@
 # HANDOFF_LOG
 
+## 2026-06-02 (12) - Claude Code (Review: CityMap Vertical Slice gegen UX-Spec, frischer Code-Read)
+
+Gelesen: CityMapBootstrap, CityMapView, CityMapHotspot(State), CityMapCameraController,
+CityMapSelection, LocationSheetView, GameState, docs/UNITY_CITY_MAP_UX.md,
+REVIEW_CHECKLIST.md, STATUS.md, HANDOFF_LOG.
+
+### Ergebnis: BESTANDEN — bereit fuer Unity-Editor-Test
+
+**REVIEW_CHECKLIST:**
+- [x] Management-/Progression-Spiel erhalten
+- [x] Kein Arcade Cooking
+- [x] Keine Echtzeit-Kundenbedienung
+- [x] City Map / Standortauswahl ist Hauptbühne
+- [x] Locked / available / owned / competitor klar unterscheidbar (4 Zustaende, Farbe+Form)
+- [x] Buy / upgrade / simulate day deaktiviert mit "GameController folgt"-Hinweis
+- [x] UI hat themed Premium-Farben (Background/Surface/Cream/Sand/Orange)
+- [x] Kleiner Diff, kein unnötiger Rewrite
+- [x] 86 Tests gruen, flutter analyze clean
+
+**Befunde (frischer Code-Read — keine neuen Blocker):**
+- Kamera Euler(30f, 45f, 0f), orthografisch, xBounds [-6,6], zBounds [-8,4]: alle
+  Hotspot-Positionen abgedeckt. ✓
+- 4 Hotspot-Zustaende visuell klar: Owned = orange Cube, Available = cream Cylinder,
+  Locked = dunkler Cylinder, Competitor = roter Cylinder. ✓
+- LocationSheet: zustandsabhaengige Anzeige, Dummy-Werte, korrekte Theming-Farben. ✓
+- Alle Action-Buttons GUI.enabled=false, Locked-Sheet zeigt GESPERRT (kein Toast). ✓
+- Bootstrap auto-fires via RuntimeInitializeOnLoadMethod(AfterSceneLoad);
+  erster Hotspot automatisch selektiert fuer sofortiges IMGUI-Feedback. ✓
+- Kein Arcade, kein Echtzeit-Serving, kein BuyDialog, kein DayReport (Step 3-Scope). ✓
+
+**Verbleibende Non-Blocker (unveraendert aus #11, fuer Step 4 beheben):**
+1. KPI Metric 1 = "RUF" (Owned) statt MARKTANTEIL; Metric 4 = "DRUCK" statt
+   PROGNOSE (Owned) / KONKURRENZ (Available). Fix mit GameController-Bindung Step 4.
+2. Locked-Tap: Sheet mit disabled Button statt Toast-only. Prototyp-akzeptabel.
+3. Maus-Pan auf rechter Maustaste; vor Mobile-Build pruefen.
+4. Kein Fokus-Tween bei Hotspot-Tap (optional per Spec).
+5. IMGUI statt UI Toolkit (Migration geplant fuer Schritt 7).
+
+**Kein REVIEW_QUEUE.md-Eintrag** — keine blockierenden Fixes erforderlich.
+
+**Editor-Test-Bereitschaft:**
+- CityMap.unity in Unity oeffnen → Play. Bootstrap richtet alles ein.
+- Kamera: 30/45 Iso, orthografisch, Scroll-Zoom + Rechtsklick-Pan.
+- 5 Hotspots: 1 owned (orange Cube), 2 available (cream Cylinder),
+  1 locked (dunkel Cylinder), 1 competitor (rot Cylinder).
+- LocationSheet + HUD via IMGUI.
+
+Naechster kleinster Schritt:
+- Unity Editor visuell pruefen (Play-Modus).
+- Dann Schritt 4 erst beginnen, wenn GameController/EventBus-Design abgestimmt ist.
+- KPI-Labels + Locked-Toast als Mini-Fix in Schritt 4 mitnehmen.
+
+---
+
 ## 2026-06-02 (11) - Claude Code (Review: CityMap Vertical Slice gegen UX-Spec)
 
 Gelesen: CityMapBootstrap, CityMapView, CityMapHotspot(State), CityMapCameraController,

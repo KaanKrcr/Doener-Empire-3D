@@ -9,12 +9,12 @@ Unity Management-/Progression-Spiel mit Premium 2.5D/3D City Map.
 Arcade Cooking ist verworfen (`docs/UNITY_MVP_ARCADE_PLAN.md` = DEPRECATED).
 
 ## Claude Code (Planner/Reviewer)
-State: review done (2026-06-02, #11)
+State: review done (2026-06-02, #12)
 Done:
 - Scope-Review: Richtung = Management-Spiel bestaetigt; Arcade-Plan deprecated.
 - `docs/UNITY_CITY_MAP_UX.md` erstellt.
 - Verifizierter C#-Logik-Port auf 86 gruene Tests.
-- Review Codex CityMap Vertical Slice Schritte 1-3: BESTANDEN (HANDOFF_LOG #5 + #11).
+- Review Codex CityMap Vertical Slice Schritte 1-3: BESTANDEN (HANDOFF_LOG #5, #11, #12).
   Alle vorherigen Flags (Kamerawinkel, xBounds) behoben; verbleibende Non-Blocker
   fuer Schritt 4: KPI-Labels (RUF/DRUCK statt MARKTANTEIL/PROGNOSE), Locked-Toast
   fehlt, kein Fokus-Tween, IMGUI statt UI Toolkit (erwartet Schritt 7).
