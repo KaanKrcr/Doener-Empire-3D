@@ -1,5 +1,340 @@
 # HANDOFF_LOG
 
+## 2026-06-02 (10) - Codex (CityMap Vertical Slice 1-3 current verification)
+
+Arbeitsverzeichnis: NUR `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/CURRENT_DECISION.md`
+- `.agent-control/MASTER_PLAN.md`
+- `.agent-control/CODEX_TASK.md`
+- `.agent-control/REVIEW_CHECKLIST.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `docs/UNITY_CITY_MAP_UX.md`
+- `docs/UI_STYLE_GUIDE.md`
+- `docs/DOENER_EMPIRE_3D_REDESIGN.md`
+- `docs/MVP_3D_CITY_MAP.md`
+
+Erledigt:
+- Angeforderten Scope `docs/UNITY_CITY_MAP_UX.md` Section 10 Schritte 1-3
+  gegen den aktuellen lokalen Stand geprueft.
+- Bestaetigt: `unity/Assets/Scenes/CityMap.unity`, `CityMapBootstrap`,
+  orthografische Iso-Kamera mit Pan/Zoom, selektierbare Hotspots `owned`,
+  `available`, `locked`, `competitor`, und read-only `LocationSheet` gegen
+  Dummy/current `GameState` sind vorhanden.
+- Keine zusaetzlichen CityMap-Code-Aenderungen noetig.
+- Keine SaveService-, GameEngine-, Buy-/Upgrade-/Simulate-Day- oder
+  Arcade/Serving-Systeme hinzugefuegt.
+
+Validation:
+- `cd unity-logic-tests; dotnet test .\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+  -> 86 bestanden, 0 Fehler.
+- `$env:FLUTTER_SUPPRESS_ANALYTICS='true'; flutter analyze`
+  -> No issues found.
+- `git diff --check`
+  -> clean, nur Git-LF/CRLF-Warnungen.
+- Scope-Scan fuer `SaveService`, `GameEngine`, `BuyDialog`, `Upgrade`,
+  `Simulate`, `EndDay`, `CustomerSpawner`, `CustomerController`,
+  `ProductionStation`, `ServeInteraction`, `GameTimer`, `arcade cooking`,
+  `real-time customer`, `manual cooking` in CityMap-Praesentationsdateien
+  -> keine Treffer.
+
+Hinweise:
+- Unity Editor wurde nicht ausgefuehrt; Szene wird ueber `RuntimeInitialize`
+  beim Laden von `CityMap` aufgebaut.
+- `.agent-control/runner/` bleibt untracked und wurde nicht angefasst.
+
+Naechster kleinster Schritt:
+- CityMap in Unity visuell pruefen.
+- Danach Section 10 Schritt 4 (BuyDialog/echte State-Mutation) erst beginnen,
+  wenn GameController/EventBus-Anbindung abgestimmt ist.
+
+---
+
+## 2026-06-02 (9) - Codex (CityMap Vertical Slice 1-3 implementation check)
+
+Arbeitsverzeichnis: NUR `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/CURRENT_DECISION.md`
+- `.agent-control/MASTER_PLAN.md`
+- `.agent-control/CODEX_TASK.md`
+- `.agent-control/REVIEW_CHECKLIST.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `docs/UNITY_CITY_MAP_UX.md`
+- `docs/UI_STYLE_GUIDE.md`
+- `docs/DOENER_EMPIRE_3D_REDESIGN.md`
+- `docs/MVP_3D_CITY_MAP.md`
+
+Erledigt:
+- Angeforderten Scope `docs/UNITY_CITY_MAP_UX.md` Section 10 Schritte 1-3
+  gegen den aktuellen lokalen Stand geprueft.
+- Bestaetigt: `unity/Assets/Scenes/CityMap.unity`, Runtime-Bootstrap,
+  isometrische Kamera mit Pan/Zoom, selektierbare Hotspots `owned`,
+  `available`, `locked`, `competitor`, und read-only `LocationSheet` gegen
+  Dummy/current `GameState` sind vorhanden.
+- Keine zusaetzlichen CityMap-Code-Aenderungen noetig.
+- Keine SaveService-, GameEngine-, Buy-/Upgrade-/Simulate-Day- oder
+  Arcade/Serving-Systeme hinzugefuegt.
+
+Validation:
+- `cd unity-logic-tests; dotnet test .\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+  -> 86 bestanden, 0 Fehler.
+- `$env:FLUTTER_SUPPRESS_ANALYTICS='true'; flutter analyze`
+  -> No issues found.
+- `git diff --check`
+  -> clean, nur Git-LF/CRLF-Warnungen.
+- Scope-Scan fuer `SaveService`, `GameEngine`, `BuyDialog`, `Upgrade`,
+  `Simulate`, `EndDay`, `CustomerSpawner`, `CustomerController`,
+  `ProductionStation`, `ServeInteraction`, `GameTimer`, `arcade cooking`,
+  `real-time customer`, `manual cooking` in CityMap-Praesentationsdateien
+  -> keine Treffer.
+
+Hinweise:
+- Unity Editor wurde nicht ausgefuehrt; Szene wird ueber `RuntimeInitialize`
+  beim Laden von `CityMap` aufgebaut.
+- `.agent-control/runner/` bleibt untracked und wurde nicht angefasst.
+
+Naechster kleinster Schritt:
+- CityMap in Unity visuell pruefen.
+- Danach Section 10 Schritt 4 (BuyDialog/echte State-Mutation) erst beginnen,
+  wenn GameController/EventBus-Anbindung abgestimmt ist.
+
+---
+
+## 2026-06-02 (8) - Codex (CityMap Vertical Slice 1-3 final scope check)
+
+Arbeitsverzeichnis: NUR `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/CURRENT_DECISION.md`
+- `.agent-control/MASTER_PLAN.md`
+- `.agent-control/CODEX_TASK.md`
+- `.agent-control/REVIEW_CHECKLIST.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `docs/UNITY_CITY_MAP_UX.md`
+- `docs/UI_STYLE_GUIDE.md`
+- `docs/DOENER_EMPIRE_3D_REDESIGN.md`
+- `docs/MVP_3D_CITY_MAP.md`
+
+Erledigt:
+- Angeforderten Scope `docs/UNITY_CITY_MAP_UX.md` Section 10 Schritte 1-3
+  erneut gegen den lokalen Stand geprueft.
+- Bestaetigt: `CityMap.unity`, `CityMapBootstrap`, isometrische Kamera mit
+  Pan/Zoom, selektierbare Hotspots `owned`/`available`/`locked`/`competitor`
+  und read-only `LocationSheet` gegen Dummy/current `GameState` sind vorhanden.
+- Keine zusaetzlichen Code-Aenderungen noetig.
+- Keine SaveService-, GameEngine-, Buy-/Upgrade-/Simulate-Day- oder
+  Arcade/Serving-Systeme hinzugefuegt.
+
+Validation:
+- `cd unity-logic-tests; dotnet test .\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+  -> 86 bestanden, 0 Fehler.
+- `$env:FLUTTER_SUPPRESS_ANALYTICS='true'; flutter analyze`
+  -> No issues found.
+- `git diff --check`
+  -> clean, nur Git-LF/CRLF-Warnungen.
+- Scope-Scan fuer `SaveService`, `GameEngine`, `BuyDialog`, `Upgrade`,
+  `Simulate`, `EndDay`, `CustomerSpawner`, `CustomerController`,
+  `ProductionStation`, `ServeInteraction`, `GameTimer`, `arcade cooking`,
+  `real-time customer`, `manual cooking` in CityMap-Praesentationsdateien
+  -> keine Treffer.
+
+Hinweise:
+- Unity Editor wurde nicht ausgefuehrt; Szene wird ueber `RuntimeInitialize`
+  beim Laden von `CityMap` aufgebaut.
+- `.agent-control/runner/` bleibt untracked und wurde nicht angefasst.
+
+Naechster kleinster Schritt:
+- CityMap in Unity visuell pruefen.
+- Danach Section 10 Schritt 4 (BuyDialog/echte State-Mutation) erst beginnen,
+  wenn GameController/EventBus-Anbindung abgestimmt ist.
+
+---
+
+## 2026-06-02 (7) - Codex (CityMap Vertical Slice 1-3 revalidation)
+
+Arbeitsverzeichnis: NUR `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/CURRENT_DECISION.md`
+- `.agent-control/MASTER_PLAN.md`
+- `.agent-control/CODEX_TASK.md`
+- `.agent-control/REVIEW_CHECKLIST.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `docs/UNITY_CITY_MAP_UX.md`
+- `docs/UI_STYLE_GUIDE.md`
+- `docs/DOENER_EMPIRE_3D_REDESIGN.md`
+- `docs/MVP_3D_CITY_MAP.md`
+
+Erledigt:
+- Angeforderten Scope `docs/UNITY_CITY_MAP_UX.md` Section 10 Schritte 1-3
+  gegen den aktuellen lokalen Stand verifiziert.
+- Bestaetigt: `CityMap.unity`, `CityMapBootstrap`, isometrische Kamera mit
+  Pan/Zoom, Hotspots `owned`/`available`/`locked`/`competitor`, Selektion und
+  read-only `LocationSheet` gegen Dummy/current `GameState` sind vorhanden.
+- Keine zusaetzlichen Code-Aenderungen noetig.
+- Keine SaveService-, GameEngine-, Buy-/Upgrade-/Simulate-Day- oder
+  Arcade/Serving-Systeme hinzugefuegt.
+
+Validation:
+- `cd unity-logic-tests; dotnet test .\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+  -> 86 bestanden, 0 Fehler.
+- `$env:FLUTTER_SUPPRESS_ANALYTICS='true'; flutter analyze`
+  -> No issues found.
+- Scope-Scan fuer `SaveService`, `GameEngine`, `BuyDialog`, `Upgrade`,
+  `Simulate`, `EndDay`, `CustomerSpawner`, `CustomerController`,
+  `ProductionStation`, `ServeInteraction`, `GameTimer`, `arcade cooking`,
+  `real-time customer`, `manual cooking` in CityMap-Praesentationsdateien
+  -> keine Treffer.
+
+Hinweise:
+- Unity Editor wurde nicht ausgefuehrt; Szene wird ueber `RuntimeInitialize`
+  beim Laden von `CityMap` aufgebaut.
+- `.agent-control/runner/` bleibt untracked und wurde nicht angefasst.
+
+Naechster kleinster Schritt:
+- CityMap in Unity visuell pruefen.
+- Danach Section 10 Schritt 4 (BuyDialog/echte State-Mutation) erst beginnen,
+  wenn GameController/EventBus-Anbindung abgestimmt ist.
+
+---
+
+## 2026-06-02 (6) - Codex (CityMap Vertical Slice 1-3 validation)
+
+Arbeitsverzeichnis: NUR `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/CURRENT_DECISION.md`
+- `.agent-control/MASTER_PLAN.md`
+- `.agent-control/CODEX_TASK.md`
+- `.agent-control/REVIEW_CHECKLIST.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `docs/UNITY_CITY_MAP_UX.md`
+- `docs/UI_STYLE_GUIDE.md`
+- `docs/DOENER_EMPIRE_3D_REDESIGN.md`
+- `docs/MVP_3D_CITY_MAP.md`
+
+Erledigt:
+- Bestehenden CityMap-Vertical-Slice fuer Scope 1-3 geprueft.
+- `CityMapBootstrap` ist bereits auf Spec-Kamera Euler(30, 45, 0) ausgerichtet.
+- `CityMapCameraController.xBounds` ist bereits auf [-6, 6] erweitert.
+- `unity/Assets/Scripts/UI/LocationSheetView.cs` korrigiert:
+  `Initialize` akzeptiert jetzt den aktuellen `GameState`; HUD nutzt
+  Company/Cash/Tag aus dem Dummy/current State.
+- Keine SaveService-, GameEngine-, Buy-/Upgrade-/Simulate-Day- oder
+  Arcade/Serving-Systeme hinzugefuegt.
+
+Validation:
+- `cd unity-logic-tests; dotnet test .\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+  -> 86 bestanden, 0 Fehler.
+- `$env:FLUTTER_SUPPRESS_ANALYTICS='true'; flutter analyze`
+  -> No issues found.
+- `git diff --check` -> clean, nur LF/CRLF-Warnungen fuer STATUS/HANDOFF_LOG,
+  `open_shop_screen.dart` und Flutter-Windows-Generated-Dateien.
+- Scope-Scan fuer `SaveService`, `GameEngine`, `BuyDialog`, `Upgrade`,
+  `Simulate`, `EndDay`, `CustomerSpawner`, `CustomerController`,
+  `ProductionStation`, `ServeInteraction`, `GameTimer`, `arcade cooking`,
+  `real-time customer`, `manual cooking` in CityMap-Praesentationsdateien
+  -> keine Treffer.
+
+Hinweise:
+- Unity Editor wurde nicht ausgefuehrt; Szene wird ueber `RuntimeInitialize`
+  beim Laden von `CityMap` aufgebaut.
+- `.agent-control/runner/` bleibt untracked und wurde nicht angefasst.
+
+Naechster kleinster Schritt:
+- CityMap in Unity visuell pruefen.
+- Danach Section 10 Schritt 4 (BuyDialog/echte State-Mutation) erst beginnen,
+  wenn GameController/EventBus-Anbindung abgestimmt ist.
+
+---
+
+## 2026-06-02 (5) — Claude Code (Review: CityMap Vertical Slice 1-4)
+
+Gelesen: CityMapBootstrap, CityMapView, CityMapHotspot(State), CityMapCameraController,
+CityMapSelection, LocationSheetView, docs/UNITY_CITY_MAP_UX.md, REVIEW_CHECKLIST.md.
+
+### Ergebnis: BESTANDEN — keine Blocker
+
+Direction alle gruen: Management-Spiel erhalten, kein Arcade/Echtzeit-Serving, 4
+Hotspot-Zustaende klar unterscheidbar, LocationSheet zeigt zustandsabhaengige Inhalte,
+Buttons korrekt deaktiviert mit GameController-Hinweis, Diff klein, 86 Tests gruen.
+
+Flags (keine Blocker, fuer spaetere Schritte):
+
+1. Kamerawinkel: Bootstrap setzt Euler(58, 0, 0) statt Spec ~(30, 45, 0). Vor
+   Schritt 4 anpassen; Euler(30f, 45f, 0f) plus Kameraposition auf z neu ausrichten.
+
+2. xBounds zu eng: [-3.5, 3.5] schneidet Hotspots bei x=-4.4 (Bahnhof) und x=4.5
+   (Konkurrenz) ab. xBounds auf ca. [-6, 6] erweitern.
+
+3. KPI-Labels weichen von Spec ab: Owned zeigt RUF/DRUCK statt MARKTANTEIL/PROGNOSE
+   (Spec §3.1); Available zeigt DRUCK statt KONKURRENZ (Spec §3.2). Korrektur mit
+   GameController-Bindung in Schritt 4.
+
+4. GameState-Parameter in CityMapView.Initialize unbenutzt: state wird durchgereicht
+   aber Hotspots nutzen Dummy-Objekte. Erwartet; echte Bindung folgt in Schritt 4.
+
+5. IMGUI statt UI Toolkit: Spec §1 verlangt UI Toolkit fuer alle UI-Overlays. IMGUI
+   ist akzeptabel als Prototyp; Migration als Schritt 7 (Premium-Polish) planen.
+
+Naechste Schritte:
+- Codex: Kamerawinkel (30/45) + xBounds als Mini-Fix, dann Schritt 4 (BuyDialog +
+  GameController-Stub) wenn EventBus-Design abgestimmt.
+- Claude Code: SaveService -> GameEngine-Tagessim fortfuehren.
+
+---
+
+## 2026-06-02 (3) - Codex (CityMap Vertical Slice 1-3)
+Arbeitsverzeichnis: NUR `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+Vorher durch User/Agent ausgefuehrt: `git fetch`, `git checkout main`,
+`git pull --ff-only` (main war up to date).
+
+Gelesen:
+- `.agent-control/STATUS.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `docs/UNITY_CITY_MAP_UX.md`
+- `docs/UI_STYLE_GUIDE.md`
+- `docs/DOENER_EMPIRE_3D_REDESIGN.md`
+- `docs/MVP_3D_CITY_MAP.md`
+
+Erledigt:
+- `unity/Assets/Scenes/CityMap.unity` angelegt.
+- Runtime-Setup `unity/Assets/Scripts/App/CityMapBootstrap.cs` angelegt:
+  bootstrapped die CityMap-Szene gegen Dummy/current `GameState`.
+- `unity/Assets/Scripts/View3D/CityMapCameraController.cs`:
+  orthografische Iso-Kamera mit Mouse-/Touch-Pan und Zoom.
+- `unity/Assets/Scripts/View3D/CityMapView.cs` + Hotspot-Klassen:
+  primitive Premium-Map mit unterscheidbaren Zustaenden `owned`, `available`,
+  `locked`, `competitor`; Tap selektiert Hotspot.
+- `unity/Assets/Scripts/UI/LocationSheetView.cs`:
+  read-only Bottom-Sheet mit Status, Traffic, Miete/Kaution/Ruf/Druck und
+  operativem Hinweis. Keine aktiven Buy-/Upgrade-/Simulate-Day-Aktionen.
+
+Validation:
+- `cd unity-logic-tests; dotnet test .\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+  -> 86 bestanden, 0 Fehler.
+- `git diff --check` -> clean.
+- Scope-Scan fuer `CustomerSpawner`, `CustomerController`, `ProductionStation`,
+  `ServeInteraction`, `GameTimer`, `arcade cooking`, `real-time customer`,
+  `manual cooking` -> keine Treffer in neuen Praesentationsdateien.
+
+Hinweise:
+- `.agent-control/runner/runner-lite.ps1` war bereits untracked und wurde nicht
+  angefasst.
+- Unity Editor wurde nicht ausgefuehrt; Szene wird ueber `RuntimeInitialize`
+  beim Laden von `CityMap` aufgebaut.
+
+Naechster kleinster Schritt:
+- In Unity oeffnen und visuell pruefen; danach ggf. Map-Legende/Labels oder
+  GameController/EventBus fuer echte Intents planen.
+
 ## Initial
 Agent-Control Workflow wurde angelegt.
 
@@ -54,3 +389,47 @@ Exakter nächster Schritt (Claude Code):
 - Danach GameEngine-Tagessimulation (calculateShopStats/Kapazität/Tagesabschluss)
   mit Tests gegen die Flutter-Erwartungswerte.
 - Codex parallel: UNITY_CITY_MAP_UX.md §10 Schritte 1–3 (UI/Map gegen Dummy-State).
+## 2026-06-02 (4) - Codex (CityMap UX pass)
+Arbeitsverzeichnis: NUR `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/STATUS.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `docs/UNITY_CITY_MAP_UX.md`
+- `docs/UI_STYLE_GUIDE.md`
+- `docs/DOENER_EMPIRE_3D_REDESIGN.md`
+- `docs/MVP_3D_CITY_MAP.md`
+
+Erledigt:
+- Vorhandenen CityMap-Vertical-Slice geprueft und klein korrigiert.
+- `unity/Assets/Scripts/View3D/CityMapView.cs`: Bootstrap-`GameState` wird fuer
+  owned/competitor Hotspots verwendet, statt die Daten ungenutzt zu lassen.
+- `unity/Assets/Scripts/View3D/CityMapHotspot.cs`: Auswahl-Skalierung bewahrt die
+  urspruengliche Markerform/-groesse.
+- `lib/ui/screens/open_shop_screen.dart`: fehlenden Import fuer die bestehende
+  `LocationPersonality`-Extension ergaenzt, damit `flutter analyze` wieder gruen ist.
+- Keine SaveService-, GameEngine-, Buy-/Upgrade-/EndDay- oder Arcade/Serving-
+  Implementierung ergaenzt.
+
+Validation:
+- `cd unity-logic-tests; dotnet test .\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+  -> 86 bestanden, 0 Fehler.
+- `$env:FLUTTER_SUPPRESS_ANALYTICS='true'; flutter analyze`
+  -> No issues found.
+- `git diff --check` -> clean, nur LF/CRLF-Warnungen fuer STATUS/HANDOFF_LOG,
+  `open_shop_screen.dart` und Flutter-Windows-Generated-Dateien.
+- Scope-Scan fuer `SaveService`, `GameEngine`, `CustomerSpawner`,
+  `CustomerController`, `ProductionStation`, `ServeInteraction`, `GameTimer`,
+  `arcade cooking`, `real-time customer`, `manual cooking` in neuen
+  Praesentationsdateien -> keine Treffer.
+
+Hinweise:
+- `.agent-control/runner/` und `.claude/` sind untracked und wurden nicht angefasst.
+- `windows/flutter/generated_plugin_registrant.*` und `generated_plugins.cmake`
+  zeigen nach Flutter-Tooling als modified, haben aber keinen Content-Diff.
+- Unity Editor wurde nicht ausgefuehrt; Szene wird weiterhin ueber
+  `RuntimeInitialize` beim Laden von `CityMap` aufgebaut.
+
+Naechster kleinster Schritt:
+- Unity visuell oeffnen/pruefen; danach erst Section 10 Schritt 4+ planen, wenn
+  GameController/EventBus-Intent-Anbindung abgestimmt ist.
