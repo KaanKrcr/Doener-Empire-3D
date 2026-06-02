@@ -28,8 +28,10 @@ Next:
   Available: KONKURRENZ); Locked-Tap auf Toast-only umstellen.
 
 ## Codex (Implementation)
-State: complete - review queue empty, validation green (2026-06-02)
+State: complete - review queue empty, validation green (2026-06-02, current run)
 Done:
+- Current Codex run: `REVIEW_QUEUE.md` is `Status: empty`; no open Claude
+  review items were present, so no review fixes were implemented.
 - Current Codex run: `REVIEW_QUEUE.md` was already `Status: empty`; no open
   Claude review items were present to implement.
 - Restored the missing `LocationPersonality` extension import in
@@ -113,3 +115,10 @@ Next:
     -> No issues found.
   - `git diff --check`
     -> clean, nur Git-LF/CRLF-Warnungen fuer Flutter-Windows-Generated-Dateien.
+- Validation 2026-06-02 (current review queue empty run):
+  - `dotnet test .\unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+    -> 86 bestanden, 0 Fehler.
+  - `$env:FLUTTER_SUPPRESS_ANALYTICS='true'; flutter analyze`
+    -> No issues found.
+  - `git diff --check`
+    -> clean.
