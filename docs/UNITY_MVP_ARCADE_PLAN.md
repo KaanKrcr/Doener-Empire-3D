@@ -1,5 +1,11 @@
 # UNITY_MVP_ARCADE_PLAN — „Döner Rush" (3D-Arcade-Prototyp)
 
+> ⛔ **VERWORFEN / DEPRECATED (2026-06-01).** Diese Arcade-Cooking-Richtung
+> (Echtzeit-Kundenbedienung) wurde vom Owner verworfen. Döner Empire bleibt ein
+> **Management-/Progression-Spiel**. Maßgeblich ist stattdessen:
+> [UNITY_PRODUCT_VISION.md](UNITY_PRODUCT_VISION.md) + [UNITY_REWRITE_PLAN.md](UNITY_REWRITE_PLAN.md).
+> Dieses Dokument bleibt nur als Historie erhalten — **nicht umsetzen.**
+
 Stand: 2026-06-01
 Autor-Rolle: Senior Unity Engineer
 Engine: Unity 6 LTS (URP, 3D), Desktop/Editor zuerst, mobile-tauglich gedacht.
