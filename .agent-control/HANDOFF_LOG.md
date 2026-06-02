@@ -1,5 +1,55 @@
 # HANDOFF_LOG
 
+## 2026-06-02 (11) - Claude Code (Review: CityMap Vertical Slice gegen UX-Spec)
+
+Gelesen: CityMapBootstrap, CityMapView, CityMapHotspot(State), CityMapCameraController,
+CityMapSelection, LocationSheetView, GameState, docs/UNITY_CITY_MAP_UX.md,
+REVIEW_CHECKLIST.md, STATUS.md, HANDOFF_LOG.
+
+### Ergebnis: BESTANDEN — bereit fuer Unity-Editor-Test
+
+**REVIEW_CHECKLIST:**
+- [x] Management-/Progression-Spiel erhalten
+- [x] Kein Arcade Cooking
+- [x] Keine Echtzeit-Kundenbedienung
+- [x] City Map / Standortauswahl ist Hauptbühne
+- [x] Locked / available / owned / competitor klar unterscheidbar
+- [x] Buy / upgrade / simulate deaktiviert mit klarem Platzhalter-Hinweis
+- [x] UI hat themed Premium-Farben (Background/Surface/Cream/Sand/Orange)
+- [x] Kleiner Diff, kein unnötiger Rewrite
+- [x] 86 Tests grün, flutter analyze clean
+
+**Vorherige Flags behoben:**
+1. Kamerawinkel: Bootstrap nutzt Euler(30f, 45f, 0f) — Spec-konform. ✓
+2. xBounds: CityMapCameraController.xBounds = [-6, 6] — ausreichend fuer alle Hotspots. ✓
+
+**Verbleibende Non-Blocker (fuer Schritt 4 beheben):**
+1. KPI-Labels Owned: zeigt RUF (Metric 1) / DRUCK (Metric 4) statt MARKTANTEIL / PROGNOSE
+   (Spec §3.1). Korrektur natuerlich mit GameController-Bindung in Schritt 4.
+2. KPI-Labels Available: Metric 4 = DRUCK statt KONKURRENZ (Spec §3.2). Gleicher Fix.
+3. Locked-Tap oeffnet LocationSheet mit "GESPERRT"-Button. Spec sagt Toast-only.
+   Akzeptabel fuer Prototyp; in Schritt 4 auf Toast umstellen.
+4. Mouse-Pan auf rechter Maustaste (GetMouseButtonDown(1)); linke Maustaste ist
+   Hotspot-Selektion. Fuer Editor-Test nutzbar; vor Mobile-Build ueberpruefen.
+5. Kein Fokus-Tween bei Hotspot-Tap. Spec sagt "sanfter Fokus-Tween" (optional).
+   Non-Blocker fuer Steps 1-3.
+6. IMGUI statt UI Toolkit. Erwartet; Migration Schritt 7.
+
+**Editor-Test-Bereitschaft:**
+- Bootstrap auto-fires via RuntimeInitializeOnLoadMethod(AfterSceneLoad); Scene
+  braucht keine manuellen Objekte. Einfach CityMap.unity in Unity oeffnen und Play.
+- Kamera: 30/45 Iso, orthografisch, Scroll-Zoom + Rechtsklick-Pan.
+- 5 Hotspots sichtbar: 1 owned (orange Cube), 2 available (cream Cylinder),
+  1 locked (dunkel Cylinder), 1 competitor (rot Cylinder).
+- LocationSheet + HUD via IMGUI.
+
+Naechster kleinster Schritt:
+- Unity Editor visuell pruefen (Play-Modus).
+- Dann Schritt 4 erst beginnen, wenn GameController/EventBus-Design abgestimmt ist.
+- KPI-Labels + Locked-Toast als Mini-Fix in Schritt 4 mitnehmen.
+
+---
+
 ## 2026-06-02 (10) - Codex (CityMap Vertical Slice 1-3 current verification)
 
 Arbeitsverzeichnis: NUR `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.

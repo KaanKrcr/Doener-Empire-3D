@@ -9,18 +9,23 @@ Unity Management-/Progression-Spiel mit Premium 2.5D/3D City Map.
 Arcade Cooking ist verworfen (`docs/UNITY_MVP_ARCADE_PLAN.md` = DEPRECATED).
 
 ## Claude Code (Planner/Reviewer)
-State: review done (2026-06-02)
+State: review done (2026-06-02, #11)
 Done:
 - Scope-Review: Richtung = Management-Spiel bestaetigt; Arcade-Plan deprecated.
 - `docs/UNITY_CITY_MAP_UX.md` erstellt.
 - Verifizierter C#-Logik-Port auf 86 gruene Tests.
-- Review Codex CityMap Vertical Slice Schritte 1-3: BESTANDEN.
-  Befunde (Flags, keine Blocker) in HANDOFF_LOG 2026-06-02 (4).
+- Review Codex CityMap Vertical Slice Schritte 1-3: BESTANDEN (HANDOFF_LOG #5 + #11).
+  Alle vorherigen Flags (Kamerawinkel, xBounds) behoben; verbleibende Non-Blocker
+  fuer Schritt 4: KPI-Labels (RUF/DRUCK statt MARKTANTEIL/PROGNOSE), Locked-Toast
+  fehlt, kein Fokus-Tween, IMGUI statt UI Toolkit (erwartet Schritt 7).
+- Bereit fuer Unity-Editor-Test: Bootstrap auto-fires, keine manuellen Scene-Objekte.
 Next:
 - Codex: Schritte 4-5 (BuyDialog, RestaurantDetail Sortiment/Ausbau) erst
   umsetzen, wenn GameController/EventBus abgestimmt ist.
 - Claude Code: SaveService (JSON-Roundtrip, Dart-kompatibel) -> GameEngine-Tagessim.
 - UI-Toolkit-Migration (IMGUI ersetzen) geplant fuer Schritt 7 (Premium-Polish).
+- Vor Schritt 4: KPI-Labels korrigieren (Owned: MARKTANTEIL/PROGNOSE;
+  Available: KONKURRENZ); Locked-Tap auf Toast-only umstellen.
 
 ## Codex (Implementation)
 State: complete - steps 1-3 verified again (2026-06-02)
