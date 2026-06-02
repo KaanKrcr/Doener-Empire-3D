@@ -28,8 +28,12 @@ Next:
   Available: KONKURRENZ); Locked-Tap auf Toast-only umstellen.
 
 ## Codex (Implementation)
-State: complete - steps 1-3 verified again (2026-06-02)
+State: complete - review queue empty, validation green (2026-06-02)
 Done:
+- Current Codex run: `REVIEW_QUEUE.md` was already `Status: empty`; no open
+  Claude review items were present to implement.
+- Restored the missing `LocationPersonality` extension import in
+  `lib/ui/screens/open_shop_screen.dart` so the requested validation passes.
 - `docs/UNITY_CITY_MAP_UX.md` Section 10 Schritte 1-3 umgesetzt:
   `unity/Assets/Scenes/CityMap.unity`, Runtime-Bootstrap, isometrische Kamera
   mit Pan/Zoom, statische Hotspots mit `owned`, `available`, `locked`,
@@ -102,3 +106,10 @@ Next:
   - Scope-Scan fuer SaveService/GameEngine/Buy/Upgrade/Simulate-Day sowie
     Arcade-Cooking/Echtzeit-Serving in CityMap-Praesentationsdateien
     -> keine Treffer.
+- Validation 2026-06-02 (review queue empty run):
+  - `dotnet test .\unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+    -> 86 bestanden, 0 Fehler.
+  - `$env:FLUTTER_SUPPRESS_ANALYTICS='true'; flutter analyze`
+    -> No issues found.
+  - `git diff --check`
+    -> clean, nur Git-LF/CRLF-Warnungen fuer Flutter-Windows-Generated-Dateien.

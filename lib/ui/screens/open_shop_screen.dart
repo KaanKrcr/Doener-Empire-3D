@@ -7,6 +7,7 @@ import '../../core/theme.dart';
 import '../../core/constants.dart';
 import '../../models/city_model.dart';
 import '../../models/shop_model.dart';
+import '../../models/time_profile_model.dart';
 import '../../providers/game_provider.dart';
 import '../main_scaffold.dart';
 

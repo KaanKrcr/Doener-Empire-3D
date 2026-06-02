@@ -1,5 +1,46 @@
 # HANDOFF_LOG
 
+## 2026-06-02 (13) - Codex (Review queue empty + validation repair)
+
+Arbeitsverzeichnis: NUR `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Vorher ausgefuehrt:
+- `git fetch`
+- `git checkout main`
+- `git pull --ff-only` -> already up to date
+
+Gelesen:
+- `.agent-control/CURRENT_DECISION.md`
+- `.agent-control/MASTER_PLAN.md`
+- `.agent-control/CODEX_TASK.md`
+- `.agent-control/REVIEW_CHECKLIST.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `.agent-control/REVIEW_QUEUE.md`
+
+Ergebnis:
+- `REVIEW_QUEUE.md` war bereits `Status: empty`; keine offenen Claude-Review-Fixes
+  vorhanden.
+- Keine Arcade-Cooking-, Echtzeit-Serving-, Buy-/Upgrade- oder Day-Sim-Features
+  implementiert.
+- Kleine Validation-Reparatur: `lib/ui/screens/open_shop_screen.dart` importiert
+  wieder `time_profile_model.dart`, damit die bestehenden `LocationPersonality`
+  Extension-Getter (`emoji`, `label`, `description`) fuer `flutter analyze`
+  sichtbar sind.
+- `REVIEW_QUEUE.md` bleibt `Status: empty`.
+
+Validation:
+- `dotnet test .\unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+  -> 86 bestanden, 0 Fehler.
+- `$env:FLUTTER_SUPPRESS_ANALYTICS='true'; flutter analyze`
+  -> No issues found.
+- `git diff --check`
+  -> clean, nur Git-LF/CRLF-Warnungen fuer Flutter-Windows-Generated-Dateien.
+
+Naechster kleinster Schritt:
+- Falls Claude neue konkrete Review Items schreibt: nur diese aus
+  `REVIEW_QUEUE.md` implementieren.
+
 ## 2026-06-02 (12) - Claude Code (Review: CityMap Vertical Slice gegen UX-Spec, frischer Code-Read)
 
 Gelesen: CityMapBootstrap, CityMapView, CityMapHotspot(State), CityMapCameraController,
