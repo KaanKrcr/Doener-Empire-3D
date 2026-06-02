@@ -35,10 +35,19 @@ Assets/Scripts/UI           UI-Toolkit-Screens (Premium-Theme)
 Assets/Scripts/App          Bootstrapping & Flow
 ```
 
-## Bereits angelegt (M1-Start)
-- `Assets/Scripts/Core/Enums.cs`
-- `Assets/Scripts/Models/DifficultyModel.cs`
-- `Assets/Scripts/Data/GameData.cs` (Städte + Produkte)
+## Portiert & verifiziert (M1 Daten-Layer — 45 Tests grün)
+- `Assets/Scripts/Core/Enums.cs` — alle Enums + Dart-Name-Save-Mapping
+- `Assets/Scripts/Models/DifficultyModel.cs` — Schwierigkeits-Modifikatoren
+- `Assets/Scripts/Models/Competitor.cs` — KI-Konkurrenz + RNG-Factory
+- `Assets/Scripts/Models/ShopSizeTier.cs` — Filialgrößen + Cap-/Ausbau-Logik
+- `Assets/Scripts/Data/GameData.cs` — Städte (13) + Produkte (8)
+- `Assets/Scripts/Data/GameCatalog.cs` — Mitarbeiter, Equipment, Standort-Templates
+
+Verifikation: `cd unity-logic-tests; dotnet test` → 45 xUnit-Tests grün.
+
+## Als Nächstes (M2)
+- Stateful-Modelle: ShopProduct, ShopEquipment, Employee, Shop, GameState
+- Save/Load (JSON-kompatibel zu Flutter), danach M3: GameEngine-Tagessimulation
 
 ## Wichtig: Save-Kompatibilität
 JSON-Feldnamen und Enum-String-Werte **exakt wie in Flutter** halten
