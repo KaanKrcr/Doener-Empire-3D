@@ -34,3 +34,23 @@ Hinweis: Es existieren mehrere lokale Klone des Repos
 (C:\Users\Kaan\Doener-Empire-3D und C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D).
 Kanonisch ist dieser (Documents\GitHub) mit .agent-control. Vor Arbeit immer
 `git fetch` + auf origin/main syncen, um Divergenz zu vermeiden.
+
+## 2026-06-02 (2) — Claude Code (Port fortgesetzt)
+Arbeitsverzeichnis: NUR C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D.
+Vorher: git fetch + checkout main + pull --ff-only (== origin/main, sauber).
+
+Erledigt:
+- MVP-`GameState` portiert (unity/Assets/Scripts/Models/GameState.cs):
+  Kernfelder + Initial()-Factory (3 Startstädte, Theme klassik) + Helper-Getter
+  (ShopCount/EmployeeCount/CompetitorsIn/HasShopIn/ActiveLoansTotal/Modifiers)
+  + deep Clone. Endgame-Felder (Missions/Stocks/Facilities/HrManager/HrStrategy/
+  Maps) bewusst als TODO zurückgestellt.
+- +7 Tests → `dotnet test` 86 grün. Commit 1346d1a gepusht.
+
+Exakter nächster Schritt (Claude Code):
+- SaveService (JSON) für GameState + Untermodelle, Feldnamen/Enum-Strings EXAKT
+  wie Flutter (Dart enum.name). Roundtrip-Test, idealerweise gegen ein echtes
+  Flutter-Save-Fixture. Optional vorab docs/UNITY_SAVE_COMPAT.md.
+- Danach GameEngine-Tagessimulation (calculateShopStats/Kapazität/Tagesabschluss)
+  mit Tests gegen die Flutter-Erwartungswerte.
+- Codex parallel: UNITY_CITY_MAP_UX.md §10 Schritte 1–3 (UI/Map gegen Dummy-State).

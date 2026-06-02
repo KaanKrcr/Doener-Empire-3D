@@ -14,14 +14,15 @@ Done:
 - Scope-Review: Richtung = Management-Spiel bestätigt; Arcade-Plan deprecated.
 - docs/UNITY_CITY_MAP_UX.md erstellt (Vertical-Slice-UX: Map → Standort →
   Bottom-Sheet → kaufen/upgraden → Tag simulieren → Bericht, nach Referenzbild).
-- Verifizierter C#-Logik-Port (unity/Assets/Scripts/) auf 79 grüne Tests:
+- Verifizierter C#-Logik-Port (unity/Assets/Scripts/) auf 86 grüne Tests:
   Enums, Difficulty, Competitor, ShopSizeTier, GameData, GameCatalog,
   ShopProduct, ShopEquipment, Employee(+Factory), Marketing, Shop, Loan,
-  DailyRecord, BrandStats.
+  DailyRecord, BrandStats, **GameState (MVP-Aggregat)**.
 Next:
 - Review von Codex-Vertical-Slice-Schritten.
+- Port fortsetzen: SaveService (JSON-Roundtrip, Dart-kompatibel) → GameEngine-Tagessim.
+- Endgame-GameState-Felder (Missions/Stocks/Facilities/HrManager) später nachziehen.
 - Bei Bedarf docs/UNITY_SAVE_COMPAT.md schreiben (JSON-Feld-/Enum-Mapping).
-- Port fortsetzen: GameState-Aggregat → SaveService → GameEngine-Tagessim.
 
 ## Codex (Implementation)
 State: ready
@@ -31,5 +32,5 @@ Dummy/aktuellen State). Schritte 4–6 erst nach GameState/GameEngine-Port.
 Kein Arcade. dotnet test grün halten.
 
 ## Last Validation
-unity-logic-tests: `dotnet test` → 79 bestanden, 0 Fehler (net8.0).
-Flutter-Spiellogik unverändert.
+unity-logic-tests: `dotnet test` → 86 bestanden, 0 Fehler (net8.0).
+git diff --check clean. Flutter-Spiellogik unverändert.
