@@ -28,8 +28,10 @@ Next:
   Available: KONKURRENZ); Locked-Tap auf Toast-only umstellen.
 
 ## Codex (Implementation)
-State: complete - review queue empty, validation green (2026-06-03, #45)
+State: complete - review queue empty, validation green (2026-06-03, #46)
 Done:
+- Current Codex run #46: `REVIEW_QUEUE.md` is `Status: empty`; no open Claude
+  review items were present, so no review fixes were implemented.
 - Current Codex run #45: `REVIEW_QUEUE.md` is `Status: empty`; no open Claude
   review items were present, so no review fixes were implemented.
 - Current Codex run #44: `REVIEW_QUEUE.md` is `Status: empty`; no open Claude
@@ -124,6 +126,13 @@ Next:
   GameController/EventBus-Anbindung abgestimmt ist.
 
 ## Last Validation
+- Validation 2026-06-03 (Codex run #46):
+  - `dotnet test .\unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+    -> 86 bestanden, 0 Fehler.
+  - `$env:FLUTTER_SUPPRESS_ANALYTICS='true'; flutter analyze`
+    -> No issues found.
+  - `git diff --check`
+    -> clean.
 - Validation 2026-06-03 (Codex run #45):
   - `dotnet test .\unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
     -> 86 bestanden, 0 Fehler.
