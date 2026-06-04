@@ -1,3 +1,4 @@
+using DoenerEmpire.App;
 using DoenerEmpire.View3D;
 using DoenerEmpire.Models;
 using UnityEngine;
@@ -18,11 +19,17 @@ namespace DoenerEmpire.UI
         private GUIStyle buttonStyle;
         private CityMapHotspot selected;
         private GameState gameState;
+        private GameController controller;
+        private string toastText;
+        private float toastUntil;
 
-        public void Initialize(CityMapSelection selection, GameState state)
+        public void Initialize(GameController gameController)
         {
-            gameState = state;
-            selection.Changed += hotspot => selected = hotspot;
+            controller = gameController;
+            gameState = controller.State;
+            controller.Events.Subscribe<StateSnapshotChangedEvent>(e => gameState = e.State);
+            controller.Events.Subscribe<LocationSelectedEvent>(e => selected = e.Hotspot);
+            controller.Events.Subscribe<ToastRequestedEvent>(ShowToast);
         }
 
         private void OnGUI()
@@ -34,6 +41,8 @@ namespace DoenerEmpire.UI
             {
                 DrawLocationSheet();
             }
+
+            DrawToast();
         }
 
         private void DrawHud()
@@ -65,9 +74,10 @@ namespace DoenerEmpire.UI
 
             GUI.Label(new Rect(sheet.x + 24, sheet.y + 192, sheet.width - 48, 48), RecommendationText(), bodyStyle);
 
-            GUI.enabled = false;
-            GUI.Button(new Rect(sheet.x + 24, sheet.y + sheet.height - 62, sheet.width - 48, 42), ActionText(), buttonStyle);
-            GUI.enabled = true;
+            if (GUI.Button(new Rect(sheet.x + 24, sheet.y + sheet.height - 62, sheet.width - 48, 42), ActionText(), buttonStyle))
+            {
+                RequestPrimaryAction();
+            }
         }
 
         private void DrawMetric(Rect rect, string label, string value)
@@ -104,7 +114,7 @@ namespace DoenerEmpire.UI
             return selected.State switch
             {
                 CityMapHotspotState.Owned => "Aktive Filiale: Reputation und Lage beobachten. Optimieren ist spaeter an GameController gebunden.",
-                CityMapHotspotState.Available => "Freier Standort: Traffic, Miete und Kaution pruefen. Kaufen ist erst mit GameState-Intent aktiv.",
+                CityMapHotspotState.Available => "Freier Standort: Traffic, Miete und Kaution pruefen. Kaufen laeuft als Controller-Intent.",
                 CityMapHotspotState.Locked => "Gesperrte Lage: Erst durch Umsatz oder Stadtfreischaltung verfuegbar.",
                 CityMapHotspotState.Competitor => "Konkurrenzstandort: Preisniveau, Ruf und Marktanteil nur lesen.",
                 _ => string.Empty,
@@ -115,12 +125,54 @@ namespace DoenerEmpire.UI
         {
             return selected.State switch
             {
-                CityMapHotspotState.Owned => "OPTIMIEREN - GameController folgt",
-                CityMapHotspotState.Available => "FILIALE EROEFFNEN - Intent folgt",
+                CityMapHotspotState.Owned => "OPTIMIEREN",
+                CityMapHotspotState.Available => "FILIALE EROEFFNEN",
                 CityMapHotspotState.Locked => "GESPERRT",
                 CityMapHotspotState.Competitor => "KONKURRENZ INFO",
                 _ => "AUSWAHL",
             };
+        }
+
+        private void RequestPrimaryAction()
+        {
+            if (selected == null)
+            {
+                return;
+            }
+
+            switch (selected.State)
+            {
+                case CityMapHotspotState.Owned:
+                    controller.RequestRestaurantDetail(selected);
+                    break;
+                case CityMapHotspotState.Available:
+                    controller.RequestBuyDialog(selected);
+                    break;
+                case CityMapHotspotState.Locked:
+                    controller.SelectLocation(selected);
+                    break;
+                default:
+                    ShowToast(new ToastRequestedEvent("Dieser Standort ist im Vertical Slice nur lesbar."));
+                    break;
+            }
+        }
+
+        private void ShowToast(ToastRequestedEvent toast)
+        {
+            toastText = toast.Message;
+            toastUntil = Time.realtimeSinceStartup + 2.2f;
+        }
+
+        private void DrawToast()
+        {
+            if (string.IsNullOrWhiteSpace(toastText) || Time.realtimeSinceStartup > toastUntil)
+            {
+                return;
+            }
+
+            Rect rect = new(Screen.width * 0.5f - 210, 126, 420, 44);
+            DrawPanel(rect, Background);
+            GUI.Label(new Rect(rect.x + 14, rect.y + 10, rect.width - 28, 24), toastText, bodyStyle);
         }
 
         private string CompanyLabel()

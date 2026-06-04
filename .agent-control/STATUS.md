@@ -28,8 +28,19 @@ Next:
   Available: KONKURRENZ); Locked-Tap auf Toast-only umstellen.
 
 ## Codex (Implementation)
-State: complete - review queue empty, validation green (2026-06-04, #60)
+State: complete - GameController/EventBus contract set, validation green (2026-06-04, #61)
 Done:
+- Current Codex run #61: GameController/EventBus-Vertrag fuer den Unity
+  Vertical Slice festgelegt:
+  - `Core/EventBus.cs` als UnityEngine-freier Publish/Subscribe-Bus.
+  - `App/GameController.cs` als zentrale Intent-Grenze fuer Location-Auswahl,
+    BuyDialog-Anfrage, RestaurantDetail-Anfrage und Toasts.
+  - `CityMapBootstrap` verdrahtet Selection -> GameController -> Events.
+  - `LocationSheetView` hoert auf Controller-Events und feuert nur Intents;
+    keine direkte State-Mutation in der UI.
+  - `EventBusTests.cs` ergaenzt.
+  - Keine Buy-/Upgrade-/Day-Sim-Wirtschaftslogik implementiert; keine
+    Arcade-Cooking- oder Echtzeit-Serving-Systeme hinzugefuegt.
 - Current Codex run #60: `REVIEW_QUEUE.md` is `Status: empty`; no open Claude
   review items were present, so no review fixes were implemented.
 - Current Codex run #59: `REVIEW_QUEUE.md` is `Status: empty`; no open Claude
@@ -154,6 +165,11 @@ Next:
   GameController/EventBus-Anbindung abgestimmt ist.
 
 ## Last Validation
+- Validation 2026-06-04 (Codex run #61):
+  - `git status --short`
+    -> existing worktree now contains the GameController/EventBus contract edits.
+  - `dotnet test .\unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+    -> 88 bestanden, 0 Fehler.
 - Validation 2026-06-04 (Codex run #60):
   - `dotnet test .\unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
     -> 86 bestanden, 0 Fehler.

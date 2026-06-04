@@ -2594,3 +2594,58 @@ Validation:
 Naechster kleinster Schritt:
 - Falls Claude neue konkrete Review Items schreibt: nur diese aus
   `REVIEW_QUEUE.md` implementieren.
+## 2026-06-04 (61) - Codex (GameController/EventBus contract)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/CURRENT_DECISION.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/REVIEW_QUEUE.md`
+- `docs/UNITY_PRODUCT_VISION.md`
+- `docs/UNITY_CITY_MAP_UX.md`
+
+Ergebnis:
+- `Core/EventBus.cs` angelegt: UnityEngine-freier Publish/Subscribe-Bus mit
+  `IDisposable`-Subscription.
+- `App/GameController.cs` angelegt: zentraler Vertrag fuer Presentation-Intents
+  und Events (`LocationSelectedEvent`, `BuyDialogRequestedEvent`,
+  `RestaurantDetailRequestedEvent`, `ToastRequestedEvent`,
+  `StateSnapshotChangedEvent`).
+- `CityMapBootstrap` verdrahtet `CityMapSelection` mit `GameController`.
+- `LocationSheetView` hoert auf Controller-Events und ruft bei Buttons nur
+  Controller-Intents auf.
+- `EventBusTests.cs` ergaenzt.
+- Bewusst nicht implementiert: BuyDialog, RestaurantDetail-Mutation, Upgrade,
+  Preis-Mutation, Day-Sim/GameEngine, SaveService.
+- Keine Arcade-Cooking- oder Echtzeit-Serving-Systeme hinzugefuegt.
+
+Validation:
+- `git status --short`
+  -> Contract-Dateien geaendert/neu, keine fremden Aenderungen gesehen.
+- `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+  -> 88 bestanden, 0 Fehler.
+
+Naechster kleinster Schritt:
+- BuyDialog als Consumer von `BuyDialogRequestedEvent` bauen und State-Mutation
+  ausschliesslich ueber `GameController` ergaenzen.
+
+---
+## 2026-06-04 (a432a0e4) - Codex (Contract revalidation)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Ergebnis:
+- Vorhandenen GameController/EventBus-Vertrag aus Run #61 gegen Pflichtdateien
+  und aktuelle Tests nachgeprueft.
+- Keine zusaetzlichen Code-Aenderungen noetig.
+- BuyDialog, RestaurantDetail-Mutation, Upgrade, Day-Sim/GameEngine und
+  SaveService bleiben bewusst unimplementiert.
+
+Validation:
+- `git status --short`
+  -> Contract-Arbeit liegt weiterhin uncommitted im Worktree.
+- `dotnet test unity-logic-tests/DoenerEmpire.Logic.Tests/DoenerEmpire.Logic.Tests.csproj`
+  -> 88 bestanden, 0 Fehler.
+
+---

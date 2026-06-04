@@ -26,15 +26,20 @@ namespace DoenerEmpire.App
             Application.targetFrameRate = 60;
 
             GameState state = CreateDummyState();
+            EventBus eventBus = new();
+            GameController controller = new(state, eventBus);
             CityMapSelection selection = new();
             Camera camera = CreateCamera();
             CreateLights();
 
             CityMapView mapView = new GameObject("CityMap View").AddComponent<CityMapView>();
             mapView.Initialize(state, selection, camera);
+            selection.Changed += controller.SelectLocation;
+            controller.Events.Subscribe<ToastRequestedEvent>(e => Debug.Log(e.Message));
 
             LocationSheetView locationSheet = new GameObject("LocationSheet UI").AddComponent<LocationSheetView>();
-            locationSheet.Initialize(selection, state);
+            locationSheet.Initialize(controller);
+            controller.PublishSnapshot();
 
             if (mapView.Hotspots.Count > 0)
             {
