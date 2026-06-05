@@ -1,5 +1,114 @@
 # HANDOFF_LOG
 
+## 2026-06-05 11:00 - Codex (Unity SaveService compatibility foundation)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `unity/Assets/Scripts/Models/*`
+- `unity/Assets/Scripts/Core/Enums.cs`
+- `unity-logic-tests/DoenerEmpire.Logic/DoenerEmpire.Logic.csproj`
+- vorhandene fokussierte Modelltests
+
+Ergebnis:
+- Offenes Queue-Item "Unity SaveService compatibility foundation" exakt
+  umgesetzt.
+- `docs/UNITY_SAVE_COMPAT.md` dokumentiert das Mapping fuer den aktuell
+  portierten MVP-`GameState` und Untermodelle:
+  `GameState`, `Shop`, `ShopProduct`, `ShopEquipment`, `Employee`,
+  `Competitor`, `Loan`, `BrandStats` und aktive Shop-Kampagnen.
+- `unity/Assets/Scripts/Save/SaveService.cs` hinzugefuegt:
+  UnityEngine-freier JSON-Roundtrip ueber String in/String out.
+- JSON-Feldnamen sind lower camelCase; Enum-Werte werden ueber vorhandene
+  `EnumNames`/`EmployeeEnumNames` als Dart-kompatible Strings geschrieben und
+  gelesen, z.B. `impossible`, `flagship`, `cheapMass`, `hiddenGem`.
+- `unity-logic-tests/DoenerEmpire.Logic/DoenerEmpire.Logic.csproj` bindet die
+  neue `Save`-Schicht in die UnityEngine-freien Logiktests ein.
+- `SaveServiceTests.cs` ergaenzt:
+  nicht-trivialer `GameState` mit Shop/Menu/Equipment/Employee/Competitor/Loan
+  roundtript; separate JSON-Pruefung stellt String-Enums sicher.
+- `REVIEW_QUEUE.md` wieder auf `Status: empty` gesetzt.
+- Keine PlayerPrefs-/Dateisystem-Persistenz, keine UI-Mutation, keine
+  Buy-/Cash-/Shop-/Preis-/Ausbau-Aktion, keine GameEngine-/Day-Sim- und keine
+  Arcade-Cooking-/Realtime-Serving-Logik hinzugefuegt.
+
+Validation:
+- `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+  -> 90 bestanden, 0 Fehler.
+
+Naechster kleinster Schritt:
+- Claude Code: Commit reviewen und danach entscheiden, ob ein kleiner
+  GameEngine-/Day-Sim-Vorbereitungsschritt oder weiteres Save-Kompat-Polish
+  als neues Queue-Item freigegeben wird.
+
+---
+
+## 2026-06-05 10:59 - Claude Code (Review commit f61dc4d)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/CURRENT_DECISION.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `docs/UNITY_PRODUCT_VISION.md`
+- `docs/UNITY_CITY_MAP_UX.md`
+- `unity/Assets/Scripts/UI/RestaurantDetailView.cs`
+- `unity/Assets/Scripts/App/CityMapBootstrap.cs`
+- `unity/Assets/Scripts/App/GameController.cs`
+- `unity/Assets/Scripts/UI/LocationSheetView.cs`
+- `unity/Assets/Scripts/View3D/CityMapView.cs`
+- `unity/Assets/Scripts/View3D/CityMapHotspot.cs`
+
+Review:
+- Commit `f61dc4d` ("Add Unity restaurant detail shell") geprueft.
+- Ergebnis: akzeptiert.
+- `RestaurantDetailView` ist eine presentation-only IMGUI-Shell fuer
+  `RestaurantDetailRequestedEvent`.
+- `CityMapBootstrap` verdrahtet die View ueber den bestehenden
+  `GameController`/`EventBus`.
+- Owned `OPTIMIEREN` geht weiter ueber
+  `GameController.RequestRestaurantDetail(selected)`.
+- Die Hotspot-ID entspricht beim owned Hotspot der `Shop.Id`; die Detail-Shell
+  findet den Shop ueber `GameState.Shops` und oeffnet nicht fuer unbekannte
+  Shop-IDs.
+- Angezeigt werden Shop-/Location-Identitaet sowie Tabs/Sektionen fuer
+  `Sortiment`, `Ausbau`, `Equipment`, `Personal` und `Marketing`.
+- `Sortiment` und `Ausbau` lesen vorhandene Modelldaten nur aus; alle weiteren
+  Tabs sind klar als read-only/stub markiert.
+- `ZURUECK` und eine neue nicht-gesperrte Location-Auswahl schliessen nur die
+  Detail-Shell.
+- Keine Preis-, Shop-, SizeTier-, Cash-, Buy-, SaveService-, Day-Sim/GameEngine-,
+  Arcade-Cooking-, Echtzeit-Serving- oder manuelle Kochlogik implementiert.
+
+Queue-Entscheidung:
+- `REVIEW_QUEUE.md` war `Status: empty`.
+- Neues konkretes Codex-Review-Item gesetzt:
+  "Unity SaveService compatibility foundation".
+- Scope: `docs/UNITY_SAVE_COMPAT.md`, UnityEngine-freier
+  `Save/SaveService.cs` fuer JSON-Roundtrip des aktuellen `GameState`, plus
+  fokussierte Tests. Keine Dateisystem-/PlayerPrefs-Persistenz, keine
+  UI-Mutation, keine GameEngine/Day-Sim.
+
+Validation:
+- `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+  -> 88 bestanden, 0 Fehler.
+- Scope-Scan in `unity/Assets/Scripts` fuer Arcade/Serving/BuyDialog/
+  RestaurantDetail/GameEngine/SaveService/Day-Sim-Begriffe:
+  -> keine verbotene Implementierung; nur erwartete Controller-Intent-/
+     Presentation-Shell-Treffer und bestehende Model-Felder/Kommentare.
+
+Naechster kleinster Schritt:
+- Codex: Nur das offene Queue-Item "Unity SaveService compatibility foundation"
+  umsetzen, `dotnet test` laufen lassen, Handoff dokumentieren und Queue danach
+  wieder auf `Status: empty` setzen.
+
+---
+
 ## 2026-06-05 - Codex (CityMap RestaurantDetail shell via GameController)
 
 Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
