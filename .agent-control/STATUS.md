@@ -9,8 +9,19 @@ Unity Management-/Progression-Spiel mit Premium 2.5D/3D City Map.
 Arcade Cooking ist verworfen (`docs/UNITY_MVP_ARCADE_PLAN.md` = DEPRECATED).
 
 ## Claude Code (Planner/Reviewer)
-State: reviewed RestaurantDetail shell; queued SaveService foundation for Codex (2026-06-05)
+State: reviewed SaveService foundation; queued SaveService API/fixture polish for Codex (2026-06-05)
 Done:
+- Current Claude run 2026-06-05 11:04: reviewed commit `1ca92f3`
+  ("Add Unity save service foundation"). Result: accepted as foundation.
+  The commit adds `docs/UNITY_SAVE_COMPAT.md`, a UnityEngine-free
+  `SaveService` JSON string roundtrip for the current MVP `GameState`, links the
+  `Save` folder into the logic test project, and adds focused tests for
+  non-trivial state roundtrip plus Dart-compatible enum strings. No PlayerPrefs,
+  filesystem persistence, UI mutation, Buy/Upgrade, GameEngine/Day-Sim,
+  Arcade-Cooking or realtime Serving logic was added. Current worktree already
+  contains uncommitted SaveService polish; it was not reverted. Since
+  `REVIEW_QUEUE.md` was `Status: empty`, a new concrete Codex review item was
+  queued: SaveService API hardening + fixture-shaped JSON.
 - Current Claude run 2026-06-05 10:59: reviewed commit `f61dc4d`
   ("Add Unity restaurant detail shell"). Result: accepted.
   `RestaurantDetailView` is presentation-only, opens from
@@ -73,16 +84,32 @@ Done:
   fehlt, kein Fokus-Tween, IMGUI statt UI Toolkit (erwartet Schritt 7).
 - Bereit fuer Unity-Editor-Test: Bootstrap auto-fires, keine manuellen Scene-Objekte.
 Next:
-- Claude Code: Review der Codex-Umsetzung fuer die SaveService-Foundation.
-- Claude Code: Danach naechstes konkretes Queue-Item definieren; GameEngine-
-  Tagessim erst nach SaveService-Review/Freigabe.
+- Codex: Nur das offene Queue-Item "Unity SaveService API hardening +
+  fixture-shaped JSON" umsetzen.
+- Claude Code: Danach SaveService-Polish reviewen und erst dann GameEngine-
+  Tagessim freigeben.
 - UI-Toolkit-Migration (IMGUI ersetzen) geplant fuer Schritt 7 (Premium-Polish).
 - Vor Schritt 4: KPI-Labels korrigieren (Owned: MARKTANTEIL/PROGNOSE;
   Available: KONKURRENZ); Locked-Tap auf Toast-only umstellen.
 
 ## Codex (Implementation)
-State: complete - Unity SaveService compatibility foundation implemented, validation green (2026-06-05)
+State: complete - Unity SaveService API/fixture polish implemented, validation green (2026-06-05)
 Done:
+- Current Codex run 2026-06-05 16:06: Offenes Review-Item "Unity SaveService
+  API hardening + fixture-shaped JSON" umgesetzt:
+  - `SaveService` bleibt eine UnityEngine-freie Instanz-API mit
+    `Serialize(GameState)` / `Deserialize(string)` und string-in/string-out.
+  - `docs/UNITY_SAVE_COMPAT.md` dokumentiert die Instanz-API zusaetzlich zum
+    aktuellen MVP-Feldvertrag und Dart-kompatiblen Enum-Strings.
+  - `SaveServiceTests` pruefen jetzt explizit lower-camelCase JSON und keine
+    PascalCase-Modellnamen fuer zentrale Felder.
+  - Nicht-triviale Roundtrip-Abdeckung umfasst Shops, Menu, Equipment,
+    Employees, EmployeePool, Competitors, Loans, Brand, ids/upgrades sowie
+    Tutorial-/Event-Felder.
+  - Missing/null optionale Collections werden ohne Exception zu nutzbaren
+    leeren Collections/defaults deserialisiert.
+  - Guardrail-Scan fuer SaveService ist frei von UnityEngine, PlayerPrefs,
+    Dateisystem, GameEngine/Day-Sim, BuyDialog, Arcade und Serving.
 - Current Codex run 2026-06-05 11:00: Offenes Review-Item "Unity SaveService
   compatibility foundation" umgesetzt:
   - `docs/UNITY_SAVE_COMPAT.md` mit Mapping fuer den aktuell portierten
@@ -293,6 +320,20 @@ Next:
   GameController/EventBus-Anbindung abgestimmt ist.
 
 ## Last Validation
+- Validation 2026-06-05 16:06 (Codex SaveService API/fixture polish):
+  - `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+    -> 92 bestanden, 0 Fehler.
+  - `rg "UnityEngine|PlayerPrefs|File\.|Directory\." unity/Assets/Scripts/Save -n`
+    -> keine Treffer.
+  - `rg "GameEngine|EndDay|Simulate|BuyDialog|Arcade|Serving|CustomerSpawner|ServeInteraction" unity/Assets/Scripts/Save unity-logic-tests/DoenerEmpire.Logic.Tests/SaveServiceTests.cs -n`
+    -> keine Treffer.
+- Validation 2026-06-05 11:06 (Claude review of commit 1ca92f3):
+  - `dotnet clean unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj; dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+    -> 90 bestanden, 0 Fehler on the current worktree.
+  - Scope scan in `unity/Assets/Scripts` / `docs/UNITY_SAVE_COMPAT.md` for
+    Arcade/Serving/Buy/GameEngine/Day-Sim/filesystem terms -> no forbidden
+    Save implementation; expected existing BuyDialog presentation hits outside
+    Save and boundary wording in docs.
 - Validation 2026-06-05 11:00 (Codex Unity SaveService compatibility foundation):
   - `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
     -> 90 bestanden, 0 Fehler.

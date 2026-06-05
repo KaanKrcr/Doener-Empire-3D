@@ -1,5 +1,92 @@
 # HANDOFF_LOG
 
+## 2026-06-05 16:06 - Codex (Unity SaveService API/fixture polish)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Ergebnis:
+- Offenes Queue-Item "Unity SaveService API hardening + fixture-shaped JSON"
+  umgesetzt.
+- `SaveService` bleibt eine UnityEngine-freie Instanz-API mit
+  `Serialize(GameState)` / `Deserialize(string)` und string-in/string-out.
+- Tests ergaenzt fuer lower-camelCase JSON, keine PascalCase-Modellnamen,
+  umfangreicheren MVP-Roundtrip und missing/null optionale Collections.
+- `docs/UNITY_SAVE_COMPAT.md` dokumentiert die Instanz-API.
+- `REVIEW_QUEUE.md` wieder auf `Status: empty` gesetzt.
+- Keine GameEngine-/Day-Sim-, Buy-/Upgrade-, PlayerPrefs-/Dateisystem-,
+  Arcade-Cooking- oder realtime-Serving-Logik hinzugefuegt.
+
+Validation:
+- `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+  -> 92 bestanden, 0 Fehler.
+- `rg "UnityEngine|PlayerPrefs|File\.|Directory\." unity/Assets/Scripts/Save -n`
+  -> keine Treffer.
+- `rg "GameEngine|EndDay|Simulate|BuyDialog|Arcade|Serving|CustomerSpawner|ServeInteraction" unity/Assets/Scripts/Save unity-logic-tests/DoenerEmpire.Logic.Tests/SaveServiceTests.cs -n`
+  -> keine Treffer.
+
+Naechster kleinster Schritt:
+- Claude Code: Pushed SHA reviewen und danach erst naechstes kleines
+  Management-/Progression-Queue-Item festlegen.
+
+---
+
+## 2026-06-05 11:04 - Claude Code (Review commit 1ca92f3)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/CURRENT_DECISION.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `docs/UNITY_PRODUCT_VISION.md`
+- `docs/UNITY_CITY_MAP_UX.md`
+- `docs/UNITY_SAVE_COMPAT.md`
+- `unity/Assets/Scripts/Save/SaveService.cs`
+- `unity-logic-tests/DoenerEmpire.Logic.Tests/SaveServiceTests.cs`
+- `unity-logic-tests/DoenerEmpire.Logic/DoenerEmpire.Logic.csproj`
+
+Review:
+- Commit `1ca92f3` ("Add Unity save service foundation") geprueft.
+- Ergebnis: akzeptiert als Foundation.
+- `SaveService` bleibt im Commit UnityEngine-frei und arbeitet nur mit
+  JSON-String rein/raus.
+- JSON-Feldnamen werden ueber DTOs lower camelCase geschrieben.
+- Enums werden fuer Difficulty, LocationPersonality, ShopSizeTier,
+  CandidateOrigin, EmployeeShift, PersonalityTrait und CompetitorPersonality als
+  Dart-kompatible Strings gemappt.
+- Tests decken einen nicht-trivialen MVP-`GameState`-Roundtrip sowie konkrete
+  Enum-String-Ausgaben ab.
+- Keine PlayerPrefs-/Dateisystem-Persistenz, keine UI-Mutation, keine
+  Buy-/Upgrade-/Cash-/Shop-Aktion, keine GameEngine-/Day-Sim- und keine
+  Arcade-Cooking-/Realtime-Serving-Logik hinzugefuegt.
+
+Hinweis:
+- Der Worktree enthielt nach dem Commit bereits uncommitted Weiterarbeit an
+  `docs/UNITY_SAVE_COMPAT.md`, `SaveServiceTests.cs` und `SaveService.cs`
+  (API-/Robustheits-Polish). Diese Aenderungen wurden nicht reverted.
+
+Queue-Entscheidung:
+- `REVIEW_QUEUE.md` war `Status: empty`.
+- Neues konkretes Codex-Review-Item gesetzt:
+  "Unity SaveService API hardening + fixture-shaped JSON".
+- Zweck: Save-Kompatibilitaet noch enger absichern, bevor GameEngine/Day-Sim
+  freigegeben wird.
+
+Validation:
+- `dotnet clean unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj; dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+  -> 90 bestanden, 0 Fehler (aktueller Worktree).
+- Scope-Scan in `unity/Assets/Scripts`/`docs/UNITY_SAVE_COMPAT.md`:
+  -> keine verbotene Save-Implementierung; nur bestehende BuyDialog-
+     Praesentationsdateien ausserhalb Save und Boundary-Wording in Docs.
+
+Naechster kleinster Schritt:
+- Codex: Nur das offene Queue-Item "Unity SaveService API hardening +
+  fixture-shaped JSON" umsetzen, Tests laufen lassen, Handoff dokumentieren und
+  Queue danach wieder auf `Status: empty` setzen.
+
+---
+
 ## 2026-06-05 11:00 - Codex (Unity SaveService compatibility foundation)
 
 Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.

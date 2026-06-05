@@ -101,6 +101,11 @@ namespace DoenerEmpire.Logic.Tests
             Assert.Single(loaded.Loans);
             Assert.Equal(10000, loaded.Loans[0].Amount);
             Assert.Equal(64, loaded.Brand.CityReputation["fulda"]);
+            Assert.Equal("first_shop", loaded.AchievementIds[0]);
+            Assert.Equal("pool_1", loaded.EmployeePool[0].Id);
+            Assert.Equal("emp_manager", loaded.ManagerEmployeeIds[0]);
+            Assert.Equal("brand_logo", loaded.GlobalUpgradeIds[0]);
+            Assert.Equal("intro", loaded.SeenEventIds[0]);
         }
 
         [Fact]
@@ -141,6 +146,95 @@ namespace DoenerEmpire.Logic.Tests
             Assert.Contains("\"cheapMass\"", json);
             Assert.DoesNotContain("\"Difficulty\":", json);
             Assert.DoesNotContain("\"SizeTier\":", json);
+        }
+
+        [Fact]
+        public void JsonUsesLowerCamelCaseWithoutPascalCaseModelNames()
+        {
+            GameState state = GameState.Initial("Doener Empire", "Kaan", 12345, GameDifficulty.Normal);
+            state.Shops.Add(new Shop
+            {
+                Id = "shop_1",
+                Name = "Doener Empire",
+                CityId = "fulda",
+                LocationName = "Hauptstrasse",
+                SizeTier = ShopSizeTier.Klein,
+            });
+            state.Shops[0].Menu.Add(new ShopProduct { ProductId = "doener_fladen", Price = 6.5 });
+            state.Shops[0].Equipment.Add(new ShopEquipment { EquipmentId = "grill_basis" });
+            state.Shops[0].Employees.Add(new Employee { Id = "emp_1", TypeId = "cashier", Name = "Mina" });
+            state.Competitors.Add(new Competitor { Id = "comp_1", Name = "Kebap Haus", CityId = "fulda", ShopCount = 2 });
+
+            string json = new SaveService().Serialize(state);
+
+            Assert.Contains("\"companyName\":", json);
+            Assert.Contains("\"currentDay\":", json);
+            Assert.Contains("\"shopCount\":", json);
+            Assert.Contains("\"productId\":", json);
+            Assert.Contains("\"equipmentId\":", json);
+            Assert.Contains("\"typeId\":", json);
+            Assert.DoesNotContain("\"CompanyName\":", json);
+            Assert.DoesNotContain("\"CurrentDay\":", json);
+            Assert.DoesNotContain("\"ShopCount\":", json);
+            Assert.DoesNotContain("\"ProductId\":", json);
+            Assert.DoesNotContain("\"EquipmentId\":", json);
+            Assert.DoesNotContain("\"TypeId\":", json);
+        }
+
+        [Fact]
+        public void DeserializeMissingOrNullOptionalCollectionsProducesUsableDefaults()
+        {
+            const string json = """
+                {
+                  "companyName": "Doener Empire",
+                  "founderName": "Kaan",
+                  "cash": 1000,
+                  "currentDay": 4,
+                  "currentHour": 11,
+                  "shops": [
+                    {
+                      "id": "shop_1",
+                      "name": "Hauptstrasse",
+                      "cityId": "fulda",
+                      "menu": null,
+                      "equipment": null,
+                      "employees": null,
+                      "activeCampaigns": null,
+                      "upgradeIds": null
+                    }
+                  ],
+                  "unlockedCityIds": null,
+                  "competitors": null,
+                  "loans": null,
+                  "brand": null,
+                  "achievementIds": null,
+                  "employeePool": null,
+                  "managerEmployeeIds": null,
+                  "globalUpgradeIds": null,
+                  "seenEventIds": null
+                }
+                """;
+
+            GameState loaded = new SaveService().Deserialize(json);
+
+            Assert.Empty(loaded.UnlockedCityIds);
+            Assert.Empty(loaded.Competitors);
+            Assert.Empty(loaded.Loans);
+            Assert.Empty(loaded.AchievementIds);
+            Assert.Empty(loaded.EmployeePool);
+            Assert.Empty(loaded.ManagerEmployeeIds);
+            Assert.Empty(loaded.GlobalUpgradeIds);
+            Assert.Empty(loaded.SeenEventIds);
+            Assert.NotNull(loaded.Brand);
+            Assert.Empty(loaded.Brand.CityReputation);
+            Assert.Single(loaded.Shops);
+            Assert.Empty(loaded.Shops[0].Menu);
+            Assert.Empty(loaded.Shops[0].Equipment);
+            Assert.Empty(loaded.Shops[0].Employees);
+            Assert.Empty(loaded.Shops[0].ActiveCampaigns);
+            Assert.Empty(loaded.Shops[0].UpgradeIds);
+            Assert.True(loaded.Shops[0].IsOpen);
+            Assert.Equal(ShopSizeTier.Klein, loaded.Shops[0].SizeTier);
         }
     }
 }

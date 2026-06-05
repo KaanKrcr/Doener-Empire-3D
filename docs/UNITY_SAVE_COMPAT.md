@@ -55,6 +55,11 @@ model shape while the Unity implementation grows.
 
 ## Current Boundary
 
-`SaveService` serializes/deserializes strings only. It does not touch
+`SaveService` exposes an instance API for app code:
+
+- `Serialize(GameState state)` returns JSON text.
+- `Deserialize(string json)` returns a usable `GameState`.
+
+The service serializes/deserializes strings only. It does not touch
 `UnityEngine`, `PlayerPrefs`, files, UI, Buy/Shop/Cash mutation, GameEngine,
 Day-Sim, arcade-cooking, or realtime serving logic.
