@@ -41,6 +41,8 @@ namespace DoenerEmpire.App
 
             LocationSheetView locationSheet = new GameObject("LocationSheet UI").AddComponent<LocationSheetView>();
             locationSheet.Initialize(controller);
+            BuyDialogView buyDialog = new GameObject("BuyDialog UI").AddComponent<BuyDialogView>();
+            buyDialog.Initialize(controller);
             controller.PublishSnapshot();
 
             if (mapView.Hotspots.Count > 0)

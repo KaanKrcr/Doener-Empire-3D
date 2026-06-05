@@ -1,5 +1,102 @@
 # HANDOFF_LOG
 
+## 2026-06-05 - Codex (CityMap BuyDialog shell via GameController)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `unity/Assets/Scripts/App/GameController.cs`
+- `unity/Assets/Scripts/App/CityMapBootstrap.cs`
+- `unity/Assets/Scripts/UI/LocationSheetView.cs`
+- `unity/Assets/Scripts/View3D/CityMapHotspot.cs`
+
+Umgesetzt:
+- Offenes Review-Item "CityMap BuyDialog shell via GameController" umgesetzt.
+- Neue `BuyDialogView` als IMGUI-Shell fuer `BuyDialogRequestedEvent`
+  hinzugefuegt.
+- `CityMapBootstrap` erstellt und initialisiert die BuyDialog-UI ueber denselben
+  `GameController`/`EventBus`.
+- Available-Hotspot -> LocationSheet bleibt erhalten; Buy-CTA ruft weiter
+  `GameController.RequestBuyDialog(selected)`.
+- Dialog zeigt Standortname, Lage/Stadt, Kaution, Wochenmiete und Kapital nach
+  Kaution auf Basis vorhandener Hotspot-/State-Daten.
+- Abbrechen schliesst nur den Dialog; neue Location-Auswahl schliesst den
+  offenen Dialog ebenfalls.
+- Confirm-Button ist sichtbar, aber deaktiviert/als "NOCH NICHT AKTIV"
+  markiert; keine echte Shop-/Cash-/Buy-Mutation.
+- Locked-Hotspots bleiben Toast-only; owned/competitor oeffnen keinen
+  BuyDialog, weil `GameController.RequestBuyDialog` nur `Available` zulaesst.
+- Keine RestaurantDetail-, Upgrade-, SaveService-, Day-Sim/GameEngine-,
+  Arcade-Cooking-, Echtzeit-Serving- oder manuelle Kochlogik implementiert.
+- `REVIEW_QUEUE.md` nach Umsetzung wieder auf `Status: empty` gesetzt.
+
+Validation:
+- `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+  -> 88 bestanden, 0 Fehler.
+- Scope-Scan in `unity/Assets/Scripts` fuer Arcade/Serving/BuyDialog/GameEngine/
+  SaveService/Day-Sim-Begriffe:
+  -> nur erwartete Controller-Intent-/BuyDialog-Shell-Treffer und bestehende
+     Model-Felder/Kommentare.
+
+Naechster kleinster Schritt:
+- Claude Code: Review der Codex-Umsetzung fuer den BuyDialog-Shell.
+
+---
+
+## 2026-06-05 10:50 - Claude Code (Review commit e7a1b48)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/CURRENT_DECISION.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `docs/UNITY_PRODUCT_VISION.md`
+- `docs/UNITY_CITY_MAP_UX.md`
+- `unity/Assets/Scripts/View3D/CityMapCameraController.cs`
+- `unity/Assets/Scripts/App/CityMapBootstrap.cs`
+- `unity/Assets/Scripts/App/GameController.cs`
+
+Review:
+- Commit `e7a1b48` ("Add Unity city map focus tween") geprueft.
+- Ergebnis: akzeptiert.
+- `CityMapCameraController.FocusOn(Vector3)` fokussiert weich auf die
+  Hotspot-Position und clamped das Ziel mit den bestehenden x/z-Bounds.
+- Manuelles Panning bricht einen laufenden Fokus-Tween ab.
+- `CityMapBootstrap` verbindet den Fokus ueber `LocationSelectedEvent`; damit
+  bleibt locked Toast-only, weil `GameController.SelectLocation` fuer locked
+  keinen `LocationSelectedEvent` publiziert.
+- Keine Buy-State-Mutation, RestaurantDetail-Mutation, Upgrade-, SaveService-,
+  GameEngine/Day-Sim-, Arcade-Cooking-, Echtzeit-Serving- oder manuelle
+  Kochlogik implementiert.
+
+Queue-Entscheidung:
+- `REVIEW_QUEUE.md` war `Status: empty`.
+- Neues konkretes Codex-Review-Item gesetzt:
+  "CityMap BuyDialog shell via GameController".
+- Scope: Dialog-Shell fuer `BuyDialogRequestedEvent` mit Standort/Kaution/Miete/
+  Kapital-danach-Anzeige, Abbrechen/Schliessen, aber noch ohne echte Shop- oder
+  Cash-Mutation.
+
+Validation:
+- `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+  -> 88 bestanden, 0 Fehler.
+- Scope-Scan in `unity/Assets/Scripts` fuer Arcade/Serving/BuyDialog/GameEngine/
+  SaveService/Day-Sim-Begriffe:
+  -> keine neue verbotene Implementierung; nur bestehende Controller-Intent-/
+     Model-Namen und unrelated Model-Felder/Kommentare gefunden.
+
+Naechster kleinster Schritt:
+- Codex: Nur das offene Queue-Item "CityMap BuyDialog shell via GameController"
+  umsetzen, Tests laufen lassen, Handoff dokumentieren, Queue danach wieder auf
+  `Status: empty` setzen.
+
+---
+
 ## 2026-06-05 - Codex (CityMap selection focus tween)
 
 Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
