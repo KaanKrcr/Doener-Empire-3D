@@ -51,6 +51,11 @@ namespace DoenerEmpire.UI
             DrawPanel(topRect, Background);
             GUI.Label(new Rect(topRect.x + 22, topRect.y + 14, topRect.width * 0.55f, 32), CompanyLabel(), titleStyle);
             GUI.Label(new Rect(topRect.x + 22, topRect.y + 52, 360, 26), $"Fulda City Map - Tag {DayLabel()}", bodyStyle);
+            if (GUI.Button(new Rect(topRect.x + topRect.width - 390, topRect.y + 28, 150, 34), "TAG BEENDEN", buttonStyle))
+            {
+                controller.SimulateDay();
+            }
+
             GUI.Label(new Rect(topRect.x + topRect.width - 220, topRect.y + 28, 200, 34), CashLabel(), titleStyle);
         }
 

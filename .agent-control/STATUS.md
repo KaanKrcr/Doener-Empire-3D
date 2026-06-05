@@ -9,8 +9,17 @@ Unity Management-/Progression-Spiel mit Premium 2.5D/3D City Map.
 Arcade Cooking ist verworfen (`docs/UNITY_MVP_ARCADE_PLAN.md` = DEPRECATED).
 
 ## Claude Code (Planner/Reviewer)
-State: reviewed SaveService API/fixture polish; queued GameEngine day simulation foundation for Codex (2026-06-05 16:09)
+State: status check queued Day Sim controller intent + DayReport shell for Codex (2026-06-05 17:34)
 Done:
+- Current Claude run 2026-06-05 17:34: Pflichtdateien gelesen;
+  `REVIEW_QUEUE.md` war nach Codex' GameEngine-Foundation wieder `Status:
+  empty`. Entsprechend der Agent-Control-Regel wurde kein pauschales "mach
+  weiter" gestartet, sondern ein konkretes Codex-Review-Item formuliert:
+  Unity Day Sim controller intent + DayReport shell. Scope bleibt
+  Management-/Progression: vorhandenen `GameEngine.SimulateDay(GameState)` nur
+  ueber `GameController`/`EventBus` ansteuerbar machen, DayReport-Shell anzeigen
+  und keine neue Wirtschafts-, Buy-/RestaurantDetail-Mutations-, Arcade- oder
+  Realtime-Serving-Logik einfuehren.
 - Current Claude run 2026-06-05 16:09: reviewed commit `2421d41`
   ("Harden Unity save service API"). Result: accepted. `SaveService` remains a
   UnityEngine-free instance API with `Serialize(GameState)` /
@@ -94,15 +103,34 @@ Done:
   fehlt, kein Fokus-Tween, IMGUI statt UI Toolkit (erwartet Schritt 7).
 - Bereit fuer Unity-Editor-Test: Bootstrap auto-fires, keine manuellen Scene-Objekte.
 Next:
-- Claude Code: GameEngine-Foundation reviewen und erst dann Buy/Upgrade-
+- Codex: Genau das offene Queue-Item "Unity Day Sim controller intent +
+  DayReport shell" umsetzen, Tests laufen lassen, Handoff dokumentieren und
+  Queue danach wieder auf `Status: empty` setzen.
+- Claude Code: Danach die Umsetzung reviewen und erst dann Buy/Upgrade-
   UI-State-Mutation oder RestaurantDetail-Aktionen freigeben.
 - UI-Toolkit-Migration (IMGUI ersetzen) geplant fuer Schritt 7 (Premium-Polish).
 - Vor Schritt 4: KPI-Labels korrigieren (Owned: MARKTANTEIL/PROGNOSE;
   Available: KONKURRENZ); Locked-Tap auf Toast-only umstellen.
 
 ## Codex (Implementation)
-State: complete - Unity GameEngine day simulation foundation implemented, validation green (2026-06-05)
+State: complete - Unity Day Sim controller intent + DayReport shell implemented, validation green (2026-06-05)
 Done:
+- Current Codex run 2026-06-05 21:00: Offenes Review-Item "Unity Day Sim
+  controller intent + DayReport shell" umgesetzt:
+  - `GameController.SimulateDay()` als Tagesabschluss-Intent hinzugefuegt; er
+    ruft ausschliesslich den vorhandenen `GameEngine.SimulateDay(GameState)`-
+    Pfad auf.
+  - `DayEndedEvent` publiziert den neuen `DailyRecord` samt
+    `DaySimulationResult`; danach wird der sichtbare Zustand ueber
+    `StateSnapshotChangedEvent` aktualisiert.
+  - `LocationSheetView` bietet im CityMap-HUD `TAG BEENDEN` als Controller-
+    Intent an; keine direkte UI-State-Mutation.
+  - `DayReportView` als kleine IMGUI-Shell hinzugefuegt und in
+    `CityMapBootstrap` verdrahtet.
+  - Report zeigt Tag, Umsatz, Kosten, Gewinn und Kunden; `ZURUECK` schliesst
+    nur die Shell und kehrt zur CityMap zurueck.
+  - Keine BuyDialog-/RestaurantDetail-Funktionsmutation, keine neuen
+    Wirtschaftsformeln in der UI, keine Arcade-/Realtime-Serving-Systeme.
 - Current Codex run 2026-06-05 17:30: Offenes Review-Item "Unity GameEngine
   day simulation foundation" umgesetzt:
   - `unity/Assets/Scripts/Simulation/GameEngine.cs` als UnityEngine-freier
@@ -342,6 +370,15 @@ Next:
   GameController/EventBus-Anbindung abgestimmt ist.
 
 ## Last Validation
+- Validation 2026-06-05 21:00 (Codex Day Sim controller intent + DayReport shell):
+  - `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+    -> 95 bestanden, 0 Fehler.
+  - Scope scan in `unity\Assets\Scripts\App`, `unity\Assets\Scripts\UI`,
+    `unity\Assets\Scripts\Simulation`, and `DailyRecord.cs` for
+    CustomerSpawner/Arcade/Serving/manual/PlayerPrefs/System.IO/
+    first-person/third-person -> no matches.
+  - Focused controller tests were not added because the current logic harness
+    intentionally excludes UnityEngine-dependent `App`/`View3D` scripts.
 - Validation 2026-06-05 17:30 (Codex GameEngine day simulation foundation):
   - `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
     -> 95 bestanden, 0 Fehler.

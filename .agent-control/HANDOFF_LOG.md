@@ -1,5 +1,43 @@
 # HANDOFF_LOG
 
+## 2026-06-05 17:34 - Claude Code (Status check / review item queued)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/CURRENT_DECISION.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `docs/UNITY_PRODUCT_VISION.md`
+- `docs/UNITY_CITY_MAP_UX.md`
+
+Ergebnis:
+- `REVIEW_QUEUE.md` war `Status: empty`.
+- Entsprechend der Agent-Control-Regel kein Codex-"mach weiter" gestartet,
+  sondern ein konkretes Review-Item fuer Codex formuliert und Queue auf
+  `Status: open` gesetzt.
+- Item: Unity Day Sim controller intent + DayReport shell.
+- Scope: vorhandene UnityEngine-freie `GameEngine.SimulateDay(GameState)` ueber
+  `GameController`/`EventBus` ansteuerbar machen, Day-ended/report Event
+  publizieren und eine kleine DayReport-Shell anzeigen.
+- Keine neue Wirtschaftsformel in UI, keine BuyDialog-/RestaurantDetail-
+  Funktionsmutation, keine PlayerPrefs-/Dateisystem-Persistenz.
+- Management-Spiel-Richtung bestaetigt; keine Arcade-Cooking-, Echtzeit-
+  Serving-, CustomerSpawner-, manuelle Koch- oder First-/Third-Person-Systeme.
+
+Validation:
+- Pflichtdateien geprueft.
+- `git status --short` war vor den Control-File-Updates sauber.
+- Keine Tests ausgefuehrt, da nur Control-/Queue-Dokumentation geaendert wurde.
+
+Naechster kleinster Schritt:
+- Codex: Genau das offene Item aus `REVIEW_QUEUE.md` umsetzen,
+  `dotnet test` laufen lassen, Scope-Scan dokumentieren, Handoff schreiben und
+  Queue danach wieder auf `Status: empty` setzen.
+
+---
+
 ## 2026-06-05 16:09 - Claude Code (Review commit 2421d41)
 
 Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
@@ -3395,5 +3433,42 @@ Validation:
 Naechster kleinster Schritt:
 - Sobald konkrete Review-Items oder ein freigegebener Schritt 4 Auftrag vorliegt:
   klein umsetzen, State-Mutation nur ueber `GameController`/Events.
+
+---
+## 2026-06-05 (pending) - Codex (Day Sim controller intent + DayReport shell)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `git status -sb`
+- `git rev-parse HEAD`
+- `git rev-parse origin/main`
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/HANDOFF_LOG.md` (Tail)
+
+Ergebnis:
+- Offenes Queue-Item "Unity Day Sim controller intent + DayReport shell"
+  umgesetzt.
+- `GameController.SimulateDay()` ruft den vorhandenen
+  `GameEngine.SimulateDay(GameState)`-Pfad auf, publiziert `DayEndedEvent`
+  mit `DailyRecord`/`DaySimulationResult` und danach einen Snapshot.
+- `LocationSheetView` hat im CityMap-HUD `TAG BEENDEN` als Controller-Intent.
+- `DayReportView` zeigt Tag, Umsatz, Kosten, Gewinn und Kunden und schliesst
+  per `ZURUECK` zur CityMap.
+- `CityMapBootstrap` verdrahtet die neue Report-Shell.
+- `REVIEW_QUEUE.md` wieder auf `Status: empty` gesetzt.
+
+Validation:
+- `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+  -> 95 bestanden, 0 Fehler.
+- Scope scan in App/UI/Simulation/DailyRecord fuer CustomerSpawner/Arcade/
+  Serving/manual/PlayerPrefs/System.IO/first-person/third-person -> no matches.
+- Keine fokussierten Controller-Tests ergaenzt, weil der aktuelle Logic-Harness
+  UnityEngine-abhaengige `App`/`View3D`-Skripte nicht kompiliert.
+
+Naechster kleinster Schritt:
+- Claude Code: Pushed SHA reviewen und danach das naechste kleine kohaerente
+  Management-/Progression-Queue-Item waehlen.
 
 ---

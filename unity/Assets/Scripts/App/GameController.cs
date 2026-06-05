@@ -1,6 +1,8 @@
 using System;
+using System.Linq;
 using DoenerEmpire.Core;
 using DoenerEmpire.Models;
+using DoenerEmpire.Simulation;
 using DoenerEmpire.View3D;
 
 namespace DoenerEmpire.App
@@ -55,14 +57,33 @@ namespace DoenerEmpire.App
         }
     }
 
+    public readonly struct DayEndedEvent
+    {
+        public readonly DailyRecord Record;
+        public readonly DaySimulationResult Result;
+
+        public DayEndedEvent(DailyRecord record, DaySimulationResult result)
+        {
+            Record = record;
+            Result = result;
+        }
+    }
+
     public sealed class GameController
     {
         private readonly GameState state;
+        private readonly GameEngine gameEngine;
 
         public GameController(GameState initialState, EventBus eventBus)
+            : this(initialState, eventBus, new GameEngine())
+        {
+        }
+
+        public GameController(GameState initialState, EventBus eventBus, GameEngine engine)
         {
             state = initialState ?? throw new ArgumentNullException(nameof(initialState));
             Events = eventBus ?? throw new ArgumentNullException(nameof(eventBus));
+            gameEngine = engine ?? throw new ArgumentNullException(nameof(engine));
         }
 
         public EventBus Events { get; }
@@ -120,6 +141,14 @@ namespace DoenerEmpire.App
             }
 
             Events.Publish(new RestaurantDetailRequestedEvent(hotspot.Id));
+        }
+
+        public void SimulateDay()
+        {
+            DaySimulationResult result = gameEngine.SimulateDay(state);
+            DailyRecord record = state.History.LastOrDefault();
+            Events.Publish(new DayEndedEvent(record, result));
+            PublishSnapshot();
         }
     }
 }

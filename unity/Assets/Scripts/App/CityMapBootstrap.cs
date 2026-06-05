@@ -45,6 +45,8 @@ namespace DoenerEmpire.App
             buyDialog.Initialize(controller);
             RestaurantDetailView restaurantDetail = new GameObject("RestaurantDetail UI").AddComponent<RestaurantDetailView>();
             restaurantDetail.Initialize(controller);
+            DayReportView dayReport = new GameObject("DayReport UI").AddComponent<DayReportView>();
+            dayReport.Initialize(controller);
             controller.PublishSnapshot();
 
             if (mapView.Hotspots.Count > 0)
