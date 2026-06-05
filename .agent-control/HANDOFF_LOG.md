@@ -1,5 +1,93 @@
 # HANDOFF_LOG
 
+## 2026-06-05 - Codex (CityMap selection focus tween)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `docs/UNITY_CITY_MAP_UX.md`
+- `unity/Assets/Scripts/View3D/CityMapCameraController.cs`
+- `unity/Assets/Scripts/App/CityMapBootstrap.cs`
+- `unity/Assets/Scripts/App/GameController.cs`
+
+Umgesetzt:
+- Offenes Review-Item "CityMap selection focus tween" umgesetzt.
+- `CityMapCameraController` erhaelt `FocusOn(Vector3)` und tweened weich zur
+  Hotspot-Position.
+- Fokusziel wird ueber die bestehenden x/z-Bounds geclamped.
+- Manuelles Panning bricht einen laufenden Fokus-Tween ab.
+- `CityMapBootstrap` subscribed auf `LocationSelectedEvent` und ruft den
+  Camera-Fokus nur ueber den bestehenden GameController/EventBus-Pfad auf.
+- Locked-Hotspots bleiben Toast-only, weil `GameController.SelectLocation` fuer
+  locked kein `LocationSelectedEvent` publiziert.
+- Keine BuyDialog-, RestaurantDetail-Mutation-, Upgrade-, SaveService-,
+  Day-Sim/GameEngine-, Arcade-Cooking-, Echtzeit-Serving- oder manuelle
+  Kochlogik implementiert.
+- `REVIEW_QUEUE.md` nach Umsetzung wieder auf `Status: empty` gesetzt.
+
+Validation:
+- `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+  -> 88 bestanden, 0 Fehler.
+
+Naechster kleinster Schritt:
+- Claude Code Review dieser Fokus-Tween-Umsetzung.
+
+---
+
+## 2026-06-05 10:46 - Claude Code (Review commit 1af4408)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/CURRENT_DECISION.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `docs/UNITY_PRODUCT_VISION.md`
+- `docs/UNITY_CITY_MAP_UX.md`
+- `unity/Assets/Scripts/UI/LocationSheetView.cs`
+- `unity/Assets/Scripts/App/GameController.cs`
+- `unity/Assets/Scripts/View3D/CityMapSelection.cs`
+- `unity/Assets/Scripts/View3D/CityMapCameraController.cs`
+
+Review:
+- Commit `1af4408` ("Polish Unity available KPI order") geprueft.
+- Ergebnis: akzeptiert.
+- Available-KPI-Reihenfolge entspricht jetzt `UNITY_CITY_MAP_UX.md` Abschnitt
+  3.2: `TRAFFIC`, `MIETE`, `KAUTION`, `KONKURRENZ`.
+- Owned-KPI-Reihenfolge bleibt passend:
+  `MARKTANTEIL`, `TRAFFIC`, `MIETE`, `PROGNOSE`.
+- Locked-Hotspots bleiben ueber `GameController.SelectLocation` Toast-only;
+  kein `LocationSelectedEvent`, kein LocationSheet-Wechsel auf locked.
+- Keine BuyDialog-, RestaurantDetail-Mutation-, Upgrade-, SaveService-,
+  Day-Sim/GameEngine-, Arcade-Cooking-, Echtzeit-Serving- oder manuelle
+  Kochlogik implementiert.
+
+Queue-Entscheidung:
+- `REVIEW_QUEUE.md` war `Status: empty`.
+- Neues konkretes Codex-Review-Item gesetzt:
+  "CityMap selection focus tween".
+- Scope: presentation-only Kamerafokus fuer nicht-gesperrte Hotspot-Auswahl,
+  weiter ueber `GameController`/`EventBus`, keine State-Mutation.
+
+Validation:
+- `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+  -> 88 bestanden, 0 Fehler.
+- Scope-Scan in `unity/Assets/Scripts` fuer Arcade/Serving/BuyDialog/GameEngine/
+  SaveService/Day-Sim-Begriffe:
+  -> keine neue verbotene Implementierung; nur bestehende Controller-Intent-/
+     Model-Namen und unrelated Model-Felder gefunden.
+
+Naechster kleinster Schritt:
+- Codex: Nur das offene Queue-Item "CityMap selection focus tween" umsetzen,
+  Tests laufen lassen, Handoff dokumentieren, Queue danach wieder auf
+  `Status: empty` setzen.
+
+---
+
 ## 2026-06-05 - Codex (CityMap available KPI order polish)
 
 Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.

@@ -30,11 +30,13 @@ namespace DoenerEmpire.App
             GameController controller = new(state, eventBus);
             CityMapSelection selection = new();
             Camera camera = CreateCamera();
+            CityMapCameraController cameraController = camera.GetComponent<CityMapCameraController>();
             CreateLights();
 
             CityMapView mapView = new GameObject("CityMap View").AddComponent<CityMapView>();
             mapView.Initialize(state, selection, camera);
             selection.Changed += controller.SelectLocation;
+            controller.Events.Subscribe<LocationSelectedEvent>(e => cameraController.FocusOn(e.Hotspot.transform.position));
             controller.Events.Subscribe<ToastRequestedEvent>(e => Debug.Log(e.Message));
 
             LocationSheetView locationSheet = new GameObject("LocationSheet UI").AddComponent<LocationSheetView>();

@@ -11,6 +11,14 @@ Arcade Cooking ist verworfen (`docs/UNITY_MVP_ARCADE_PLAN.md` = DEPRECATED).
 ## Claude Code (Planner/Reviewer)
 State: review item completed by Codex, ready for Claude review (2026-06-05)
 Done:
+- Current Claude run 2026-06-05 10:46: reviewed commit `1af4408`
+  ("Polish Unity available KPI order"). Result: accepted. Available KPI order
+  now matches `UNITY_CITY_MAP_UX.md` section 3.2 (`TRAFFIC`, `MIETE`,
+  `KAUTION`, `KONKURRENZ`); Owned order remains `MARKTANTEIL`, `TRAFFIC`,
+  `MIETE`, `PROGNOSE`; locked selection remains Toast-only through
+  `GameController`; no Arcade/Serving/Buy/Upgrade/SaveService/Day-Sim logic was
+  added. Since `REVIEW_QUEUE.md` was `Status: empty`, a new concrete Codex
+  review item was queued: CityMap selection focus tween.
 - Current Claude run 2026-06-05 06:52: reviewed commit `333ca76`
   ("Fix Unity city map presentation queue item"). Result: previous item accepted:
   owned KPI labels are `MARKTANTEIL`/`PROGNOSE`, available KPI 4 is
@@ -32,8 +40,7 @@ Done:
   fehlt, kein Fokus-Tween, IMGUI statt UI Toolkit (erwartet Schritt 7).
 - Bereit fuer Unity-Editor-Test: Bootstrap auto-fires, keine manuellen Scene-Objekte.
 Next:
-- Claude Code: Review der Codex-Umsetzung fuer "CityMap available KPI order
-  polish".
+- Claude Code: Review der Codex-Umsetzung fuer "CityMap selection focus tween".
 - Codex: Schritte 4-5 (BuyDialog, RestaurantDetail Sortiment/Ausbau) erst
   umsetzen, wenn Claude Review/Freigabe vorliegt.
 - Claude Code: SaveService (JSON-Roundtrip, Dart-kompatibel) -> GameEngine-Tagessim.
@@ -42,8 +49,18 @@ Next:
   Available: KONKURRENZ); Locked-Tap auf Toast-only umstellen.
 
 ## Codex (Implementation)
-State: complete - CityMap available KPI order polish implemented, validation green (2026-06-05)
+State: complete - CityMap selection focus tween implemented, validation green (2026-06-05)
 Done:
+- Current Codex run 2026-06-05: Offenes Review-Item "CityMap selection focus
+  tween" umgesetzt:
+  - `CityMapCameraController` kann per `FocusOn(Vector3)` weich auf einen
+    Hotspot fokussieren und nutzt die bestehenden x/z-Bounds.
+  - `CityMapBootstrap` verbindet `LocationSelectedEvent` mit dem
+    Camera-Controller, damit nur nicht-locked Selections fokussieren.
+  - Locked-Hotspots bleiben Toast-only ueber `GameController.SelectLocation`;
+    kein `LocationSelectedEvent`, kein LocationSheet-Wechsel.
+  - Keine BuyDialog-, RestaurantDetail-Mutation-, Upgrade-, SaveService-,
+    Day-Sim/GameEngine- oder Arcade-Cooking-Logik hinzugefuegt.
 - Current Codex run 2026-06-05: Offenes Review-Item "CityMap available KPI
   order polish" umgesetzt:
   - `LocationSheetView` rendert KPI-Kacheln jetzt zentral ueber
@@ -201,6 +218,15 @@ Next:
   GameController/EventBus-Anbindung abgestimmt ist.
 
 ## Last Validation
+- Validation 2026-06-05 (Codex CityMap selection focus tween):
+  - `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+    -> 88 bestanden, 0 Fehler.
+- Validation 2026-06-05 10:46 (Claude review of commit 1af4408):
+  - `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+    -> 88 bestanden, 0 Fehler.
+  - Scope scan in `unity/Assets/Scripts` for Arcade/Serving/BuyDialog/GameEngine/
+    SaveService/Day-Sim terms -> no new forbidden implementation; only existing
+    controller intent/model names and unrelated model fields found.
 - Validation 2026-06-05 (Codex available KPI order polish):
   - `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
     -> 88 bestanden, 0 Fehler.
