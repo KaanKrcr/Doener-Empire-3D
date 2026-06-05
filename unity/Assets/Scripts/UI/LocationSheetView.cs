@@ -67,10 +67,13 @@ namespace DoenerEmpire.UI
 
             float tileY = sheet.y + 100;
             float tileWidth = (sheet.width - 60) / 4f;
-            DrawMetric(new Rect(sheet.x + 24, tileY, tileWidth, 74), MetricOneLabel(), MetricOneValue());
-            DrawMetric(new Rect(sheet.x + 24 + tileWidth, tileY, tileWidth, 74), "TRAFFIC", $"{selected.FootTraffic:n0}/Tag");
-            DrawMetric(new Rect(sheet.x + 24 + tileWidth * 2, tileY, tileWidth, 74), "MIETE", selected.WeeklyRent <= 0 ? "-" : $"{selected.WeeklyRent:n0} EUR/Wo");
-            DrawMetric(new Rect(sheet.x + 24 + tileWidth * 3, tileY, tileWidth, 74), MetricFourLabel(), MetricFourValue());
+            for (int index = 0; index < 4; index++)
+            {
+                DrawMetric(
+                    new Rect(sheet.x + 24 + tileWidth * index, tileY, tileWidth, 74),
+                    MetricLabel(index),
+                    MetricValue(index));
+            }
 
             GUI.Label(new Rect(sheet.x + 24, sheet.y + 192, sheet.width - 48, 48), RecommendationText(), bodyStyle);
 
@@ -87,42 +90,63 @@ namespace DoenerEmpire.UI
             GUI.Label(new Rect(rect.x + 10, rect.y + 36, rect.width - 20, 28), value, bodyStyle);
         }
 
-        private string MetricOneLabel()
-        {
-            return selected.State == CityMapHotspotState.Owned ? "MARKTANTEIL" : "KAUTION";
-        }
-
-        private string MetricOneValue()
-        {
-            return selected.State == CityMapHotspotState.Owned
-                ? $"{selected.MarketShare:P0}"
-                : selected.Deposit <= 0 ? "-" : $"{selected.Deposit:n0} EUR";
-        }
-
-        private string MetricFourLabel()
+        private string MetricLabel(int index)
         {
             return selected.State switch
             {
-                CityMapHotspotState.Owned => "PROGNOSE",
-                CityMapHotspotState.Available => "KONKURRENZ",
-                CityMapHotspotState.Competitor => "MARKTANTEIL",
-                _ => "SPERRE",
+                CityMapHotspotState.Owned => index switch
+                {
+                    0 => "MARKTANTEIL",
+                    1 => "TRAFFIC",
+                    2 => "MIETE",
+                    _ => "PROGNOSE",
+                },
+                CityMapHotspotState.Available => index switch
+                {
+                    0 => "TRAFFIC",
+                    1 => "MIETE",
+                    2 => "KAUTION",
+                    _ => "KONKURRENZ",
+                },
+                CityMapHotspotState.Competitor => index switch
+                {
+                    0 => "KAUTION",
+                    1 => "TRAFFIC",
+                    2 => "MIETE",
+                    _ => "MARKTANTEIL",
+                },
+                _ => index switch
+                {
+                    0 => "KAUTION",
+                    1 => "TRAFFIC",
+                    2 => "MIETE",
+                    _ => "SPERRE",
+                },
             };
         }
 
-        private string MetricFourValue()
+        private string MetricValue(int index)
+        {
+            return MetricLabel(index) switch
+            {
+                "MARKTANTEIL" => $"{selected.MarketShare:P0}",
+                "TRAFFIC" => $"{selected.FootTraffic:n0}/Tag",
+                "MIETE" => selected.WeeklyRent <= 0 ? "-" : $"{selected.WeeklyRent:n0} EUR/Wo",
+                "KAUTION" => selected.Deposit <= 0 ? "-" : $"{selected.Deposit:n0} EUR",
+                "PROGNOSE" => "stabil",
+                "KONKURRENZ" => CompetitionValue(),
+                _ => selected.State == CityMapHotspotState.Locked ? "hoch" : "mittel",
+            };
+        }
+
+        private string CompetitionValue()
         {
             if (selected.State == CityMapHotspotState.Competitor)
             {
                 return $"{selected.MarketShare:P0}";
             }
 
-            if (selected.State == CityMapHotspotState.Owned)
-            {
-                return "stabil";
-            }
-
-            return selected.State == CityMapHotspotState.Locked ? "hoch" : "mittel";
+            return "mittel";
         }
 
         private string RecommendationText()

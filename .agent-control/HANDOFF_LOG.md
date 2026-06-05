@@ -1,5 +1,90 @@
 # HANDOFF_LOG
 
+## 2026-06-05 - Codex (CityMap available KPI order polish)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `docs/UNITY_CITY_MAP_UX.md`
+- `unity/Assets/Scripts/UI/LocationSheetView.cs`
+- `unity/Assets/Scripts/App/GameController.cs`
+
+Umgesetzt:
+- Offenes Review-Item "CityMap available KPI order polish" umgesetzt.
+- `LocationSheetView` rendert KPI-Kacheln jetzt zentral ueber
+  `MetricLabel(index)` / `MetricValue(index)`.
+- Available-Reihenfolge ist jetzt:
+  `TRAFFIC`, `MIETE`, `KAUTION`, `KONKURRENZ`.
+- Owned-Reihenfolge bleibt:
+  `MARKTANTEIL`, `TRAFFIC`, `MIETE`, `PROGNOSE`.
+- Competitor/locked Output bleibt erhalten; Locked-Auswahl bleibt Toast-only
+  ueber `GameController.SelectLocation`.
+- Keine BuyDialog-, RestaurantDetail-Mutation-, Upgrade-, SaveService-,
+  Day-Sim/GameEngine-, Arcade-Cooking-, Echtzeit-Serving- oder manuelle
+  Kochlogik implementiert.
+- `REVIEW_QUEUE.md` nach Umsetzung wieder auf `Status: empty` gesetzt.
+
+Validation:
+- `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+  -> 88 bestanden, 0 Fehler.
+
+Naechster kleinster Schritt:
+- Claude Code Review dieser kleinen KPI-Reihenfolge-Aenderung. Danach erst neue
+  Queue-Items definieren.
+
+---
+
+## 2026-06-05 06:52 - Claude Code (Review commit 333ca76)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/CURRENT_DECISION.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `docs/UNITY_PRODUCT_VISION.md`
+- `docs/UNITY_CITY_MAP_UX.md`
+- `unity/Assets/Scripts/UI/LocationSheetView.cs`
+- `unity/Assets/Scripts/App/GameController.cs`
+
+Review:
+- Commit `333ca76` ("Fix Unity city map presentation queue item") geprueft.
+- Vorheriges Review-Item akzeptiert:
+  - Owned KPI 1/4 sind `MARKTANTEIL` und `PROGNOSE`.
+  - Available KPI 4 ist `KONKURRENZ`.
+  - Locked-Hotspots laufen ueber `GameController.SelectLocation` Toast-only;
+    kein `LocationSelectedEvent`, kein Sheet-Wechsel auf locked.
+  - Keine BuyDialog-, RestaurantDetail-Mutation-, Upgrade-, SaveService-,
+    Day-Sim/GameEngine-, Arcade-Cooking- oder Echtzeit-Serving-Logik.
+- Ein kleiner UX-Polish bleibt: Available-KPI-Reihenfolge soll gemaess
+  `docs/UNITY_CITY_MAP_UX.md` Abschnitt 3.2 `TRAFFIC`, `MIETE`, `KAUTION`,
+  `KONKURRENZ` sein; aktuell rendert `LocationSheetView` `KAUTION`,
+  `TRAFFIC`, `MIETE`, `KONKURRENZ`.
+
+Queue-Entscheidung:
+- `REVIEW_QUEUE.md` war `Status: empty`.
+- Neues konkretes Codex-Review-Item gesetzt:
+  "CityMap available KPI order polish".
+- Keine Code-Implementierung vorgenommen.
+
+Validation:
+- `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+  -> 88 bestanden, 0 Fehler.
+- Scope-Scan in `unity/Assets/Scripts` fuer Arcade/Serving/BuyDialog/GameEngine/
+  SaveService/Day-Sim-Begriffe:
+  -> keine neue verbotene Implementierung; nur bestehende Controller-Intent-/
+     Event-Namen und unrelated Model-Kommentare gefunden.
+
+Naechster kleinster Schritt:
+- Codex: Nur das offene Queue-Item umsetzen, Tests laufen lassen, Handoff
+  dokumentieren, Queue danach wieder auf `Status: empty` setzen.
+
+---
+
 ## 2026-06-04 (60) - Codex (Review queue empty revalidation)
 
 Arbeitsverzeichnis: NUR `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.

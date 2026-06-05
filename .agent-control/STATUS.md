@@ -11,6 +11,14 @@ Arcade Cooking ist verworfen (`docs/UNITY_MVP_ARCADE_PLAN.md` = DEPRECATED).
 ## Claude Code (Planner/Reviewer)
 State: review item completed by Codex, ready for Claude review (2026-06-05)
 Done:
+- Current Claude run 2026-06-05 06:52: reviewed commit `333ca76`
+  ("Fix Unity city map presentation queue item"). Result: previous item accepted:
+  owned KPI labels are `MARKTANTEIL`/`PROGNOSE`, available KPI 4 is
+  `KONKURRENZ`, locked selection remains Toast-only through `GameController`,
+  and no Arcade/Serving/Buy/Upgrade/Day-Sim logic was added. One small UX polish
+  remains: available KPI tile order should match `UNITY_CITY_MAP_UX.md` section
+  3.2 (`TRAFFIC`, `MIETE`, `KAUTION`, `KONKURRENZ`), so `REVIEW_QUEUE.md` was
+  opened with that concrete item for Codex.
 - Current Claude run 2026-06-05: Pflichtdateien gelesen; `REVIEW_QUEUE.md`
   war `Status: empty`, daher ein konkretes Codex-Review-Item formuliert:
   CityMap pre-step-4 presentation fixes (KPI-Labels Owned/Available und
@@ -24,8 +32,8 @@ Done:
   fehlt, kein Fokus-Tween, IMGUI statt UI Toolkit (erwartet Schritt 7).
 - Bereit fuer Unity-Editor-Test: Bootstrap auto-fires, keine manuellen Scene-Objekte.
 Next:
-- Claude Code: Review der Codex-Umsetzung fuer CityMap pre-step-4 presentation
-  fixes.
+- Claude Code: Review der Codex-Umsetzung fuer "CityMap available KPI order
+  polish".
 - Codex: Schritte 4-5 (BuyDialog, RestaurantDetail Sortiment/Ausbau) erst
   umsetzen, wenn Claude Review/Freigabe vorliegt.
 - Claude Code: SaveService (JSON-Roundtrip, Dart-kompatibel) -> GameEngine-Tagessim.
@@ -34,8 +42,17 @@ Next:
   Available: KONKURRENZ); Locked-Tap auf Toast-only umstellen.
 
 ## Codex (Implementation)
-State: complete - CityMap pre-step-4 presentation fixes implemented, validation green (2026-06-05)
+State: complete - CityMap available KPI order polish implemented, validation green (2026-06-05)
 Done:
+- Current Codex run 2026-06-05: Offenes Review-Item "CityMap available KPI
+  order polish" umgesetzt:
+  - `LocationSheetView` rendert KPI-Kacheln jetzt zentral ueber
+    `MetricLabel(index)` / `MetricValue(index)`.
+  - Available-Reihenfolge ist `TRAFFIC`, `MIETE`, `KAUTION`, `KONKURRENZ`.
+  - Owned-Reihenfolge bleibt `MARKTANTEIL`, `TRAFFIC`, `MIETE`, `PROGNOSE`.
+  - Competitor/locked Output bleibt erhalten; Locked-Auswahl bleibt Toast-only.
+  - Keine BuyDialog-, RestaurantDetail-Mutation-, Upgrade-, SaveService-,
+    Day-Sim/GameEngine- oder Arcade-Cooking-Logik hinzugefuegt.
 - Current Codex run 2026-06-05: Offenes Review-Item "CityMap pre-step-4
   presentation fixes" umgesetzt:
   - `LocationSheetView` zeigt fuer Owned KPI 1 `MARKTANTEIL` und KPI 4
@@ -184,6 +201,15 @@ Next:
   GameController/EventBus-Anbindung abgestimmt ist.
 
 ## Last Validation
+- Validation 2026-06-05 (Codex available KPI order polish):
+  - `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+    -> 88 bestanden, 0 Fehler.
+- Validation 2026-06-05 06:52 (Claude review of commit 333ca76):
+  - `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+    -> 88 bestanden, 0 Fehler.
+  - Scope scan in `unity/Assets/Scripts` for Arcade/Serving/BuyDialog/GameEngine/
+    SaveService/Day-Sim terms -> no new forbidden implementation; only existing
+    controller intent/event names and unrelated model comments found.
 - Validation 2026-06-05 (Codex CityMap presentation fixes):
   - `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
     -> 88 bestanden, 0 Fehler.
