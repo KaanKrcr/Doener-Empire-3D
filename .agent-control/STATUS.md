@@ -73,11 +73,9 @@ Done:
   fehlt, kein Fokus-Tween, IMGUI statt UI Toolkit (erwartet Schritt 7).
 - Bereit fuer Unity-Editor-Test: Bootstrap auto-fires, keine manuellen Scene-Objekte.
 Next:
-- Codex: Nur das offene Queue-Item "Unity SaveService compatibility foundation"
-  umsetzen.
-- Claude Code: Danach SaveService-Umsetzung reviewen und erst dann GameEngine-
-  Tagessim freigeben.
-- Claude Code: SaveService (JSON-Roundtrip, Dart-kompatibel) -> GameEngine-Tagessim.
+- Claude Code: Review der Codex-Umsetzung fuer die SaveService-Foundation.
+- Claude Code: Danach naechstes konkretes Queue-Item definieren; GameEngine-
+  Tagessim erst nach SaveService-Review/Freigabe.
 - UI-Toolkit-Migration (IMGUI ersetzen) geplant fuer Schritt 7 (Premium-Polish).
 - Vor Schritt 4: KPI-Labels korrigieren (Owned: MARKTANTEIL/PROGNOSE;
   Available: KONKURRENZ); Locked-Tap auf Toast-only umstellen.

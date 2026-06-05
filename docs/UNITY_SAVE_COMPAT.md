@@ -1,46 +1,60 @@
 # Unity Save Compatibility
 
-Unity `SaveService` serialisiert den aktuell portierten MVP-`GameState` als
-UnityEngine-freien JSON-String. Die JSON-Feldnamen bleiben lower camelCase wie
-im Flutter/Dart-Modell; Enums werden als Dart-`enum.name`-Strings geschrieben.
+This document pins the current MVP save shape for the Unity C# port. Field names
+use Dart-style camelCase so the save path can stay compatible with the Flutter
+model shape while the Unity implementation grows.
 
-## Mapping
+## GameState
 
-- `GameState`
-  - `companyName`, `founderName`, `cash`, `currentDay`, `currentHour`
-  - `shops`, `unlockedCityIds`, `competitors`, `loans`
-  - `totalRevenue`, `totalProfit`, `customersServedTotal`
-  - `difficulty` via `EnumNames.ToDart(GameDifficulty)`
-  - `brand`, `achievementIds`, `employeePool`, `lastEmployeePoolDay`
-  - `managerEmployeeIds`, `globalUpgradeIds`, `activeThemeId`, `prestigePoints`
-  - `tutorialDone`, `tutorialEnabled`, `tutorialStep`, `seenEventIds`
-- `Shop`
-  - `id`, `name`, `customName`, `cityId`, `locationName`, `footTraffic`
-  - `weeklyRent`, `isOpen`, `menu`, `equipment`, `employees`
-  - `reputation`, `dayOpened`, `activeCampaigns`
-  - `personality` via `EnumNames.ToDart(LocationPersonality)`
-  - `upgradeIds`, `autoHire`, `originalCompetitorName`, `wasAcquired`
-  - `morale`, `regulars`, `sizeTier` via `EnumNames.ToDart(ShopSizeTier)`
-- `ShopProduct`
-  - `productId`, `price`, `isActive`
-- `ShopEquipment`
-  - `equipmentId`
-- `Employee`
-  - `id`, `typeId`, `name`, `speed`, `friendliness`, `reliability`
-  - `experience`, `salaryPerDay`, `daysEmployed`, `growthPotential`
-  - `origin`, `shift`, `traits` via `EmployeeEnumNames`
-- `Competitor`
-  - `id`, `name`, `cityId`, `personality`, `shopCount`, `reputation`
-  - `priceLevel`, `marketShare`, `daysSinceLastAction`
-  - `personality` via `EnumNames.ToDart(CompetitorPersonality)`
-- `Loan`
-  - `id`, `amount`, `interestRate`, `durationDays`, `dayTaken`, `amountPaid`
-- Marketing/BrandStats
-  - `BrandStats`: `brandAwareness`, `cityReputation`
-  - Active shop campaigns: `campaignId`, `startDay`, `endDay`
+- `companyName`, `founderName`, `cash`, `currentDay`, `currentHour`
+- `shops`, `unlockedCityIds`, `competitors`, `loans`
+- `totalRevenue`, `totalProfit`, `customersServedTotal`
+- `difficulty` as Dart enum string: `easy`, `normal`, `hard`, `impossible`
+- `brand`, `achievementIds`, `employeePool`, `lastEmployeePoolDay`
+- `managerEmployeeIds`, `globalUpgradeIds`, `activeThemeId`, `prestigePoints`
+- `tutorialDone`, `tutorialEnabled`, `tutorialStep`, `seenEventIds`
 
-## Boundaries
+## Shop
 
-`SaveService` reads and writes strings only. It does not use `UnityEngine`,
-`PlayerPrefs`, filesystem persistence, UI state, buy flows, day simulation, or
-cash/shop mutation logic.
+- Identity/location: `id`, `name`, `customName`, `cityId`, `locationName`
+- Metrics/state: `footTraffic`, `weeklyRent`, `isOpen`, `reputation`,
+  `dayOpened`, `morale`, `regulars`
+- Collections: `menu`, `equipment`, `employees`, `activeCampaigns`,
+  `upgradeIds`
+- Enums as Dart strings:
+  - `personality`: `touristic`, `business`, `transit`, `residential`,
+    `university`, `nightlife`
+  - `sizeTier`: `klein`, `mittel`, `gross`, `flagship`
+- Acquisition/admin: `autoHire`, `originalCompetitorName`, `wasAcquired`
+
+## Shop Submodels
+
+- `ShopProduct`: `productId`, `price`, `isActive`
+- `ShopEquipment`: `equipmentId`
+- `ActiveCampaign`: `campaignId`, `startDay`, `endDay`
+
+## Employee
+
+- `id`, `typeId`, `name`
+- `speed`, `friendliness`, `reliability`, `experience`, `salaryPerDay`
+- `traits` as Dart strings such as `charmer`, `workaholic`, `loyal`
+- `daysEmployed`, `growthPotential`
+- `origin` as Dart string, including multi-word values such as `hiddenGem`,
+  `topTalent`, `juniorPotential`, `exCompetitor`, `teamContact`
+- `shift` as `ganztags`, `frueh`, `mittag`, `abend`
+
+## Competitor, Loan, Brand
+
+- `Competitor`: `id`, `name`, `cityId`, `personality`, `shopCount`,
+  `reputation`, `priceLevel`, `marketShare`, `daysSinceLastAction`
+- `personality` uses Dart strings including `cheapMass`, `balanced`,
+  `premium`, `aggressive`, `traditional`
+- `Loan`: `id`, `amount`, `interestRate`, `durationDays`, `dayTaken`,
+  `amountPaid`
+- `BrandStats`: `brandAwareness`, `cityReputation`
+
+## Current Boundary
+
+`SaveService` serializes/deserializes strings only. It does not touch
+`UnityEngine`, `PlayerPrefs`, files, UI, Buy/Shop/Cash mutation, GameEngine,
+Day-Sim, arcade-cooking, or realtime serving logic.

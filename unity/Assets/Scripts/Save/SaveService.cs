@@ -1,392 +1,455 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
 using DoenerEmpire.Core;
 using DoenerEmpire.Models;
 
 namespace DoenerEmpire.Save
 {
-    public static class SaveService
+    public sealed class SaveService
     {
-        private static readonly JsonSerializerOptions Options = new()
+        private static readonly JsonSerializerOptions JsonOptions = new()
         {
-            PropertyNamingPolicy = null,
-            WriteIndented = true,
+            IncludeFields = true,
+            WriteIndented = false,
         };
 
-        public static string ToJson(GameState state)
+        public string Serialize(GameState state)
         {
-            return JsonSerializer.Serialize(ToDto(state), Options);
+            return JsonSerializer.Serialize(ToDto(state), JsonOptions);
         }
 
-        public static GameState FromJson(string json)
+        public GameState Deserialize(string json)
         {
-            var dto = JsonSerializer.Deserialize<GameStateDto>(json, Options) ?? new GameStateDto();
+            GameStateDto dto = JsonSerializer.Deserialize<GameStateDto>(json, JsonOptions) ?? new GameStateDto();
             return FromDto(dto);
         }
 
-        private static GameStateDto ToDto(GameState state) => new()
+        private static GameStateDto ToDto(GameState state)
         {
-            companyName = state.CompanyName,
-            founderName = state.FounderName,
-            cash = state.Cash,
-            currentDay = state.CurrentDay,
-            currentHour = state.CurrentHour,
-            shops = state.Shops.Select(ToDto).ToList(),
-            unlockedCityIds = new List<string>(state.UnlockedCityIds),
-            competitors = state.Competitors.Select(ToDto).ToList(),
-            loans = state.Loans.Select(ToDto).ToList(),
-            totalRevenue = state.TotalRevenue,
-            totalProfit = state.TotalProfit,
-            customersServedTotal = state.CustomersServedTotal,
-            difficulty = EnumNames.ToDart(state.Difficulty),
-            brand = ToDto(state.Brand),
-            achievementIds = new List<string>(state.AchievementIds),
-            employeePool = state.EmployeePool.Select(ToDto).ToList(),
-            lastEmployeePoolDay = state.LastEmployeePoolDay,
-            managerEmployeeIds = new List<string>(state.ManagerEmployeeIds),
-            globalUpgradeIds = new List<string>(state.GlobalUpgradeIds),
-            activeThemeId = state.ActiveThemeId,
-            prestigePoints = state.PrestigePoints,
-            tutorialDone = state.TutorialDone,
-            tutorialEnabled = state.TutorialEnabled,
-            tutorialStep = state.TutorialStep,
-            seenEventIds = new List<string>(state.SeenEventIds),
-        };
+            state ??= new GameState();
 
-        private static GameState FromDto(GameStateDto dto) => new()
-        {
-            CompanyName = dto.companyName,
-            FounderName = dto.founderName,
-            Cash = dto.cash,
-            CurrentDay = dto.currentDay,
-            CurrentHour = dto.currentHour,
-            Shops = (dto.shops ?? new()).Select(FromDto).ToList(),
-            UnlockedCityIds = dto.unlockedCityIds ?? new(),
-            Competitors = (dto.competitors ?? new()).Select(FromDto).ToList(),
-            Loans = (dto.loans ?? new()).Select(FromDto).ToList(),
-            TotalRevenue = dto.totalRevenue,
-            TotalProfit = dto.totalProfit,
-            CustomersServedTotal = dto.customersServedTotal,
-            Difficulty = EnumNames.DifficultyFromDart(dto.difficulty),
-            Brand = FromDto(dto.brand),
-            AchievementIds = dto.achievementIds ?? new(),
-            EmployeePool = (dto.employeePool ?? new()).Select(FromDto).ToList(),
-            LastEmployeePoolDay = dto.lastEmployeePoolDay,
-            ManagerEmployeeIds = dto.managerEmployeeIds ?? new(),
-            GlobalUpgradeIds = dto.globalUpgradeIds ?? new(),
-            ActiveThemeId = dto.activeThemeId ?? "klassik",
-            PrestigePoints = dto.prestigePoints,
-            TutorialDone = dto.tutorialDone,
-            TutorialEnabled = dto.tutorialEnabled,
-            TutorialStep = dto.tutorialStep,
-            SeenEventIds = dto.seenEventIds ?? new(),
-        };
+            return new GameStateDto
+            {
+                companyName = state.CompanyName,
+                founderName = state.FounderName,
+                cash = state.Cash,
+                currentDay = state.CurrentDay,
+                currentHour = state.CurrentHour,
+                shops = MapList(state.Shops, ToDto),
+                unlockedCityIds = new List<string>(state.UnlockedCityIds ?? new List<string>()),
+                competitors = MapList(state.Competitors, ToDto),
+                loans = MapList(state.Loans, ToDto),
+                totalRevenue = state.TotalRevenue,
+                totalProfit = state.TotalProfit,
+                customersServedTotal = state.CustomersServedTotal,
+                difficulty = EnumNames.ToDart(state.Difficulty),
+                brand = ToDto(state.Brand),
+                achievementIds = new List<string>(state.AchievementIds ?? new List<string>()),
+                employeePool = MapList(state.EmployeePool, ToDto),
+                lastEmployeePoolDay = state.LastEmployeePoolDay,
+                managerEmployeeIds = new List<string>(state.ManagerEmployeeIds ?? new List<string>()),
+                globalUpgradeIds = new List<string>(state.GlobalUpgradeIds ?? new List<string>()),
+                activeThemeId = state.ActiveThemeId,
+                prestigePoints = state.PrestigePoints,
+                tutorialDone = state.TutorialDone,
+                tutorialEnabled = state.TutorialEnabled,
+                tutorialStep = state.TutorialStep,
+                seenEventIds = new List<string>(state.SeenEventIds ?? new List<string>()),
+            };
+        }
 
-        private static ShopDto ToDto(Shop shop) => new()
+        private static GameState FromDto(GameStateDto dto)
         {
-            id = shop.Id,
-            name = shop.Name,
-            customName = shop.CustomName,
-            cityId = shop.CityId,
-            locationName = shop.LocationName,
-            footTraffic = shop.FootTraffic,
-            weeklyRent = shop.WeeklyRent,
-            isOpen = shop.IsOpen,
-            menu = shop.Menu.Select(ToDto).ToList(),
-            equipment = shop.Equipment.Select(ToDto).ToList(),
-            employees = shop.Employees.Select(ToDto).ToList(),
-            reputation = shop.Reputation,
-            dayOpened = shop.DayOpened,
-            activeCampaigns = shop.ActiveCampaigns.Select(ToDto).ToList(),
-            personality = EnumNames.ToDart(shop.Personality),
-            upgradeIds = new List<string>(shop.UpgradeIds),
-            autoHire = shop.AutoHire,
-            originalCompetitorName = shop.OriginalCompetitorName,
-            wasAcquired = shop.WasAcquired,
-            morale = shop.Morale,
-            regulars = shop.Regulars,
-            sizeTier = EnumNames.ToDart(shop.SizeTier),
-        };
+            return new GameState
+            {
+                CompanyName = dto.companyName,
+                FounderName = dto.founderName,
+                Cash = dto.cash,
+                CurrentDay = dto.currentDay,
+                CurrentHour = dto.currentHour,
+                Shops = MapList(dto.shops, FromDto),
+                UnlockedCityIds = new List<string>(dto.unlockedCityIds ?? new List<string>()),
+                Competitors = MapList(dto.competitors, FromDto),
+                Loans = MapList(dto.loans, FromDto),
+                TotalRevenue = dto.totalRevenue,
+                TotalProfit = dto.totalProfit,
+                CustomersServedTotal = dto.customersServedTotal,
+                Difficulty = EnumNames.DifficultyFromDart(dto.difficulty),
+                Brand = FromDto(dto.brand),
+                AchievementIds = new List<string>(dto.achievementIds ?? new List<string>()),
+                EmployeePool = MapList(dto.employeePool, FromDto),
+                LastEmployeePoolDay = dto.lastEmployeePoolDay,
+                ManagerEmployeeIds = new List<string>(dto.managerEmployeeIds ?? new List<string>()),
+                GlobalUpgradeIds = new List<string>(dto.globalUpgradeIds ?? new List<string>()),
+                ActiveThemeId = dto.activeThemeId ?? "klassik",
+                PrestigePoints = dto.prestigePoints,
+                TutorialDone = dto.tutorialDone,
+                TutorialEnabled = dto.tutorialEnabled,
+                TutorialStep = dto.tutorialStep,
+                SeenEventIds = new List<string>(dto.seenEventIds ?? new List<string>()),
+            };
+        }
 
-        private static Shop FromDto(ShopDto dto) => new()
+        private static ShopDto ToDto(Shop shop)
         {
-            Id = dto.id,
-            Name = dto.name,
-            CustomName = dto.customName,
-            CityId = dto.cityId,
-            LocationName = dto.locationName,
-            FootTraffic = dto.footTraffic,
-            WeeklyRent = dto.weeklyRent,
-            IsOpen = dto.isOpen,
-            Menu = (dto.menu ?? new()).Select(FromDto).ToList(),
-            Equipment = (dto.equipment ?? new()).Select(FromDto).ToList(),
-            Employees = (dto.employees ?? new()).Select(FromDto).ToList(),
-            Reputation = dto.reputation,
-            DayOpened = dto.dayOpened,
-            ActiveCampaigns = (dto.activeCampaigns ?? new()).Select(FromDto).ToList(),
-            Personality = EnumNames.LocationFromDart(dto.personality),
-            UpgradeIds = dto.upgradeIds ?? new(),
-            AutoHire = dto.autoHire,
-            OriginalCompetitorName = dto.originalCompetitorName,
-            WasAcquired = dto.wasAcquired,
-            Morale = dto.morale,
-            Regulars = dto.regulars,
-            SizeTier = EnumNames.ShopSizeFromDart(dto.sizeTier),
-        };
+            return new ShopDto
+            {
+                id = shop.Id,
+                name = shop.Name,
+                customName = shop.CustomName,
+                cityId = shop.CityId,
+                locationName = shop.LocationName,
+                footTraffic = shop.FootTraffic,
+                weeklyRent = shop.WeeklyRent,
+                isOpen = shop.IsOpen,
+                menu = MapList(shop.Menu, ToDto),
+                equipment = MapList(shop.Equipment, ToDto),
+                employees = MapList(shop.Employees, ToDto),
+                reputation = shop.Reputation,
+                dayOpened = shop.DayOpened,
+                activeCampaigns = MapList(shop.ActiveCampaigns, ToDto),
+                personality = EnumNames.ToDart(shop.Personality),
+                upgradeIds = new List<string>(shop.UpgradeIds ?? new List<string>()),
+                autoHire = shop.AutoHire,
+                originalCompetitorName = shop.OriginalCompetitorName,
+                wasAcquired = shop.WasAcquired,
+                morale = shop.Morale,
+                regulars = shop.Regulars,
+                sizeTier = EnumNames.ToDart(shop.SizeTier),
+            };
+        }
 
-        private static ShopProductDto ToDto(ShopProduct product) => new()
+        private static Shop FromDto(ShopDto dto)
         {
-            productId = product.ProductId,
-            price = product.Price,
-            isActive = product.IsActive,
-        };
+            return new Shop
+            {
+                Id = dto.id,
+                Name = dto.name,
+                CustomName = dto.customName,
+                CityId = dto.cityId,
+                LocationName = dto.locationName,
+                FootTraffic = dto.footTraffic,
+                WeeklyRent = dto.weeklyRent,
+                IsOpen = dto.isOpen,
+                Menu = MapList(dto.menu, FromDto),
+                Equipment = MapList(dto.equipment, FromDto),
+                Employees = MapList(dto.employees, FromDto),
+                Reputation = dto.reputation,
+                DayOpened = dto.dayOpened,
+                ActiveCampaigns = MapList(dto.activeCampaigns, FromDto),
+                Personality = EnumNames.LocationFromDart(dto.personality),
+                UpgradeIds = new List<string>(dto.upgradeIds ?? new List<string>()),
+                AutoHire = dto.autoHire,
+                OriginalCompetitorName = dto.originalCompetitorName,
+                WasAcquired = dto.wasAcquired,
+                Morale = dto.morale,
+                Regulars = dto.regulars,
+                SizeTier = ShopSizing.FromDartName(dto.sizeTier),
+            };
+        }
 
-        private static ShopProduct FromDto(ShopProductDto dto) => new()
+        private static ShopProductDto ToDto(ShopProduct product)
         {
-            ProductId = dto.productId,
-            Price = dto.price,
-            IsActive = dto.isActive,
-        };
+            return new ShopProductDto
+            {
+                productId = product.ProductId,
+                price = product.Price,
+                isActive = product.IsActive,
+            };
+        }
 
-        private static ShopEquipmentDto ToDto(ShopEquipment equipment) => new()
+        private static ShopProduct FromDto(ShopProductDto dto)
         {
-            equipmentId = equipment.EquipmentId,
-        };
+            return new ShopProduct
+            {
+                ProductId = dto.productId,
+                Price = dto.price,
+                IsActive = dto.isActive,
+            };
+        }
 
-        private static ShopEquipment FromDto(ShopEquipmentDto dto) => new()
+        private static ShopEquipmentDto ToDto(ShopEquipment equipment)
         {
-            EquipmentId = dto.equipmentId,
-        };
+            return new ShopEquipmentDto { equipmentId = equipment.EquipmentId };
+        }
 
-        private static EmployeeDto ToDto(Employee employee) => new()
+        private static ShopEquipment FromDto(ShopEquipmentDto dto)
         {
-            id = employee.Id,
-            typeId = employee.TypeId,
-            name = employee.Name,
-            speed = employee.Speed,
-            friendliness = employee.Friendliness,
-            reliability = employee.Reliability,
-            experience = employee.Experience,
-            salaryPerDay = employee.SalaryPerDay,
-            traits = employee.Traits.Select(EmployeeEnumNames.ToDart).ToList(),
-            daysEmployed = employee.DaysEmployed,
-            origin = EmployeeEnumNames.ToDart(employee.Origin),
-            growthPotential = employee.GrowthPotential,
-            shift = EmployeeEnumNames.ToDart(employee.Shift),
-        };
+            return new ShopEquipment { EquipmentId = dto.equipmentId };
+        }
 
-        private static Employee FromDto(EmployeeDto dto) => new()
+        private static EmployeeDto ToDto(Employee employee)
         {
-            Id = dto.id,
-            TypeId = dto.typeId,
-            Name = dto.name,
-            Speed = dto.speed,
-            Friendliness = dto.friendliness,
-            Reliability = dto.reliability,
-            Experience = dto.experience,
-            SalaryPerDay = dto.salaryPerDay,
-            Traits = (dto.traits ?? new())
-                .Select(EmployeeEnumNames.TraitFromDart)
-                .Where(t => t.HasValue)
-                .Select(t => t.Value)
-                .ToList(),
-            DaysEmployed = dto.daysEmployed,
-            Origin = EmployeeEnumNames.OriginFromDart(dto.origin),
-            GrowthPotential = dto.growthPotential,
-            Shift = EmployeeEnumNames.ShiftFromDart(dto.shift),
-        };
+            return new EmployeeDto
+            {
+                id = employee.Id,
+                typeId = employee.TypeId,
+                name = employee.Name,
+                speed = employee.Speed,
+                friendliness = employee.Friendliness,
+                reliability = employee.Reliability,
+                experience = employee.Experience,
+                salaryPerDay = employee.SalaryPerDay,
+                traits = MapList(employee.Traits, EmployeeEnumNames.ToDart),
+                daysEmployed = employee.DaysEmployed,
+                origin = EmployeeEnumNames.ToDart(employee.Origin),
+                growthPotential = employee.GrowthPotential,
+                shift = EmployeeEnumNames.ToDart(employee.Shift),
+            };
+        }
 
-        private static CompetitorDto ToDto(Competitor competitor) => new()
+        private static Employee FromDto(EmployeeDto dto)
         {
-            id = competitor.Id,
-            name = competitor.Name,
-            cityId = competitor.CityId,
-            personality = EnumNames.ToDart(competitor.Personality),
-            shopCount = competitor.ShopCount,
-            reputation = competitor.Reputation,
-            priceLevel = competitor.PriceLevel,
-            marketShare = competitor.MarketShare,
-            daysSinceLastAction = competitor.DaysSinceLastAction,
-        };
+            return new Employee
+            {
+                Id = dto.id,
+                TypeId = dto.typeId,
+                Name = dto.name,
+                Speed = dto.speed,
+                Friendliness = dto.friendliness,
+                Reliability = dto.reliability,
+                Experience = dto.experience,
+                SalaryPerDay = dto.salaryPerDay,
+                Traits = MapList(dto.traits, raw => EmployeeEnumNames.TraitFromDart(raw) ?? PersonalityTrait.Modest),
+                DaysEmployed = dto.daysEmployed,
+                Origin = EmployeeEnumNames.OriginFromDart(dto.origin),
+                GrowthPotential = dto.growthPotential,
+                Shift = EmployeeEnumNames.ShiftFromDart(dto.shift),
+            };
+        }
 
-        private static Competitor FromDto(CompetitorDto dto) => new()
+        private static CompetitorDto ToDto(Competitor competitor)
         {
-            Id = dto.id,
-            Name = dto.name,
-            CityId = dto.cityId,
-            Personality = EnumNames.CompetitorFromDart(dto.personality),
-            ShopCount = dto.shopCount,
-            Reputation = dto.reputation,
-            PriceLevel = dto.priceLevel,
-            MarketShare = dto.marketShare,
-            DaysSinceLastAction = dto.daysSinceLastAction,
-        };
+            return new CompetitorDto
+            {
+                id = competitor.Id,
+                name = competitor.Name,
+                cityId = competitor.CityId,
+                personality = EnumNames.ToDart(competitor.Personality),
+                shopCount = competitor.ShopCount,
+                reputation = competitor.Reputation,
+                priceLevel = competitor.PriceLevel,
+                marketShare = competitor.MarketShare,
+                daysSinceLastAction = competitor.DaysSinceLastAction,
+            };
+        }
 
-        private static LoanDto ToDto(Loan loan) => new()
+        private static Competitor FromDto(CompetitorDto dto)
         {
-            id = loan.Id,
-            amount = loan.Amount,
-            interestRate = loan.InterestRate,
-            durationDays = loan.DurationDays,
-            dayTaken = loan.DayTaken,
-            amountPaid = loan.AmountPaid,
-        };
+            return new Competitor
+            {
+                Id = dto.id,
+                Name = dto.name,
+                CityId = dto.cityId,
+                Personality = EnumNames.CompetitorFromDart(dto.personality),
+                ShopCount = dto.shopCount,
+                Reputation = dto.reputation,
+                PriceLevel = dto.priceLevel,
+                MarketShare = dto.marketShare,
+                DaysSinceLastAction = dto.daysSinceLastAction,
+            };
+        }
 
-        private static Loan FromDto(LoanDto dto) => new()
+        private static LoanDto ToDto(Loan loan)
         {
-            Id = dto.id,
-            Amount = dto.amount,
-            InterestRate = dto.interestRate,
-            DurationDays = dto.durationDays,
-            DayTaken = dto.dayTaken,
-            AmountPaid = dto.amountPaid,
-        };
+            return new LoanDto
+            {
+                id = loan.Id,
+                amount = loan.Amount,
+                interestRate = loan.InterestRate,
+                durationDays = loan.DurationDays,
+                dayTaken = loan.DayTaken,
+                amountPaid = loan.AmountPaid,
+            };
+        }
 
-        private static ActiveCampaignDto ToDto(ActiveCampaign campaign) => new()
+        private static Loan FromDto(LoanDto dto)
         {
-            campaignId = campaign.CampaignId,
-            startDay = campaign.StartDay,
-            endDay = campaign.EndDay,
-        };
+            return new Loan
+            {
+                Id = dto.id,
+                Amount = dto.amount,
+                InterestRate = dto.interestRate,
+                DurationDays = dto.durationDays,
+                DayTaken = dto.dayTaken,
+                AmountPaid = dto.amountPaid,
+            };
+        }
 
-        private static ActiveCampaign FromDto(ActiveCampaignDto dto) => new()
+        private static BrandStatsDto ToDto(BrandStats brand)
         {
-            CampaignId = dto.campaignId,
-            StartDay = dto.startDay,
-            EndDay = dto.endDay,
-        };
+            brand ??= new BrandStats();
+            return new BrandStatsDto
+            {
+                brandAwareness = brand.BrandAwareness,
+                cityReputation = new Dictionary<string, double>(brand.CityReputation ?? new Dictionary<string, double>()),
+            };
+        }
 
-        private static BrandStatsDto ToDto(BrandStats brand) => new()
+        private static BrandStats FromDto(BrandStatsDto dto)
         {
-            brandAwareness = brand.BrandAwareness,
-            cityReputation = new Dictionary<string, double>(brand.CityReputation),
-        };
+            dto ??= new BrandStatsDto();
+            return new BrandStats
+            {
+                BrandAwareness = dto.brandAwareness,
+                CityReputation = new Dictionary<string, double>(dto.cityReputation ?? new Dictionary<string, double>()),
+            };
+        }
 
-        private static BrandStats FromDto(BrandStatsDto dto) => new()
+        private static ActiveCampaignDto ToDto(ActiveCampaign campaign)
         {
-            BrandAwareness = dto?.brandAwareness ?? 5.0,
-            CityReputation = dto?.cityReputation ?? new Dictionary<string, double>(),
-        };
+            return new ActiveCampaignDto
+            {
+                campaignId = campaign.CampaignId,
+                startDay = campaign.StartDay,
+                endDay = campaign.EndDay,
+            };
+        }
+
+        private static ActiveCampaign FromDto(ActiveCampaignDto dto)
+        {
+            return new ActiveCampaign
+            {
+                CampaignId = dto.campaignId,
+                StartDay = dto.startDay,
+                EndDay = dto.endDay,
+            };
+        }
+
+        private static List<TOut> MapList<TIn, TOut>(IEnumerable<TIn> source, System.Func<TIn, TOut> map)
+        {
+            List<TOut> result = new();
+            if (source == null)
+            {
+                return result;
+            }
+
+            foreach (TIn item in source)
+            {
+                result.Add(map(item));
+            }
+
+            return result;
+        }
 
         private sealed class GameStateDto
         {
-            public string companyName { get; set; }
-            public string founderName { get; set; }
-            public double cash { get; set; }
-            public int currentDay { get; set; } = 1;
-            public int currentHour { get; set; }
-            public List<ShopDto> shops { get; set; } = new();
-            public List<string> unlockedCityIds { get; set; } = new();
-            public List<CompetitorDto> competitors { get; set; } = new();
-            public List<LoanDto> loans { get; set; } = new();
-            public double totalRevenue { get; set; }
-            public double totalProfit { get; set; }
-            public int customersServedTotal { get; set; }
-            public string difficulty { get; set; } = "normal";
-            public BrandStatsDto brand { get; set; } = new();
-            public List<string> achievementIds { get; set; } = new();
-            public List<EmployeeDto> employeePool { get; set; } = new();
-            public int lastEmployeePoolDay { get; set; }
-            public List<string> managerEmployeeIds { get; set; } = new();
-            public List<string> globalUpgradeIds { get; set; } = new();
-            public string activeThemeId { get; set; } = "klassik";
-            public int prestigePoints { get; set; }
-            public bool tutorialDone { get; set; }
-            public bool tutorialEnabled { get; set; }
-            public int tutorialStep { get; set; }
-            public List<string> seenEventIds { get; set; } = new();
+            public string companyName;
+            public string founderName;
+            public double cash;
+            public int currentDay = 1;
+            public int currentHour;
+            public List<ShopDto> shops = new();
+            public List<string> unlockedCityIds = new();
+            public List<CompetitorDto> competitors = new();
+            public List<LoanDto> loans = new();
+            public double totalRevenue;
+            public double totalProfit;
+            public int customersServedTotal;
+            public string difficulty = "normal";
+            public BrandStatsDto brand = new();
+            public List<string> achievementIds = new();
+            public List<EmployeeDto> employeePool = new();
+            public int lastEmployeePoolDay;
+            public List<string> managerEmployeeIds = new();
+            public List<string> globalUpgradeIds = new();
+            public string activeThemeId = "klassik";
+            public int prestigePoints;
+            public bool tutorialDone;
+            public bool tutorialEnabled;
+            public int tutorialStep;
+            public List<string> seenEventIds = new();
         }
 
         private sealed class ShopDto
         {
-            public string id { get; set; }
-            public string name { get; set; }
-            public string customName { get; set; }
-            public string cityId { get; set; }
-            public string locationName { get; set; }
-            public int footTraffic { get; set; }
-            public double weeklyRent { get; set; }
-            public bool isOpen { get; set; } = true;
-            public List<ShopProductDto> menu { get; set; } = new();
-            public List<ShopEquipmentDto> equipment { get; set; } = new();
-            public List<EmployeeDto> employees { get; set; } = new();
-            public double reputation { get; set; } = 3.0;
-            public int dayOpened { get; set; }
-            public List<ActiveCampaignDto> activeCampaigns { get; set; } = new();
-            public string personality { get; set; } = "touristic";
-            public List<string> upgradeIds { get; set; } = new();
-            public bool autoHire { get; set; }
-            public string originalCompetitorName { get; set; }
-            public bool wasAcquired { get; set; }
-            public double morale { get; set; } = 0.75;
-            public double regulars { get; set; }
-            public string sizeTier { get; set; } = "klein";
+            public string id;
+            public string name;
+            public string customName;
+            public string cityId;
+            public string locationName;
+            public int footTraffic;
+            public double weeklyRent;
+            public bool isOpen = true;
+            public List<ShopProductDto> menu = new();
+            public List<ShopEquipmentDto> equipment = new();
+            public List<EmployeeDto> employees = new();
+            public double reputation = 3.0;
+            public int dayOpened;
+            public List<ActiveCampaignDto> activeCampaigns = new();
+            public string personality = "touristic";
+            public List<string> upgradeIds = new();
+            public bool autoHire;
+            public string originalCompetitorName;
+            public bool wasAcquired;
+            public double morale = 0.75;
+            public double regulars;
+            public string sizeTier = "klein";
         }
 
         private sealed class ShopProductDto
         {
-            public string productId { get; set; }
-            public double price { get; set; }
-            public bool isActive { get; set; } = true;
+            public string productId;
+            public double price;
+            public bool isActive = true;
         }
 
         private sealed class ShopEquipmentDto
         {
-            public string equipmentId { get; set; }
+            public string equipmentId;
         }
 
         private sealed class EmployeeDto
         {
-            public string id { get; set; }
-            public string typeId { get; set; }
-            public string name { get; set; }
-            public int speed { get; set; }
-            public int friendliness { get; set; }
-            public int reliability { get; set; }
-            public int experience { get; set; }
-            public double salaryPerDay { get; set; }
-            public List<string> traits { get; set; } = new();
-            public int daysEmployed { get; set; }
-            public string origin { get; set; } = "regular";
-            public double growthPotential { get; set; }
-            public string shift { get; set; } = "ganztags";
+            public string id;
+            public string typeId;
+            public string name;
+            public int speed;
+            public int friendliness;
+            public int reliability;
+            public int experience;
+            public double salaryPerDay;
+            public List<string> traits = new();
+            public int daysEmployed;
+            public string origin = "regular";
+            public double growthPotential;
+            public string shift = "ganztags";
         }
 
         private sealed class CompetitorDto
         {
-            public string id { get; set; }
-            public string name { get; set; }
-            public string cityId { get; set; }
-            public string personality { get; set; } = "balanced";
-            public int shopCount { get; set; } = 1;
-            public double reputation { get; set; } = 3.0;
-            public double priceLevel { get; set; } = 1.0;
-            public double marketShare { get; set; } = 0.15;
-            public int daysSinceLastAction { get; set; }
+            public string id;
+            public string name;
+            public string cityId;
+            public string personality = "balanced";
+            public int shopCount = 1;
+            public double reputation = 3.0;
+            public double priceLevel = 1.0;
+            public double marketShare = 0.15;
+            public int daysSinceLastAction;
         }
 
         private sealed class LoanDto
         {
-            public string id { get; set; }
-            public double amount { get; set; }
-            public double interestRate { get; set; }
-            public int durationDays { get; set; }
-            public int dayTaken { get; set; }
-            public double amountPaid { get; set; }
-        }
-
-        private sealed class ActiveCampaignDto
-        {
-            public string campaignId { get; set; }
-            public int startDay { get; set; }
-            public int endDay { get; set; }
+            public string id;
+            public double amount;
+            public double interestRate;
+            public int durationDays;
+            public int dayTaken;
+            public double amountPaid;
         }
 
         private sealed class BrandStatsDto
         {
-            public double brandAwareness { get; set; } = 5.0;
-            public Dictionary<string, double> cityReputation { get; set; } = new();
+            public double brandAwareness = 5.0;
+            public Dictionary<string, double> cityReputation = new();
+        }
+
+        private sealed class ActiveCampaignDto
+        {
+            public string campaignId;
+            public int startDay;
+            public int endDay;
         }
     }
 }
