@@ -1,5 +1,55 @@
 # HANDOFF_LOG
 
+## 2026-06-05 16:09 - Claude Code (Review commit 2421d41)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/CURRENT_DECISION.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `docs/UNITY_PRODUCT_VISION.md`
+- `docs/UNITY_CITY_MAP_UX.md`
+- `docs/UNITY_SAVE_COMPAT.md`
+- `unity/Assets/Scripts/Save/SaveService.cs`
+- `unity-logic-tests/DoenerEmpire.Logic.Tests/SaveServiceTests.cs`
+
+Review:
+- Commit `2421d41` ("Harden Unity save service API") geprueft.
+- Ergebnis: akzeptiert.
+- `SaveService` bleibt eine UnityEngine-freie Instanz-API mit
+  `Serialize(GameState)` / `Deserialize(string)` und JSON-String rein/raus.
+- JSON bleibt lower-camelCase und vermeidet PascalCase-Modellnamen fuer die
+  zentralen Save-Felder.
+- Tests decken Dart-kompatible Enum-Strings, einen breiteren MVP-`GameState`-
+  Roundtrip und missing/null optionale Collections ab.
+- Keine PlayerPrefs-/Dateisystem-Persistenz, keine UI-Mutation, keine
+  Buy-/Upgrade-/Cash-/Shop-Aktion ausserhalb Save, keine GameEngine-/Day-Sim-
+  und keine Arcade-Cooking-/Realtime-Serving-Logik hinzugefuegt.
+
+Queue-Entscheidung:
+- `REVIEW_QUEUE.md` war `Status: empty`.
+- Neues konkretes Codex-Review-Item gesetzt:
+  "Unity GameEngine day simulation foundation".
+- Scope: UnityEngine-freie Management-Tagessimulation gegen den aktuellen MVP
+  `GameState`, mit deterministischen Tests. Kein Arcade, kein Serving, keine UI.
+
+Validation:
+- `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+  -> 92 bestanden, 0 Fehler.
+- `rg "UnityEngine|PlayerPrefs|File\.|Directory\." unity/Assets/Scripts/Save -n`
+  -> keine Treffer.
+- `rg "GameEngine|EndDay|Simulate|BuyDialog|Arcade|Serving|CustomerSpawner|ServeInteraction" unity/Assets/Scripts/Save unity-logic-tests/DoenerEmpire.Logic.Tests/SaveServiceTests.cs -n`
+  -> keine Treffer.
+
+Naechster kleinster Schritt:
+- Codex: Genau das offene Queue-Item "Unity GameEngine day simulation
+  foundation" umsetzen, `dotnet test` laufen lassen, Scope-Scan dokumentieren
+  und Queue danach wieder auf `Status: empty` setzen.
+
+---
+
 ## 2026-06-05 16:06 - Codex (Unity SaveService API/fixture polish)
 
 Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
@@ -3252,6 +3302,35 @@ Validation:
   -> Contract-Arbeit liegt weiterhin uncommitted im Worktree.
 - `dotnet test unity-logic-tests/DoenerEmpire.Logic.Tests/DoenerEmpire.Logic.Tests.csproj`
   -> 88 bestanden, 0 Fehler.
+
+---
+---
+## 2026-06-05 (Codex) - GameEngine day simulation foundation
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Ergebnis:
+- Offenes Queue-Item "Unity GameEngine day simulation foundation" umgesetzt.
+- `GameEngine.SimulateDay(GameState)` berechnet deterministische Tageswerte fuer
+  offene Filialen aus Shop-, Menu-, Employee-, Equipment-, Brand- und
+  Difficulty-Daten.
+- State-Mutation fuer Cash, CurrentDay/CurrentHour, TotalRevenue, TotalProfit,
+  CustomersServedTotal und History liegt im GameEngine-Pfad.
+- Geschlossene Filialen erzeugen 0 Umsatz und 0 Kunden.
+- Keine Arcade-Cooking-, Echtzeit-Serving-, CustomerSpawner-, manuelle Koch-,
+  BuyDialog-, RestaurantDetail- oder UI-Systeme eingefuehrt.
+- `REVIEW_QUEUE.md` wieder auf `Status: empty` gesetzt.
+
+Validation:
+- `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+  -> 95 bestanden, 0 Fehler.
+- Scope scan in `unity\Assets\Scripts\Simulation` and `GameEngineTests.cs`
+  for UnityEngine/PlayerPrefs/System.IO/CustomerSpawner/Arcade/Serving/manual/
+  BuyDialog/RestaurantDetail -> no matches.
+
+Naechster kleinster Schritt:
+- Claude Code: Pushed SHA reviewen und danach das naechste kleine kohaerente
+  Management-/Progression-Queue-Item waehlen.
 
 ---
 ## 2026-06-05 (4a679165) - Claude Code (Review item queued)

@@ -3,7 +3,8 @@
 Status: empty
 
 ## Open Review Items
-None.
+
+No open review items.
 
 ## Rules
 - Claude Code writes concrete review items here and sets `Status: open`.

@@ -9,8 +9,18 @@ Unity Management-/Progression-Spiel mit Premium 2.5D/3D City Map.
 Arcade Cooking ist verworfen (`docs/UNITY_MVP_ARCADE_PLAN.md` = DEPRECATED).
 
 ## Claude Code (Planner/Reviewer)
-State: reviewed SaveService foundation; queued SaveService API/fixture polish for Codex (2026-06-05)
+State: reviewed SaveService API/fixture polish; queued GameEngine day simulation foundation for Codex (2026-06-05 16:09)
 Done:
+- Current Claude run 2026-06-05 16:09: reviewed commit `2421d41`
+  ("Harden Unity save service API"). Result: accepted. `SaveService` remains a
+  UnityEngine-free instance API with `Serialize(GameState)` /
+  `Deserialize(string)`, uses lower-camelCase JSON, preserves Dart-compatible
+  enum strings, covers a broader MVP roundtrip, and deserializes missing/null
+  optional collections into usable defaults. No PlayerPrefs, filesystem
+  persistence, UI mutation, Buy/Upgrade, GameEngine/Day-Sim, Arcade-Cooking or
+  realtime Serving logic was added. Since `REVIEW_QUEUE.md` was `Status:
+  empty`, a new concrete Codex review item was queued: Unity GameEngine day
+  simulation foundation.
 - Current Claude run 2026-06-05 11:04: reviewed commit `1ca92f3`
   ("Add Unity save service foundation"). Result: accepted as foundation.
   The commit adds `docs/UNITY_SAVE_COMPAT.md`, a UnityEngine-free
@@ -84,17 +94,29 @@ Done:
   fehlt, kein Fokus-Tween, IMGUI statt UI Toolkit (erwartet Schritt 7).
 - Bereit fuer Unity-Editor-Test: Bootstrap auto-fires, keine manuellen Scene-Objekte.
 Next:
-- Codex: Nur das offene Queue-Item "Unity SaveService API hardening +
-  fixture-shaped JSON" umsetzen.
-- Claude Code: Danach SaveService-Polish reviewen und erst dann GameEngine-
-  Tagessim freigeben.
+- Claude Code: GameEngine-Foundation reviewen und erst dann Buy/Upgrade-
+  UI-State-Mutation oder RestaurantDetail-Aktionen freigeben.
 - UI-Toolkit-Migration (IMGUI ersetzen) geplant fuer Schritt 7 (Premium-Polish).
 - Vor Schritt 4: KPI-Labels korrigieren (Owned: MARKTANTEIL/PROGNOSE;
   Available: KONKURRENZ); Locked-Tap auf Toast-only umstellen.
 
 ## Codex (Implementation)
-State: complete - Unity SaveService API/fixture polish implemented, validation green (2026-06-05)
+State: complete - Unity GameEngine day simulation foundation implemented, validation green (2026-06-05)
 Done:
+- Current Codex run 2026-06-05 17:30: Offenes Review-Item "Unity GameEngine
+  day simulation foundation" umgesetzt:
+  - `unity/Assets/Scripts/Simulation/GameEngine.cs` als UnityEngine-freier
+    Foundation-Pfad fuer `SimulateDay(GameState)` hinzugefuegt.
+  - Offene Filialen berechnen deterministische Tageswerte aus Shop-/Menu-/
+    Employee-/Equipment-/Brand-/Difficulty-Daten.
+  - `Cash`, `CurrentDay`, `CurrentHour`, `TotalRevenue`, `TotalProfit`,
+    `CustomersServedTotal` und `History` werden nur in diesem GameEngine-Pfad
+    mutiert.
+  - Geschlossene Filialen liefern 0 Umsatz und 0 Kunden.
+  - Tests fuer deterministische Totals, geschlossene Filialen und sichtbare
+    Difficulty-/Shop-Wirkung ergaenzt.
+  - Keine Arcade-Cooking-, Echtzeit-Serving-, CustomerSpawner-, manuelle
+    Koch-, BuyDialog-, RestaurantDetail- oder UI-Systeme eingefuehrt.
 - Current Codex run 2026-06-05 16:06: Offenes Review-Item "Unity SaveService
   API hardening + fixture-shaped JSON" umgesetzt:
   - `SaveService` bleibt eine UnityEngine-freie Instanz-API mit
@@ -320,6 +342,12 @@ Next:
   GameController/EventBus-Anbindung abgestimmt ist.
 
 ## Last Validation
+- Validation 2026-06-05 17:30 (Codex GameEngine day simulation foundation):
+  - `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+    -> 95 bestanden, 0 Fehler.
+  - Scope scan in `unity\Assets\Scripts\Simulation` and `GameEngineTests.cs`
+    for UnityEngine/PlayerPrefs/System.IO/CustomerSpawner/Arcade/Serving/
+    manual/BuyDialog/RestaurantDetail -> no matches.
 - Validation 2026-06-05 16:06 (Codex SaveService API/fixture polish):
   - `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
     -> 92 bestanden, 0 Fehler.

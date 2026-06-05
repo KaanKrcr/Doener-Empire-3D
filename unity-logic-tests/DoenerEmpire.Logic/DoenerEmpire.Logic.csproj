@@ -14,6 +14,7 @@
     <Compile Include="..\..\unity\Assets\Scripts\Models\**\*.cs" LinkBase="Linked\Models" />
     <Compile Include="..\..\unity\Assets\Scripts\Data\**\*.cs" LinkBase="Linked\Data" />
     <Compile Include="..\..\unity\Assets\Scripts\Save\**\*.cs" LinkBase="Linked\Save" />
+    <Compile Include="..\..\unity\Assets\Scripts\Simulation\**\*.cs" LinkBase="Linked\Simulation" />
   </ItemGroup>
 
 </Project>
