@@ -1,4 +1,4 @@
-﻿# REVIEW_QUEUE
+# REVIEW_QUEUE
 
 Status: empty
 

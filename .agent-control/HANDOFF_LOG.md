@@ -43,6 +43,39 @@ Naechster kleinster Schritt:
   `REVIEW_QUEUE.md` implementieren.
 
 ---
+## 2026-06-05 - Codex (CityMap pre-step-4 presentation fixes)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `docs/UNITY_CITY_MAP_UX.md`
+- `unity/Assets/Scripts/UI/LocationSheetView.cs`
+- `unity/Assets/Scripts/App/GameController.cs`
+
+Umgesetzt:
+- `LocationSheetView` KPI-Labels an das offene Review-Item angepasst:
+  - Owned: `MARKTANTEIL`, `TRAFFIC`, `MIETE`, `PROGNOSE`.
+  - Available: `KAUTION`, `TRAFFIC`, `MIETE`, `KONKURRENZ`.
+- Owned-KPI 1 nutzt weiter nur vorhandenen Placeholder-State und zeigt den
+  vorhandenen `MarketShare`-Wert.
+- `GameController`/`EventBus`-Grenze beibehalten. Locked-Hotspot-Auswahl bleibt
+  ueber `GameController.SelectLocation` Toast-only und publiziert keinen
+  `LocationSelectedEvent`, daher kein LocationSheet-Wechsel auf locked.
+- Keine BuyDialog-, RestaurantDetail-Mutation-, Upgrade-, SaveService-,
+  Day-Sim/GameEngine- oder Arcade-Cooking-Logik implementiert.
+- `REVIEW_QUEUE.md` nach Umsetzung wieder auf `Status: empty` gesetzt.
+
+Validation:
+- `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+  -> 88 bestanden, 0 Fehler.
+
+Naechster kleinster Schritt:
+- Claude Code Review dieser Umsetzung. Danach erst Schritt 4/5 freigeben.
+
+---
 
 ## 2026-06-04 (59) - Codex (Review queue empty revalidation)
 
@@ -2647,5 +2680,69 @@ Validation:
   -> Contract-Arbeit liegt weiterhin uncommitted im Worktree.
 - `dotnet test unity-logic-tests/DoenerEmpire.Logic.Tests/DoenerEmpire.Logic.Tests.csproj`
   -> 88 bestanden, 0 Fehler.
+
+---
+## 2026-06-05 (4a679165) - Claude Code (Review item queued)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/CURRENT_DECISION.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `docs/UNITY_PRODUCT_VISION.md`
+- `docs/UNITY_CITY_MAP_UX.md`
+
+Ergebnis:
+- `REVIEW_QUEUE.md` war `Status: empty`.
+- Entsprechend der Agent-Control-Regel kein Codex-"mach weiter" gestartet,
+  sondern ein konkretes Review-Item fuer Codex formuliert und Queue auf
+  `Status: open` gesetzt.
+- Item: CityMap pre-step-4 presentation fixes:
+  - Owned/Available KPI-Labels an `UNITY_CITY_MAP_UX.md` angleichen.
+  - Locked-Hotspots nur Toast, kein LocationSheet-Wechsel.
+  - `GameController`/`EventBus`-Grenze beibehalten.
+- Keine Code-Implementierung vorgenommen.
+- Management-Spiel-Richtung bestaetigt; keine Arcade-Cooking- oder
+  Echtzeit-Serving-Systeme hinzugefuegt.
+
+Validation:
+- Pflichtdateien geprueft.
+- Keine Tests ausgefuehrt, da nur Control-/Queue-Dokumentation geaendert wurde.
+
+Naechster kleinster Schritt:
+- Codex: Genau das offene Item aus `REVIEW_QUEUE.md` umsetzen, `dotnet test`
+  laufen lassen, Handoff dokumentieren und Queue danach wieder auf
+  `Status: empty` setzen.
+
+---
+## 2026-06-04 (1327b5f0) - Codex (Review queue empty revalidation)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/CURRENT_DECISION.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/REVIEW_QUEUE.md`
+- `docs/UNITY_PRODUCT_VISION.md`
+- `docs/UNITY_CITY_MAP_UX.md`
+
+Ergebnis:
+- `REVIEW_QUEUE.md` ist weiterhin `Status: empty`; keine offenen Claude-Review-
+  Items vorhanden.
+- Keine Code-Aenderungen vorgenommen.
+- Management-Spiel-Richtung bestaetigt; keine Arcade-Cooking- oder
+  Echtzeit-Serving-Systeme hinzugefuegt.
+
+Validation:
+- `git status --short`
+  -> clean.
+- `dotnet test unity-logic-tests/DoenerEmpire.Logic.Tests/DoenerEmpire.Logic.Tests.csproj`
+  -> 88 bestanden, 0 Fehler.
+
+Naechster kleinster Schritt:
+- Sobald konkrete Review-Items oder ein freigegebener Schritt 4 Auftrag vorliegt:
+  klein umsetzen, State-Mutation nur ueber `GameController`/Events.
 
 ---

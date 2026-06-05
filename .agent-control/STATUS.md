@@ -9,8 +9,12 @@ Unity Management-/Progression-Spiel mit Premium 2.5D/3D City Map.
 Arcade Cooking ist verworfen (`docs/UNITY_MVP_ARCADE_PLAN.md` = DEPRECATED).
 
 ## Claude Code (Planner/Reviewer)
-State: review done (2026-06-02, #12)
+State: review item completed by Codex, ready for Claude review (2026-06-05)
 Done:
+- Current Claude run 2026-06-05: Pflichtdateien gelesen; `REVIEW_QUEUE.md`
+  war `Status: empty`, daher ein konkretes Codex-Review-Item formuliert:
+  CityMap pre-step-4 presentation fixes (KPI-Labels Owned/Available und
+  Locked-Tap nur Toast). Keine Code-Implementierung gestartet.
 - Scope-Review: Richtung = Management-Spiel bestaetigt; Arcade-Plan deprecated.
 - `docs/UNITY_CITY_MAP_UX.md` erstellt.
 - Verifizierter C#-Logik-Port auf 86 gruene Tests.
@@ -20,16 +24,31 @@ Done:
   fehlt, kein Fokus-Tween, IMGUI statt UI Toolkit (erwartet Schritt 7).
 - Bereit fuer Unity-Editor-Test: Bootstrap auto-fires, keine manuellen Scene-Objekte.
 Next:
+- Claude Code: Review der Codex-Umsetzung fuer CityMap pre-step-4 presentation
+  fixes.
 - Codex: Schritte 4-5 (BuyDialog, RestaurantDetail Sortiment/Ausbau) erst
-  umsetzen, wenn GameController/EventBus abgestimmt ist.
+  umsetzen, wenn Claude Review/Freigabe vorliegt.
 - Claude Code: SaveService (JSON-Roundtrip, Dart-kompatibel) -> GameEngine-Tagessim.
 - UI-Toolkit-Migration (IMGUI ersetzen) geplant fuer Schritt 7 (Premium-Polish).
 - Vor Schritt 4: KPI-Labels korrigieren (Owned: MARKTANTEIL/PROGNOSE;
   Available: KONKURRENZ); Locked-Tap auf Toast-only umstellen.
 
 ## Codex (Implementation)
-State: complete - GameController/EventBus contract set, validation green (2026-06-04, #61)
+State: complete - CityMap pre-step-4 presentation fixes implemented, validation green (2026-06-05)
 Done:
+- Current Codex run 2026-06-05: Offenes Review-Item "CityMap pre-step-4
+  presentation fixes" umgesetzt:
+  - `LocationSheetView` zeigt fuer Owned KPI 1 `MARKTANTEIL` und KPI 4
+    `PROGNOSE`.
+  - `LocationSheetView` zeigt fuer Available KPI 4 `KONKURRENZ`.
+  - Locked-Hotspots bleiben Toast-only ueber `GameController.SelectLocation`;
+    kein `LocationSelectedEvent`, kein Sheet-Wechsel auf locked.
+  - Keine BuyDialog-, RestaurantDetail-Mutation-, Upgrade-, SaveService-,
+    Day-Sim/GameEngine- oder Arcade-Cooking-Logik hinzugefuegt.
+- Current Codex run #1327b5f0: Pflichtdateien gelesen; `REVIEW_QUEUE.md`
+  ist weiterhin `Status: empty`, daher keine Code-Aenderungen vorgenommen.
+  Management-Spiel-Richtung bestaetigt; keine Arcade-Cooking- oder
+  Echtzeit-Serving-Systeme hinzugefuegt.
 - Current Codex run #61: GameController/EventBus-Vertrag fuer den Unity
   Vertical Slice festgelegt:
   - `Core/EventBus.cs` als UnityEngine-freier Publish/Subscribe-Bus.
@@ -165,6 +184,14 @@ Next:
   GameController/EventBus-Anbindung abgestimmt ist.
 
 ## Last Validation
+- Validation 2026-06-05 (Codex CityMap presentation fixes):
+  - `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+    -> 88 bestanden, 0 Fehler.
+- Validation 2026-06-04 (Codex run #1327b5f0):
+  - `git status --short`
+    -> clean before control-file updates.
+  - `dotnet test unity-logic-tests/DoenerEmpire.Logic.Tests/DoenerEmpire.Logic.Tests.csproj`
+    -> 88 bestanden, 0 Fehler.
 - Validation 2026-06-04 (Codex run #61):
   - `git status --short`
     -> existing worktree now contains the GameController/EventBus contract edits.

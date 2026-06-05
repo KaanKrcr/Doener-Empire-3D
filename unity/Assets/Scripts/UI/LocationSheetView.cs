@@ -70,7 +70,7 @@ namespace DoenerEmpire.UI
             DrawMetric(new Rect(sheet.x + 24, tileY, tileWidth, 74), MetricOneLabel(), MetricOneValue());
             DrawMetric(new Rect(sheet.x + 24 + tileWidth, tileY, tileWidth, 74), "TRAFFIC", $"{selected.FootTraffic:n0}/Tag");
             DrawMetric(new Rect(sheet.x + 24 + tileWidth * 2, tileY, tileWidth, 74), "MIETE", selected.WeeklyRent <= 0 ? "-" : $"{selected.WeeklyRent:n0} EUR/Wo");
-            DrawMetric(new Rect(sheet.x + 24 + tileWidth * 3, tileY, tileWidth, 74), "DRUCK", PressureValue());
+            DrawMetric(new Rect(sheet.x + 24 + tileWidth * 3, tileY, tileWidth, 74), MetricFourLabel(), MetricFourValue());
 
             GUI.Label(new Rect(sheet.x + 24, sheet.y + 192, sheet.width - 48, 48), RecommendationText(), bodyStyle);
 
@@ -89,21 +89,37 @@ namespace DoenerEmpire.UI
 
         private string MetricOneLabel()
         {
-            return selected.State == CityMapHotspotState.Owned ? "RUF" : "KAUTION";
+            return selected.State == CityMapHotspotState.Owned ? "MARKTANTEIL" : "KAUTION";
         }
 
         private string MetricOneValue()
         {
             return selected.State == CityMapHotspotState.Owned
-                ? $"{selected.Reputation:0.0}/5"
+                ? $"{selected.MarketShare:P0}"
                 : selected.Deposit <= 0 ? "-" : $"{selected.Deposit:n0} EUR";
         }
 
-        private string PressureValue()
+        private string MetricFourLabel()
+        {
+            return selected.State switch
+            {
+                CityMapHotspotState.Owned => "PROGNOSE",
+                CityMapHotspotState.Available => "KONKURRENZ",
+                CityMapHotspotState.Competitor => "MARKTANTEIL",
+                _ => "SPERRE",
+            };
+        }
+
+        private string MetricFourValue()
         {
             if (selected.State == CityMapHotspotState.Competitor)
             {
                 return $"{selected.MarketShare:P0}";
+            }
+
+            if (selected.State == CityMapHotspotState.Owned)
+            {
+                return "stabil";
             }
 
             return selected.State == CityMapHotspotState.Locked ? "hoch" : "mittel";
