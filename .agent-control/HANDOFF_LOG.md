@@ -1,5 +1,111 @@
 # HANDOFF_LOG
 
+## 2026-06-05 - Codex (CityMap RestaurantDetail shell via GameController)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `unity/Assets/Scripts/App/GameController.cs`
+- `unity/Assets/Scripts/App/CityMapBootstrap.cs`
+- `unity/Assets/Scripts/UI/LocationSheetView.cs`
+- `unity/Assets/Scripts/Models/Shop.cs`
+- `unity/Assets/Scripts/Models/ShopSizeTier.cs`
+
+Umgesetzt:
+- Offenes Review-Item "CityMap RestaurantDetail shell via GameController"
+  umgesetzt.
+- Neue `RestaurantDetailView` als presentation-only IMGUI-Shell fuer
+  `RestaurantDetailRequestedEvent` hinzugefuegt.
+- `CityMapBootstrap` erstellt und initialisiert die RestaurantDetail-UI ueber
+  denselben `GameController`/`EventBus`.
+- Owned-CTA `OPTIMIEREN` bleibt unveraendert ueber
+  `GameController.RequestRestaurantDetail(selected)`.
+- Shell oeffnet nur fuer einen gueltigen Shop aus `GameState.Shops` und liest
+  den Shop per `RestaurantDetailRequestedEvent.ShopId`.
+- Shell zeigt Shop-/Location-Identitaet und Tabs/Sektionen fuer `Sortiment`,
+  `Ausbau`, `Equipment`, `Personal` und `Marketing`; letztere Stubs sind klar
+  read-only.
+- `Sortiment` und `Ausbau` zeigen vorhandene Modelldaten nur lesend.
+- Zurueck/Close schliesst nur die Detail-Shell; neue Location-Auswahl schliesst
+  die Detail-Shell ebenfalls und laesst den bestehenden LocationSheet-Flow
+  weiterlaufen.
+- Keine Preis-, Shop-, SizeTier-, Cash-, Buy-, SaveService-, Day-Sim/GameEngine-,
+  Arcade-Cooking-, Echtzeit-Serving- oder manuelle Kochlogik implementiert.
+- `REVIEW_QUEUE.md` nach Umsetzung wieder auf `Status: empty` gesetzt.
+
+Validation:
+- `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+  -> 88 bestanden, 0 Fehler.
+- Scope-Scan in `unity/Assets/Scripts` fuer Arcade/Serving/BuyDialog/
+  RestaurantDetail/GameEngine/SaveService/Day-Sim-Begriffe:
+  -> nur erwartete Controller-Intent-/Presentation-Shell-Treffer und bestehende
+     Model-Felder/Kommentare.
+
+Naechster kleinster Schritt:
+- Claude Code: Review der Codex-Umsetzung fuer die RestaurantDetail-Shell.
+
+---
+
+## 2026-06-05 10:55 - Claude Code (Review commit 1591e9d)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/CURRENT_DECISION.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `docs/UNITY_PRODUCT_VISION.md`
+- `docs/UNITY_CITY_MAP_UX.md`
+- `unity/Assets/Scripts/UI/BuyDialogView.cs`
+- `unity/Assets/Scripts/UI/LocationSheetView.cs`
+- `unity/Assets/Scripts/App/GameController.cs`
+- `unity/Assets/Scripts/App/CityMapBootstrap.cs`
+
+Review:
+- Commit `1591e9d` ("Add Unity city map buy dialog shell") geprueft.
+- Ergebnis: akzeptiert.
+- `BuyDialogView` ist eine presentation-only IMGUI-Shell fuer
+  `BuyDialogRequestedEvent`.
+- `CityMapBootstrap` verdrahtet die View ueber den bestehenden
+  `GameController`/`EventBus`.
+- Available-Hotspots behalten das LocationSheet; `FILIALE EROEFFNEN` geht
+  weiter ueber `GameController.RequestBuyDialog`.
+- Dialog zeigt Standortname, Lage/Stadtteil, Kaution, Wochenmiete und Kapital
+  nach Kaution aus vorhandenen Hotspot-/State-Daten.
+- Abbrechen und eine neue nicht-gesperrte Location-Auswahl schliessen nur den
+  Dialog.
+- Confirm ist sichtbar, aber deaktiviert/als `NOCH NICHT AKTIV` markiert.
+- Keine Buy-/Cash-/Shop-Mutation, kein RestaurantDetail, kein Upgrade, kein
+  SaveService, keine Day-Sim/GameEngine-, Arcade-Cooking-, Echtzeit-Serving-
+  oder manuelle Kochlogik implementiert.
+
+Queue-Entscheidung:
+- `REVIEW_QUEUE.md` war `Status: empty`.
+- Neues konkretes Codex-Review-Item gesetzt:
+  "CityMap RestaurantDetail shell via GameController".
+- Scope: owned `OPTIMIEREN` oeffnet eine presentation-only RestaurantDetail-
+  Shell ueber `RestaurantDetailRequestedEvent`, mit Sortiment/Ausbau-Sektionen
+  als Shell/Stubs, aber ohne Preis-, Shop-, SizeTier- oder Cash-Mutation.
+
+Validation:
+- `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+  -> 88 bestanden, 0 Fehler.
+- Scope-Scan in `unity/Assets/Scripts` fuer Arcade/Serving/BuyDialog/GameEngine/
+  SaveService/Day-Sim-Begriffe:
+  -> keine verbotene Implementierung; nur erwartete BuyDialog-/Controller-
+     Intent-Treffer und bestehende Model-Felder/Kommentare gefunden.
+
+Naechster kleinster Schritt:
+- Codex: Nur das offene Queue-Item "CityMap RestaurantDetail shell via
+  GameController" umsetzen, Tests laufen lassen, Handoff dokumentieren, Queue
+  danach wieder auf `Status: empty` setzen.
+
+---
+
 ## 2026-06-05 - Codex (CityMap BuyDialog shell via GameController)
 
 Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.

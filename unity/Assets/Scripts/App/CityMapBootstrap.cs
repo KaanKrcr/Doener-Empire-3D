@@ -43,6 +43,8 @@ namespace DoenerEmpire.App
             locationSheet.Initialize(controller);
             BuyDialogView buyDialog = new GameObject("BuyDialog UI").AddComponent<BuyDialogView>();
             buyDialog.Initialize(controller);
+            RestaurantDetailView restaurantDetail = new GameObject("RestaurantDetail UI").AddComponent<RestaurantDetailView>();
+            restaurantDetail.Initialize(controller);
             controller.PublishSnapshot();
 
             if (mapView.Hotspots.Count > 0)

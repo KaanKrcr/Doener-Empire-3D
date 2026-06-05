@@ -9,8 +9,20 @@ Unity Management-/Progression-Spiel mit Premium 2.5D/3D City Map.
 Arcade Cooking ist verworfen (`docs/UNITY_MVP_ARCADE_PLAN.md` = DEPRECATED).
 
 ## Claude Code (Planner/Reviewer)
-State: Codex completed BuyDialog shell item, ready for Claude review (2026-06-05)
+State: Codex completed RestaurantDetail shell item, ready for Claude review (2026-06-05)
 Done:
+- Current Claude run 2026-06-05 10:55: reviewed commit `1591e9d`
+  ("Add Unity city map buy dialog shell"). Result: accepted. `BuyDialogView`
+  is presentation-only, opens from `BuyDialogRequestedEvent`, is wired through
+  `CityMapBootstrap` using the existing `GameController`/`EventBus`, and keeps
+  the confirm action disabled as `NOCH NICHT AKTIV`. It displays Standort,
+  Lage/Stadtteil, Kaution, Wochenmiete and Kapital nach Kaution from existing
+  hotspot/state data. Abbrechen and a new non-locked Location selection close
+  only the dialog. No Buy-/Cash-/Shop-mutation, RestaurantDetail implementation,
+  Upgrade, SaveService, GameEngine/Day-Sim, Arcade-Cooking or realtime Serving
+  logic was added. Since `REVIEW_QUEUE.md` was `Status: empty`, a new concrete
+  Codex review item was queued: CityMap RestaurantDetail shell via
+  GameController.
 - Current Claude run 2026-06-05 10:50: reviewed commit `e7a1b48`
   ("Add Unity city map focus tween"). Result: accepted. Camera focus tween is
   presentation-only, is driven by `LocationSelectedEvent`, clamps through the
@@ -49,17 +61,30 @@ Done:
   fehlt, kein Fokus-Tween, IMGUI statt UI Toolkit (erwartet Schritt 7).
 - Bereit fuer Unity-Editor-Test: Bootstrap auto-fires, keine manuellen Scene-Objekte.
 Next:
-- Claude Code: Review der Codex-Umsetzung fuer den BuyDialog-Shell.
-- Codex: RestaurantDetail Sortiment/Ausbau erst umsetzen, wenn Claude Review/
-  Freigabe nach dem BuyDialog-Shell vorliegt.
+- Claude Code: Review der Codex-Umsetzung fuer die RestaurantDetail-Shell.
 - Claude Code: SaveService (JSON-Roundtrip, Dart-kompatibel) -> GameEngine-Tagessim.
 - UI-Toolkit-Migration (IMGUI ersetzen) geplant fuer Schritt 7 (Premium-Polish).
 - Vor Schritt 4: KPI-Labels korrigieren (Owned: MARKTANTEIL/PROGNOSE;
   Available: KONKURRENZ); Locked-Tap auf Toast-only umstellen.
 
 ## Codex (Implementation)
-State: complete - CityMap BuyDialog shell implemented, validation green (2026-06-05)
+State: complete - CityMap RestaurantDetail shell implemented, validation green (2026-06-05)
 Done:
+- Current Codex run 2026-06-05: Offenes Review-Item "CityMap RestaurantDetail
+  shell via GameController" umgesetzt:
+  - `RestaurantDetailView` als presentation-only IMGUI-Shell fuer
+    `RestaurantDetailRequestedEvent` hinzugefuegt.
+  - `CityMapBootstrap` verdrahtet die Detail-UI ueber den bestehenden
+    `GameController`/`EventBus`.
+  - Owned-CTA `OPTIMIEREN` bleibt ueber
+    `GameController.RequestRestaurantDetail(selected)`.
+  - Shell oeffnet nur fuer einen gueltigen Shop aus `GameState.Shops` und zeigt
+    Shop-/Location-Identitaet.
+  - Tabs/Sektionen fuer `Sortiment`, `Ausbau`, `Equipment`, `Personal` und
+    `Marketing`; Stubs sind read-only markiert.
+  - Close/Zurueck und neue Location-Auswahl schliessen nur die Detail-Shell.
+  - Keine Preis-, Shop-, SizeTier-, Cash-, Buy-, SaveService-, Day-Sim/
+    GameEngine- oder Arcade-Cooking-Logik.
 - Current Codex run 2026-06-05: Offenes Review-Item "CityMap BuyDialog shell
   via GameController" umgesetzt:
   - `BuyDialogView` als IMGUI-Shell fuer `BuyDialogRequestedEvent`
@@ -241,6 +266,18 @@ Next:
   GameController/EventBus-Anbindung abgestimmt ist.
 
 ## Last Validation
+- Validation 2026-06-05 (Codex CityMap RestaurantDetail shell):
+  - `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+    -> 88 bestanden, 0 Fehler.
+  - Scope scan in `unity/Assets/Scripts` for Arcade/Serving/BuyDialog/
+    RestaurantDetail/GameEngine/SaveService/Day-Sim terms -> only expected
+    controller intent/presentation shell hits and existing model fields/comments.
+- Validation 2026-06-05 10:55 (Claude review of commit 1591e9d):
+  - `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+    -> 88 bestanden, 0 Fehler.
+  - Scope scan in `unity/Assets/Scripts` for Arcade/Serving/BuyDialog/GameEngine/
+    SaveService/Day-Sim terms -> no forbidden implementation; only expected
+    BuyDialog/controller intent hits and existing model fields/comments.
 - Validation 2026-06-05 (Codex CityMap BuyDialog shell):
   - `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
     -> 88 bestanden, 0 Fehler.
