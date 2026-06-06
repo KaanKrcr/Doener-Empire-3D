@@ -17,4 +17,8 @@
     <ProjectReference Include="..\DoenerEmpire.Logic\DoenerEmpire.Logic.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="Fixtures\**\*.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

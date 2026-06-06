@@ -1,0 +1,142 @@
+{
+  "companyName": "Döner Empire",
+  "founderName": "Kaan",
+  "cash": 8742.5,
+  "currentDay": 18,
+  "shops": [
+    {
+      "id": "shop_fulda_hauptstrasse",
+      "name": "Döner Empire",
+      "customName": "Hauptstrasse 12",
+      "cityId": "fulda",
+      "locationName": "Hauptstrasse",
+      "footTraffic": 1842,
+      "weeklyRent": 8750,
+      "isOpen": true,
+      "menu": [
+        { "productId": "doener_fladen",  "price": 6.5,  "isActive": true  },
+        { "productId": "doener_box",     "price": 7.0,  "isActive": true  },
+        { "productId": "ayran",          "price": 1.5,  "isActive": true  },
+        { "productId": "pommes",         "price": 2.5,  "isActive": false }
+      ],
+      "equipment": [
+        { "equipmentId": "spiess_klein" },
+        { "equipmentId": "kasse_digital" }
+      ],
+      "employees": [
+        {
+          "id": "emp_1",
+          "typeId": "doener_meister",
+          "name": "Ali",
+          "speed": 7,
+          "friendliness": 6,
+          "reliability": 8,
+          "experience": 3,
+          "salaryPerDay": 95.0,
+          "traits": ["charmer", "workaholic"],
+          "daysEmployed": 12,
+          "origin": "hiddenGem",
+          "growthPotential": 0.4
+        }
+      ],
+      "reputation": 4.2,
+      "dayOpened": 1,
+      "activeCampaigns": [
+        { "campaignId": "flyer", "startDay": 14, "endDay": 21 }
+      ],
+      "personality": "business",
+      "upgradeIds": ["led_sign"],
+      "autoHire": false,
+      "originalCompetitorName": null,
+      "wasAcquired": false
+    }
+  ],
+  "unlockedCityIds": ["fulda", "kassel"],
+  "loans": [
+    {
+      "id": "loan_1",
+      "amount": 5000.0,
+      "interestRate": 0.08,
+      "durationDays": 30,
+      "dayTaken": 5,
+      "amountPaid": 1200.0
+    }
+  ],
+  "totalRevenue": 42150.0,
+  "totalProfit": 7890.0,
+  "history": [
+    {
+      "day": 17,
+      "revenue": 1820.0,
+      "costs": 1340.0,
+      "customers": 248,
+      "rentCosts": 1250.0,
+      "salaryCosts": 95.0,
+      "ingredientCosts": 0.0,
+      "deliveryCommissionCosts": 0.0,
+      "loanPayments": 0.0,
+      "investments": 0.0
+    }
+  ],
+  "missions": [],
+  "customersServedTotal": 4128,
+  "seenEventIds": ["intro", "first_competitor"],
+  "tutorialDone": true,
+  "tutorialEnabled": false,
+  "tutorialStep": 99,
+  "brand": {
+    "brandAwareness": 14.5,
+    "cityReputation": {
+      "fulda":  62.0,
+      "kassel": 22.0
+    }
+  },
+  "competitors": [
+    {
+      "id": "comp_1",
+      "name": "Mehmets Döner",
+      "cityId": "fulda",
+      "personality": "cheapMass",
+      "shopCount": 2,
+      "reputation": 3.6,
+      "priceLevel": 0.85,
+      "marketShare": 0.28,
+      "daysSinceLastAction": 4
+    }
+  ],
+  "achievementIds": ["first_shop", "first_employee"],
+  "employeePool": [
+    {
+      "id": "pool_emp_1",
+      "typeId": "kassierer",
+      "name": "Lisa",
+      "speed": 5,
+      "friendliness": 8,
+      "reliability": 7,
+      "experience": 1,
+      "salaryPerDay": 60.0,
+      "traits": ["loyal"],
+      "daysEmployed": 0,
+      "origin": "regular",
+      "growthPotential": 0.6
+    }
+  ],
+  "lastEmployeePoolDay": 17,
+  "currentHour": 0,
+  "stocks": {},
+  "facilities": [],
+  "managerEmployeeIds": [],
+  "globalUpgradeIds": ["lieferdienst"],
+  "difficulty": "normal",
+  "hrManager": null,
+  "hrStrategy": "balanced",
+  "hrCandidates": [],
+  "globalPrices": {},
+  "cityPrices": {},
+  "activeCityCampaigns": {},
+  "activeGlobalCampaigns": [],
+  "completedChapterIds": [],
+  "activeComboIds": [],
+  "activeThemeId": "klassik",
+  "productQuality": {}
+}

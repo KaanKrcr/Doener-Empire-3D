@@ -1,5 +1,80 @@
 # Döner Empire – Findings
 
+---
+
+## Unity-Port-Findings (Stand 2026-06-06, Claude — Senior-Review)
+
+### Toolchain-Status
+- **Git LFS:** installiert (3.7.1), Repo-aktiviert, Root-`.gitattributes`
+  ergänzt um vollständigen Binär-Asset-Pattern (FBX/PNG/PSD/WAV/TTF/APK/…).
+- **.NET 8 SDK:** 8.0.421 — vorhanden.
+- **Unity Hub:** vorhanden.
+- **Unity 6 LTS (6000.4.9f1) Editor:** installiert.
+- **Unity Android Build Support:** ⚠ NICHT installiert — pausierte Downloads
+  vorhanden, Hub-CLI-Bug verworfen sie. **Manueller Hub-GUI-Install
+  durch Owner ausstehend.**
+
+### Code-Stand Logikschicht
+- 31 C#-Dateien unter `unity/Assets/Scripts/` (M1+M2 + Beginn M3).
+- Eigenständige `unity-logic-tests/`-Testharness (.NET 8 xUnit).
+- **Baseline: 103 grüne Tests** vor heutiger Session.
+- **Nach heutiger Session: 115 grüne Tests** (+12 Flutter-Save-Compat).
+
+### Architektur-Verbesserungen (heute, kollisionsfrei)
+
+1. **Assembly Definitions** angelegt für die 5 reinen Logic-Layer
+   (`Core`, `Models`, `Data`, `Save`, `Simulation`), alle mit
+   `noEngineReferences: true`. Damit ist die Logik-Schicht
+   **compile-time-geschützt** gegen versehentliche UnityEngine-Imports.
+   App/UI/View3D bleiben bewusst in Default-Assembly, weil App↔UI
+   aktuell bidirektional referenziert (würde Asmdef-Zirkel auslösen).
+
+2. **UI-Theme-Foundation** unter `unity/Assets/UI/Theme/Theme.uss`:
+   alle Token aus `UI_STYLE_GUIDE.md` (Farben, Typo, Spacing, Radii,
+   Motion) als USS Custom Properties + Basis-Komponentenklassen
+   (`.decision-sheet`, `.metric-tile`, `.btn--primary`, `.badge`,
+   `.fab`, `.bottom-nav`, …). Codex baut UXML-Layouts auf dieser
+   Foundation auf, OHNE neue Hex-Werte einzubauen.
+
+3. **Flutter-Save-Compat-Test** + Fixture
+   `unity-logic-tests/.../Fixtures/flutter_save_mvp.json`. Verifiziert
+   12 Aspekte (Top-Level-Scalars, Shops, Menü, Equipment, Mitarbeiter,
+   Konkurrent, Loan, Brand, Difficulty, Enum-Mapping, fehlende
+   Felder→Defaults). Befunde dokumentiert in
+   `docs/UNITY_SAVE_COMPAT.md` § „Known Asymmetries".
+
+4. **CI-Gate** `.github/workflows/unity-logic-tests.yml` für
+   `dotnet test`. Läuft bei jedem Push/PR auf Logic-Pfade.
+
+### Bekannte Save-Asymmetrien (in Tests gepinnt)
+Flutter `toJson()` schreibt diese Felder NICHT, C# vergibt Defaults
+beim Laden:
+- `Shop.morale` → `0.75`
+- `Shop.regulars` → `0.0`
+- `Shop.sizeTier` → `Klein`
+- `Employee.shift` → `Ganztags`
+
+Flutter `toJson()` schreibt diese Felder, C#-DTO ignoriert sie:
+- `history`, `missions`, `stocks`, `facilities`
+- `hrManager`, `hrStrategy`, `hrCandidates`
+- `globalPrices`, `cityPrices`
+- `activeCityCampaigns`, `activeGlobalCampaigns`
+- `completedChapterIds`, `activeComboIds`, `productQuality`
+
+Codex schließt diese Lücken im Zuge der jeweiligen Engine-Ports (M4–M6).
+
+### Nächste Schritte (Verantwortlichkeiten klar)
+- **Owner (du):** Android Build Support per Hub-GUI nachinstallieren.
+  Dann meldest du dich → ich erzeuge `Packages/manifest.json` für URP
+  und triggere Unity batchmode für initiale `ProjectSettings/`.
+- **Codex:** `CompetitorEngine`-Port als nächste Engine (M4a). Spec
+  liegt in `lib/services/competitor_engine.dart`, Testerwartungen aus
+  Flutter-Test-Suite spiegeln.
+- **Claude (ich):** Code-Review jedes Codex-Engine-Ports vor Merge,
+  ggf. Save-DTO um neue Felder erweitern wenn Engine sie braucht.
+
+---
+
 ## Ausgangslage
 
 Aktueller Projektpfad:

@@ -1,0 +1,91 @@
+###############################
+# Döner Empire — Code Style
+# Gilt für Claude, Codex, OpenClaw, und alle Editoren.
+###############################
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{md,markdown}]
+trim_trailing_whitespace = false   # Markdown: zwei Spaces am Zeilenende = <br>
+
+[*.{json,yml,yaml,uss,uxml,asmdef}]
+indent_size = 2
+
+[*.dart]
+indent_size = 2
+
+###############################
+# C# — .NET-Konventionen
+###############################
+[*.cs]
+indent_size = 4
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+csharp_new_line_before_members_in_object_initializers = true
+csharp_new_line_before_members_in_anonymous_types = true
+csharp_new_line_between_query_expression_clauses = true
+
+csharp_indent_case_contents = true
+csharp_indent_switch_labels = true
+
+csharp_space_after_cast = false
+csharp_space_after_keywords_in_control_flow_statements = true
+csharp_space_between_method_call_parameter_list_parentheses = false
+csharp_space_between_method_declaration_parameter_list_parentheses = false
+csharp_space_between_parentheses = false
+
+csharp_preserve_single_line_blocks = true
+csharp_preserve_single_line_statements = false
+
+# var-Verwendung — gemäßigt: nur wo Typ offensichtlich
+csharp_style_var_for_built_in_types = false:warning
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_var_elsewhere = false:suggestion
+
+# Expression-bodied
+csharp_style_expression_bodied_methods = when_on_single_line:suggestion
+csharp_style_expression_bodied_properties = when_on_single_line:suggestion
+
+# this-Prefix → nein
+dotnet_style_qualification_for_field = false:warning
+dotnet_style_qualification_for_property = false:warning
+dotnet_style_qualification_for_method = false:warning
+dotnet_style_qualification_for_event = false:warning
+
+# Namensregeln
+dotnet_naming_rule.types_should_be_pascal_case.severity = warning
+dotnet_naming_rule.types_should_be_pascal_case.symbols = types
+dotnet_naming_rule.types_should_be_pascal_case.style = pascal_case_style
+
+dotnet_naming_rule.private_fields_should_have_no_prefix.severity = suggestion
+dotnet_naming_rule.private_fields_should_have_no_prefix.symbols = private_fields
+dotnet_naming_rule.private_fields_should_have_no_prefix.style = camel_case_style
+
+dotnet_naming_symbols.types.applicable_kinds = class,struct,enum,interface,delegate
+dotnet_naming_symbols.types.applicable_accessibilities = public,internal,private,protected
+
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+
+dotnet_naming_style.pascal_case_style.capitalization = pascal_case
+dotnet_naming_style.camel_case_style.capitalization = camel_case
+
+# Save-Compat: DTO-Felder bewusst camelCase (Flutter-JSON-Kompatibilität)
+# Ausnahme wird in den Source-Files mit #pragma / Kommentar dokumentiert.
+
+# Unused code → Warnung (verhindert toten Code im Port)
+dotnet_diagnostic.IDE0051.severity = suggestion   # private members ungenutzt
+dotnet_diagnostic.IDE0052.severity = suggestion   # private members assigned but unused
+
+# Async-Methode ohne await → Fehler (echter Bug)
+dotnet_diagnostic.CS1998.severity = warning

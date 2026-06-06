@@ -63,3 +63,70 @@ model shape while the Unity implementation grows.
 The service serializes/deserializes strings only. It does not touch
 `UnityEngine`, `PlayerPrefs`, files, UI, Buy/Shop/Cash mutation, GameEngine,
 Day-Sim, arcade-cooking, or realtime serving logic.
+
+## Verified Real-World Compatibility (2026-06-06)
+
+`unity-logic-tests/.../FlutterSaveCompatibilityTests.cs` lädt eine
+Flutter-Style-Fixture (`Fixtures/flutter_save_mvp.json`) und prüft 12
+Aspekte — alle grün:
+
+- Top-Level-Skalare (companyName, cash, currentDay, totalRevenue, …)
+- `unlockedCityIds`, `globalUpgradeIds`, `achievementIds`, `seenEventIds`
+- `brand` mit `brandAwareness` + `cityReputation`-Map
+- Shop mit Menü, Equipment, Mitarbeiter, aktiven Kampagnen
+- Konkurrent, Kredit, Mitarbeiter-Pool
+- Difficulty-Enum-Mapping (Dart `"normal"` → C# `GameDifficulty.Normal`)
+- Personality-Enum-Mapping (Dart `"business"` → `LocationPersonality.Business`)
+- CompetitorPersonality (Dart `"cheapMass"` → `CheapMass`)
+- CandidateOrigin (Dart `"hiddenGem"` → `HiddenGem`)
+
+## Known Asymmetries (Stand 2026-06-06)
+
+Diese Lücken sind dokumentiert UND in den Tests gepinnt — wenn der Test
+`FlutterFixture_KnownGapsAreStillGaps_2026_06_06` rot wird, ist die
+Lücke geschlossen.
+
+### Felder, die Flutter NICHT in `toJson()` schreibt (aber C# erwartet)
+
+C# muss beim Laden sinnvolle Defaults setzen, statt zu crashen:
+
+| Modell | Feld | C#-Default beim Load |
+|---|---|---|
+| `Shop`     | `morale`     | `0.75` |
+| `Shop`     | `regulars`   | `0.0`  |
+| `Shop`     | `sizeTier`   | `"klein"` → `ShopSizeTier.Klein` |
+| `Employee` | `shift`      | `"ganztags"` → `EmployeeShift.Ganztags` |
+
+→ Beim Re-Save schreibt C# diese Felder mit; ein Flutter-Re-Load würde
+sie ignorieren. Solange Spielstände nur in EINE Richtung wandern
+(Flutter → Unity), ist das problemlos.
+
+### Felder, die Flutter schreibt, C# (noch) NICHT roundtrippt
+
+C# `SaveService` ignoriert diese aktuell stillschweigend — Daten gehen
+beim Load verloren:
+
+- `history` (Liste der `DailyRecord`s pro Tag)
+- `missions`
+- `stocks` (Aktien)
+- `facilities` (Produktionsanlagen)
+- `hrManager`, `hrStrategy`, `hrCandidates`
+- `globalPrices`, `cityPrices`
+- `activeCityCampaigns`, `activeGlobalCampaigns`
+- `completedChapterIds`, `activeComboIds`, `productQuality`
+
+**Codex-To-Do (M4–M6):** sobald die jeweilige Engine portiert ist
+(z.B. CampaignEngine → activeGlobalCampaigns, MissionEngine → missions,
+CorporateEngine → stocks/facilities), die DTO-Erweiterung gleich mit
+hinzunehmen + Roundtrip-Test grünziehen.
+
+### Fixture-Pfad
+
+```
+unity-logic-tests/DoenerEmpire.Logic.Tests/Fixtures/flutter_save_mvp.json
+```
+
+Die Fixture wird über `csproj` `<None CopyToOutputDirectory>` neben das
+Test-Assembly kopiert. Wenn du ein echtes Flutter-Save als zusätzliche
+Fixture beistellen willst (z.B. aus `adb shell run-as` der Android-App
+exportiert), packe es daneben und füge einen weiteren Test hinzu.
