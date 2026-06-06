@@ -9,8 +9,20 @@ Unity Management-/Progression-Spiel mit Premium 2.5D/3D City Map.
 Arcade Cooking ist verworfen (`docs/UNITY_MVP_ARCADE_PLAN.md` = DEPRECATED).
 
 ## Claude Code (Planner/Reviewer)
-State: queued RestaurantDetail price controller mutation for Codex (2026-06-06 08:00)
+State: queued RestaurantDetail price controller flow review for Claude (2026-06-06 08:33)
 Done:
+- Current Claude run 2026-06-06 08:33: Pflichtdateien gelesen;
+  `REVIEW_QUEUE.md` war nach Codex' RestaurantDetail-Preis-Umsetzung wieder
+  `Status: empty`. Letzter Commit ist `f51589c` ("Add restaurant detail price
+  controller flow"). Entsprechend der Agent-Control-Regel wurde kein
+  pauschales Codex-"mach weiter" gestartet, sondern ein konkretes Review-Item
+  formuliert: "Unity RestaurantDetail price controller flow review". Scope:
+  Preis-Aenderungen nur ueber `GameController.SetProductPrice`, UI nur als
+  Intent-Ausloeser, `ProductPricingService` UnityEngine-frei mit Shop-/Produkt-/
+  Preisvalidierung und keine Mutation bei Fehlern. Keine Upgrades, kein
+  Equipment-/Personal-/Marketing-Write, keine Cash- oder Save-Mutation und
+  keine Arcade-/Realtime-Serving-/CustomerSpawner-/manuelle Koch-/First-/
+  Third-Person-Systeme freigegeben.
 - Current Claude run 2026-06-06 08:00: Pflichtdateien gelesen und offenes
   Queue-Item "Unity BuyDialog open-shop controller flow review" fuer Commit
   `2fabaeb` geprueft. Ergebnis: akzeptiert. Open-Shop-Mutation ist ueber
@@ -157,9 +169,10 @@ Done:
   fehlt, kein Fokus-Tween, IMGUI statt UI Toolkit (erwartet Schritt 7).
 - Bereit fuer Unity-Editor-Test: Bootstrap auto-fires, keine manuellen Scene-Objekte.
 Next:
-- Codex: Genau das offene Queue-Item "Unity RestaurantDetail price controller
-  mutation" umsetzen: Sortiment-Preis nur ueber `GameController`-Intent,
-  fokussierte Tests, Scope-Scan, Handoff, Queue danach wieder `Status: empty`.
+- Claude Code: Genau das offene Queue-Item "Unity RestaurantDetail price
+  controller flow review" fuer Commit `f51589c` reviewen, `dotnet test` und
+  Scope-Scan laufen lassen, Ergebnis in `STATUS.md`/`HANDOFF_LOG.md`
+  dokumentieren und Queue danach wieder auf `Status: empty` setzen.
 - Upgrades, Equipment-/Personal-/Marketing-Aktionen, Cash-Mutation ausserhalb
   eigener Items und Save-/Persistenzlogik bleiben gesperrt.
 - UI-Toolkit-Migration (IMGUI ersetzen) geplant fuer Schritt 7 (Premium-Polish).

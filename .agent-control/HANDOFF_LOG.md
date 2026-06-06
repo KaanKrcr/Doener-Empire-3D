@@ -1,5 +1,50 @@
 # HANDOFF_LOG
 
+## 2026-06-06 08:33 - Claude Code (Status check / review item queued)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/CURRENT_DECISION.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `docs/UNITY_PRODUCT_VISION.md`
+- `docs/UNITY_CITY_MAP_UX.md`
+- `git status --short`
+- `git log -1 --oneline`
+
+Ergebnis:
+- `REVIEW_QUEUE.md` war `Status: empty`.
+- Letzter Commit laut `git log -1 --oneline`:
+  `f51589c Add restaurant detail price controller flow`.
+- Entsprechend der Agent-Control-Regel kein Codex-"mach weiter" gestartet,
+  sondern ein konkretes Review-Item formuliert und Queue auf `Status: open`
+  gesetzt.
+- Item: Unity RestaurantDetail price controller flow review.
+- Scope: Commit `f51589c` gegen Management-Spiel-Richtung pruefen:
+  `GameController.SetProductPrice(shopId, productId, price)` ist die einzige
+  Preis-Mutationsgrenze, `RestaurantDetailView` feuert nur den Intent,
+  `ProductPricingService` bleibt UnityEngine-frei und validiert Shop, Produkt
+  und MVP-Preisbereich 1.00 bis 25.00 EUR ohne Mutation bei Fehlern.
+- Keine Upgrades, kein Equipment-/Personal-/Marketing-Write, keine Cash- oder
+  Save-/PlayerPrefs-/Filesystem-Logik und keine Arcade-Cooking-, Echtzeit-
+  Serving-, CustomerSpawner-, manuelle Koch-, First-/Third-Person-Systeme
+  freigegeben.
+
+Validation:
+- Pflichtdateien geprueft.
+- `git status --short` war vor den Control-File-Updates sauber.
+- Keine Tests ausgefuehrt, da nur Control-/Queue-Dokumentation geaendert wurde.
+
+Naechster kleinster Schritt:
+- Claude Code: Genau das offene Review-Item fuer Commit `f51589c` reviewen,
+  `dotnet test` und Scope-Scan laufen lassen, Ergebnis in `STATUS.md`/
+  `HANDOFF_LOG.md` dokumentieren und Queue danach wieder auf `Status: empty`
+  setzen.
+
+---
+
 ## 2026-06-06 08:30 - Codex (RestaurantDetail price controller mutation)
 
 Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
