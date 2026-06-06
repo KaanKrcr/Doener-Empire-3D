@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using DoenerEmpire.Core;
+using DoenerEmpire.Data;
 using DoenerEmpire.Models;
 using DoenerEmpire.Simulation;
 using DoenerEmpire.View3D;
@@ -73,6 +74,7 @@ namespace DoenerEmpire.App
     {
         private readonly GameState state;
         private readonly GameEngine gameEngine;
+        private readonly ShopOpeningService shopOpeningService = new();
 
         public GameController(GameState initialState, EventBus eventBus)
             : this(initialState, eventBus, new GameEngine())
@@ -127,6 +129,42 @@ namespace DoenerEmpire.App
             Events.Publish(new BuyDialogRequestedEvent(hotspot));
         }
 
+        public void OpenShop(CityMapHotspot hotspot)
+        {
+            if (hotspot == null)
+            {
+                return;
+            }
+
+            if (hotspot.State != CityMapHotspotState.Available)
+            {
+                Events.Publish(new ToastRequestedEvent("Kaufen ist nur auf freien Standorten moeglich."));
+                return;
+            }
+
+            ShopOpeningResult result = shopOpeningService.OpenShop(state, new ShopOpeningRequest(
+                hotspot.Id,
+                state.CompanyName,
+                CityIdFor(hotspot),
+                hotspot.DisplayName,
+                hotspot.FootTraffic,
+                hotspot.WeeklyRent,
+                hotspot.Deposit,
+                hotspot.Personality));
+
+            if (!result.Success)
+            {
+                Events.Publish(new ToastRequestedEvent(result.ErrorMessage));
+                return;
+            }
+
+            hotspot.MarkOwned(result.Shop);
+            PublishSnapshot();
+            Events.Publish(new LocationSelectedEvent(hotspot));
+            Events.Publish(new RestaurantDetailRequestedEvent(result.Shop.Id));
+            Events.Publish(new ToastRequestedEvent("Filiale eroeffnet."));
+        }
+
         public void RequestRestaurantDetail(CityMapHotspot hotspot)
         {
             if (hotspot == null)
@@ -149,6 +187,14 @@ namespace DoenerEmpire.App
             DailyRecord record = state.History.LastOrDefault();
             Events.Publish(new DayEndedEvent(record, result));
             PublishSnapshot();
+        }
+
+        private static string CityIdFor(CityMapHotspot hotspot)
+        {
+            string district = hotspot.District ?? string.Empty;
+            CityData city = GameData.AllCities.FirstOrDefault(candidate =>
+                district.StartsWith(candidate.Name, StringComparison.OrdinalIgnoreCase));
+            return city?.Id ?? "fulda";
         }
     }
 }

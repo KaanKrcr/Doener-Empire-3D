@@ -1,5 +1,152 @@
 # HANDOFF_LOG
 
+## 2026-06-06 07:41 - Codex (BuyDialog open-shop controller mutation)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `git status -sb`
+- `git rev-parse HEAD`
+- `git rev-parse origin/main`
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/HANDOFF_LOG.md` (Tail)
+
+Ergebnis:
+- Offenes Queue-Item "Unity BuyDialog open-shop controller mutation"
+  umgesetzt.
+- `ShopOpeningService` als UnityEngine-freier Open-Shop-Pfad ergaenzt; er zieht
+  `Deposit + WeeklyRent` ab, erzeugt eine Default-`Shop` mit Standardmenue und
+  Basis-Equipment und blockt Insufficient-Cash/Duplicate-Standorte ohne
+  Mutation.
+- `GameController.OpenShop(CityMapHotspot)` ist die einzige Buy-Mutationsgrenze:
+  validiert Available-Hotspot, publiziert Fehler-Toasts, aktualisiert bei Erfolg
+  Snapshot/Location/RestaurantDetail-Events.
+- `BuyDialogView` ruft beim Confirm nur den Controller-Intent; Abbrechen/Close
+  mutieren weiterhin nichts.
+- `CityMapHotspot.MarkOwned(shop)` macht den gekauften Standort direkt als
+  owned im CityMap-Flow nutzbar.
+- `REVIEW_QUEUE.md` wieder auf `Status: empty` gesetzt.
+
+Validation:
+- `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+  -> 98 bestanden, 0 Fehler.
+- Scope scan in App/UI/Simulation/View3D plus `ShopOpeningServiceTests` fuer
+  CustomerSpawner/Arcade/Serving/manual/PlayerPrefs/System.IO/File/Directory/
+  first-person/third-person/RestaurantDetail/Upgrade/price editing -> nur
+  erwartete bestehende RestaurantDetail-Event-/Shell-Treffer und der neue
+  OpenShop-Erfolgsevent.
+- `git diff --check` -> clean, nur bestehende Git-LF/CRLF-Warnungen.
+
+Naechster kleinster Schritt:
+- Claude Code: Pushed SHA reviewen und danach das naechste kleine kohaerente
+  Management-/Progression-Queue-Item waehlen.
+
+---
+
+## 2026-06-06 07:40 - Claude Code (Review commit c94bbdc / next item queued)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/CURRENT_DECISION.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `docs/UNITY_PRODUCT_VISION.md`
+- `docs/UNITY_CITY_MAP_UX.md`
+- `unity/Assets/Scripts/App/GameController.cs`
+- `unity/Assets/Scripts/App/CityMapBootstrap.cs`
+- `unity/Assets/Scripts/UI/LocationSheetView.cs`
+- `unity/Assets/Scripts/UI/DayReportView.cs`
+
+Review:
+- Offenes Queue-Item "Unity DayReport controller flow review" fuer Commit
+  `c94bbdc` ("Add Unity day report controller flow") geprueft.
+- Ergebnis: akzeptiert.
+- `GameController.SimulateDay()` ruft ausschliesslich den bestehenden
+  `GameEngine.SimulateDay(GameState)`-Pfad auf.
+- Event-Reihenfolge ist kohaerent: `DayEndedEvent` mit `DailyRecord`/
+  `DaySimulationResult` wird vor `PublishSnapshot()`/
+  `StateSnapshotChangedEvent` publiziert.
+- `DayReportView` zeigt Tag, Umsatz, Kosten, Gewinn und Kunden aus dem
+  erzeugten `DailyRecord`; keine eigene Umsatz-/Kosten-/Gewinnformel in UI.
+- `ZURUECK` schliesst nur den Report und mutiert `GameState` nicht.
+- `LocationSheetView`, `DayReportView` und `CityMapBootstrap` bleiben
+  Presentation-/Controller-Wiring.
+- Keine BuyDialog-/RestaurantDetail-Funktionsmutation, keine Save-Persistenz,
+  keine PlayerPrefs-/Dateisystem-Nutzung, keine Arcade-Cooking-, Echtzeit-
+  Serving-, CustomerSpawner-, manuelle Koch-, First-/Third-Person-Systeme
+  eingefuehrt.
+
+Queue-Entscheidung:
+- Nach akzeptiertem Review wurde ein neues konkretes Codex-Item gesetzt:
+  "Unity BuyDialog open-shop controller mutation".
+- Scope: echte Filialeroeffnung aus dem bestehenden BuyDialog heraus, aber
+  Mutation ausschliesslich ueber `GameController`; BuyDialog ruft nur den Intent.
+- RestaurantDetail-Aktionen, Upgrades und Preis-Editing bleiben gesperrt, bis
+  sie eigene Review-Items haben.
+
+Validation:
+- `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+  -> 95 bestanden, 0 Fehler.
+- Scope-Scan in `unity/Assets/Scripts/App`, `unity/Assets/Scripts/UI`,
+  `unity/Assets/Scripts/Simulation` und `unity/Assets/Scripts/Models/DailyRecord.cs`
+  fuer CustomerSpawner/Arcade/Serving/manual cooking/PlayerPrefs/System.IO/
+  File/Directory/first-person/third-person/SaveService:
+  -> keine verbotenen Treffer; nur erwartete bestehende BuyDialog-/
+     RestaurantDetail-Shell- und Controller-Event-Treffer.
+
+Naechster kleinster Schritt:
+- Codex: Genau das offene Queue-Item "Unity BuyDialog open-shop controller
+  mutation" umsetzen, Tests/Scope-Scan dokumentieren und Queue danach wieder auf
+  `Status: empty` setzen.
+
+---
+
+## 2026-06-05 21:04 - Claude Code (Status check / review item queued)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/CURRENT_DECISION.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `docs/UNITY_PRODUCT_VISION.md`
+- `docs/UNITY_CITY_MAP_UX.md`
+
+Ergebnis:
+- `REVIEW_QUEUE.md` war `Status: empty`.
+- Letzter Commit laut `git log -1 --oneline`:
+  `c94bbdc Add Unity day report controller flow`.
+- Entsprechend der Agent-Control-Regel kein Codex-"mach weiter" gestartet,
+  sondern ein konkretes Review-Item formuliert und Queue auf `Status: open`
+  gesetzt.
+- Item: Unity DayReport controller flow review.
+- Scope: Commit `c94bbdc` gegen Management-Spiel-Richtung pruefen:
+  `GameController.SimulateDay()` nutzt nur den bestehenden
+  `GameEngine.SimulateDay(GameState)`-Pfad, `DayEndedEvent`/Snapshot-Update sind
+  kohaerent, DayReport zeigt Werte aus `DailyRecord`/`DaySimulationResult`, UI
+  enthaelt keine eigene Wirtschaftsformel.
+- Keine BuyDialog-/RestaurantDetail-Funktionsmutation, keine Save-Persistenz,
+  keine PlayerPrefs-/Dateisystem-Nutzung, keine Arcade-Cooking-, Echtzeit-
+  Serving-, CustomerSpawner-, manuelle Koch-, First-/Third-Person-Systeme
+  freigegeben.
+
+Validation:
+- Pflichtdateien geprueft.
+- `git status --short` war vor den Control-File-Updates sauber.
+- Keine Tests ausgefuehrt, da nur Control-/Queue-Dokumentation geaendert wurde.
+
+Naechster kleinster Schritt:
+- Claude Code: Genau das offene Review-Item fuer Commit `c94bbdc` reviewen,
+  `dotnet test` und Scope-Scan laufen lassen, Ergebnis in `STATUS.md`/
+  `HANDOFF_LOG.md` dokumentieren und Queue danach wieder auf `Status: empty`
+  setzen.
+
+---
+
 ## 2026-06-05 17:34 - Claude Code (Status check / review item queued)
 
 Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.

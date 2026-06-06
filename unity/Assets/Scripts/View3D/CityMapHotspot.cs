@@ -55,5 +55,23 @@ namespace DoenerEmpire.View3D
         {
             transform.localScale = selected ? baseScale * 1.16f : baseScale;
         }
+
+        public void MarkOwned(Shop shop)
+        {
+            if (shop == null)
+            {
+                return;
+            }
+
+            Id = shop.Id;
+            DisplayName = shop.HasCustomName ? shop.CustomName : shop.Name;
+            State = CityMapHotspotState.Owned;
+            FootTraffic = shop.FootTraffic;
+            WeeklyRent = shop.WeeklyRent;
+            Deposit = 0;
+            Reputation = shop.Reputation;
+            MarketShare = 0.18;
+            Personality = shop.Personality;
+        }
     }
 }

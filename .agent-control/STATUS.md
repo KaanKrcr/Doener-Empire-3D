@@ -9,8 +9,32 @@ Unity Management-/Progression-Spiel mit Premium 2.5D/3D City Map.
 Arcade Cooking ist verworfen (`docs/UNITY_MVP_ARCADE_PLAN.md` = DEPRECATED).
 
 ## Claude Code (Planner/Reviewer)
-State: status check queued Day Sim controller intent + DayReport shell for Codex (2026-06-05 17:34)
+State: reviewed DayReport controller flow; queued BuyDialog open-shop controller mutation for Codex (2026-06-06 07:40)
 Done:
+- Current Claude run 2026-06-06 07:40: Pflichtdateien gelesen und offenes
+  Queue-Item "Unity DayReport controller flow review" fuer Commit `c94bbdc`
+  geprueft. Ergebnis: akzeptiert. `GameController.SimulateDay()` ruft nur den
+  bestehenden `GameEngine.SimulateDay(GameState)`-Managementpfad auf, publiziert
+  danach `DayEndedEvent` mit `DailyRecord`/`DaySimulationResult` und erst danach
+  den `StateSnapshotChangedEvent`. `DayReportView` zeigt Werte aus
+  `DailyRecord` und schliesst per `ZURUECK` ohne `GameState`-Mutation.
+  `LocationSheetView`/`DayReportView`/`CityMapBootstrap` bleiben
+  Presentation-/Controller-Wiring; keine UI-Wirtschaftsformel, keine
+  Save-/Filesystem-/PlayerPrefs-Logik und keine Arcade-/Realtime-Serving-/
+  CustomerSpawner-/manuelle Koch-/First-/Third-Person-Systeme. Danach wurde als
+  naechstes konkretes Codex-Item "Unity BuyDialog open-shop controller mutation"
+  gesetzt: echte Filialeroeffnung nur ueber `GameController`, UI mutiert State
+  nicht direkt.
+- Current Claude run 2026-06-05 21:04: Pflichtdateien gelesen;
+  `REVIEW_QUEUE.md` war nach Codex' DayReport-Umsetzung wieder `Status:
+  empty`. Letzter Commit ist `c94bbdc` ("Add Unity day report controller
+  flow"). Entsprechend der Agent-Control-Regel wurde kein pauschales "mach
+  weiter" gestartet, sondern ein konkretes Review-Item formuliert:
+  Unity DayReport controller flow review. Scope: Day-Sim-Intent ueber
+  `GameController.SimulateDay()`, Event-Reihenfolge `DayEndedEvent` vor
+  `StateSnapshotChangedEvent`, DayReport-Anzeige aus `DailyRecord`/
+  `DaySimulationResult`, keine UI-Wirtschaftslogik und keine Arcade-/Realtime-
+  Serving-/BuyDialog-/RestaurantDetail-Funktionsmutation.
 - Current Claude run 2026-06-05 17:34: Pflichtdateien gelesen;
   `REVIEW_QUEUE.md` war nach Codex' GameEngine-Foundation wieder `Status:
   empty`. Entsprechend der Agent-Control-Regel wurde kein pauschales "mach
@@ -103,18 +127,36 @@ Done:
   fehlt, kein Fokus-Tween, IMGUI statt UI Toolkit (erwartet Schritt 7).
 - Bereit fuer Unity-Editor-Test: Bootstrap auto-fires, keine manuellen Scene-Objekte.
 Next:
-- Codex: Genau das offene Queue-Item "Unity Day Sim controller intent +
-  DayReport shell" umsetzen, Tests laufen lassen, Handoff dokumentieren und
-  Queue danach wieder auf `Status: empty` setzen.
-- Claude Code: Danach die Umsetzung reviewen und erst dann Buy/Upgrade-
-  UI-State-Mutation oder RestaurantDetail-Aktionen freigeben.
+- Claude Code: Pushed SHA der BuyDialog open-shop controller mutation reviewen
+  und danach das naechste kleine kohaerente Management-/Progression-Item
+  setzen.
+- RestaurantDetail-Aktionen, Upgrades und Preis-Editing bleiben bis zu eigenen
+  Review-Items gesperrt.
 - UI-Toolkit-Migration (IMGUI ersetzen) geplant fuer Schritt 7 (Premium-Polish).
 - Vor Schritt 4: KPI-Labels korrigieren (Owned: MARKTANTEIL/PROGNOSE;
   Available: KONKURRENZ); Locked-Tap auf Toast-only umstellen.
 
 ## Codex (Implementation)
-State: complete - Unity Day Sim controller intent + DayReport shell implemented, validation green (2026-06-05)
+State: complete - Unity BuyDialog open-shop controller mutation implemented, validation green (2026-06-06)
 Done:
+- Current Codex run 2026-06-06 07:41: Offenes Review-Item "Unity BuyDialog
+  open-shop controller mutation" umgesetzt:
+  - `ShopOpeningService` als UnityEngine-freier Open-Shop-Pfad hinzugefuegt:
+    validiert doppelte/ungueltige Standortdaten und ausreichend Kapital,
+    zieht `Deposit + WeeklyRent` ab und erzeugt eine neue `Shop` mit Default-
+    Sortiment und Basis-Equipment.
+  - `GameController.OpenShop(CityMapHotspot)` ist der einzige Intent fuer die
+    Buy-Mutation; er validiert `Available`, ruft den Service auf, publiziert
+    bei Fehlern Toasts und bei Erfolg Snapshot/Location/RestaurantDetail-
+    Events.
+  - `BuyDialogView` ruft beim Confirm nur `controller.OpenShop(hotspot)` auf;
+    Cancel/Close mutieren weiterhin nichts.
+  - `CityMapHotspot.MarkOwned(shop)` macht den ausgewaehlten Standort nach
+    erfolgreichem Kauf im CityMap-Flow als owned nutzbar.
+  - Keine RestaurantDetail-Funktionsmutation, keine Upgrades, kein Price-
+    Editing, keine Save-/PlayerPrefs-/Filesystem-Logik und keine Arcade-/
+    Realtime-Serving-/CustomerSpawner-/manuelle Koch-/First-/Third-Person-
+    Systeme eingefuehrt.
 - Current Codex run 2026-06-05 21:00: Offenes Review-Item "Unity Day Sim
   controller intent + DayReport shell" umgesetzt:
   - `GameController.SimulateDay()` als Tagesabschluss-Intent hinzugefuegt; er
@@ -370,6 +412,15 @@ Next:
   GameController/EventBus-Anbindung abgestimmt ist.
 
 ## Last Validation
+- Validation 2026-06-06 07:41 (Codex BuyDialog open-shop controller mutation):
+  - `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+    -> 98 bestanden, 0 Fehler.
+  - Scope scan in App/UI/Simulation/View3D plus `ShopOpeningServiceTests` fuer
+    CustomerSpawner/Arcade/Serving/manual/PlayerPrefs/System.IO/File/Directory/
+    first-person/third-person/RestaurantDetail/Upgrade/price editing -> nur
+    erwartete bestehende RestaurantDetail-Event-/Shell-Treffer und der neue
+    OpenShop-Erfolgsevent.
+  - `git diff --check` -> clean, nur bestehende Git-LF/CRLF-Warnungen.
 - Validation 2026-06-05 21:00 (Codex Day Sim controller intent + DayReport shell):
   - `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
     -> 95 bestanden, 0 Fehler.

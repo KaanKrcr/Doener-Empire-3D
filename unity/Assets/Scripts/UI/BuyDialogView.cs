@@ -21,9 +21,11 @@ namespace DoenerEmpire.UI
         private GUIStyle disabledButtonStyle;
         private CityMapHotspot hotspot;
         private GameState gameState;
+        private GameController controller;
 
         public void Initialize(GameController controller)
         {
+            this.controller = controller;
             gameState = controller.State;
             controller.Events.Subscribe<StateSnapshotChangedEvent>(e => gameState = e.State);
             controller.Events.Subscribe<BuyDialogRequestedEvent>(ShowDialog);
@@ -53,15 +55,20 @@ namespace DoenerEmpire.UI
             float metricWidth = (dialog.width - 60) / 2f;
             DrawMetric(new Rect(dialog.x + 24, metricY, metricWidth, 58), "KAUTION", Money(hotspot.Deposit));
             DrawMetric(new Rect(dialog.x + 36 + metricWidth, metricY, metricWidth, 58), "WOCHENMIETE", Money(hotspot.WeeklyRent));
-            DrawMetric(new Rect(dialog.x + 24, metricY + 70, dialog.width - 48, 58), "KAPITAL DANACH", Money(CapitalAfterDeposit()));
+            DrawMetric(new Rect(dialog.x + 24, metricY + 70, dialog.width - 48, 58), "KAPITAL DANACH", Money(CapitalAfterOpening()));
 
             if (GUI.Button(new Rect(dialog.x + 24, dialog.y + dialog.height - 56, 150, 38), "ABBRECHEN", buttonStyle))
             {
                 Close();
             }
 
-            GUI.enabled = false;
-            GUI.Button(new Rect(dialog.x + dialog.width - 214, dialog.y + dialog.height - 56, 190, 38), "NOCH NICHT AKTIV", disabledButtonStyle);
+            bool canAfford = CapitalAfterOpening() >= 0;
+            GUI.enabled = canAfford;
+            if (GUI.Button(new Rect(dialog.x + dialog.width - 214, dialog.y + dialog.height - 56, 190, 38), "EROEFFNEN", canAfford ? buttonStyle : disabledButtonStyle))
+            {
+                controller.OpenShop(hotspot);
+                Close();
+            }
             GUI.enabled = true;
         }
 
@@ -84,9 +91,9 @@ namespace DoenerEmpire.UI
             GUI.Label(new Rect(rect.x + 10, rect.y + 30, rect.width - 20, 24), value, bodyStyle);
         }
 
-        private double CapitalAfterDeposit()
+        private double CapitalAfterOpening()
         {
-            return (gameState?.Cash ?? 0) - hotspot.Deposit;
+            return (gameState?.Cash ?? 0) - hotspot.Deposit - hotspot.WeeklyRent;
         }
 
         private static string Money(double value)
