@@ -75,6 +75,7 @@ namespace DoenerEmpire.App
         private readonly GameState state;
         private readonly GameEngine gameEngine;
         private readonly ShopOpeningService shopOpeningService = new();
+        private readonly ProductPricingService productPricingService = new();
 
         public GameController(GameState initialState, EventBus eventBus)
             : this(initialState, eventBus, new GameEngine())
@@ -179,6 +180,20 @@ namespace DoenerEmpire.App
             }
 
             Events.Publish(new RestaurantDetailRequestedEvent(hotspot.Id));
+        }
+
+        public void SetProductPrice(string shopId, string productId, double price)
+        {
+            ProductPriceChangeResult result = productPricingService.SetProductPrice(state, shopId, productId, price);
+            if (!result.Success)
+            {
+                Events.Publish(new ToastRequestedEvent(result.ErrorMessage));
+                return;
+            }
+
+            PublishSnapshot();
+            Events.Publish(new RestaurantDetailRequestedEvent(shopId));
+            Events.Publish(new ToastRequestedEvent("Preis aktualisiert."));
         }
 
         public void SimulateDay()

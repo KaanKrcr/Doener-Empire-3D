@@ -9,8 +9,38 @@ Unity Management-/Progression-Spiel mit Premium 2.5D/3D City Map.
 Arcade Cooking ist verworfen (`docs/UNITY_MVP_ARCADE_PLAN.md` = DEPRECATED).
 
 ## Claude Code (Planner/Reviewer)
-State: reviewed DayReport controller flow; queued BuyDialog open-shop controller mutation for Codex (2026-06-06 07:40)
+State: queued RestaurantDetail price controller mutation for Codex (2026-06-06 08:00)
 Done:
+- Current Claude run 2026-06-06 08:00: Pflichtdateien gelesen und offenes
+  Queue-Item "Unity BuyDialog open-shop controller flow review" fuer Commit
+  `2fabaeb` geprueft. Ergebnis: akzeptiert. Open-Shop-Mutation ist ueber
+  `GameController.OpenShop(CityMapHotspot)` begrenzt; `BuyDialogView` ruft beim
+  Confirm nur diesen Controller-Intent auf und mutiert `GameState`, `Shop`,
+  Cash, Hotspot-Ownership, Save-State oder Dateien nicht direkt.
+  `ShopOpeningService` bleibt UnityEngine-frei, validiert unvollstaendige/
+  doppelte/ungueltige Cash-Faelle, zieht nur `Deposit + WeeklyRent` ab und
+  erzeugt eine Default-Filiale mit Default-Menue und Basis-Equipment.
+  Erfolgreicher Kauf publiziert Snapshot/Location/RestaurantDetail/Toast und
+  markiert den Hotspot owned. Keine RestaurantDetail-Funktionsmutation, keine
+  Upgrades, kein Price-Editing, keine Save-/PlayerPrefs-/Filesystem-Logik und
+  keine Arcade-/Realtime-Serving-/CustomerSpawner-/manuelle Koch-/First-/
+  Third-Person-Systeme eingefuehrt. Danach neues kleines Codex-Item gesetzt:
+  "Unity RestaurantDetail price controller mutation" fuer Sortiment-Preis-
+  Aenderung nur ueber `GameController`; keine Upgrades, kein Equipment/
+  Personal/Marketing, keine Cash- oder Save-Mutation.
+- Current Claude run 2026-06-06 07:46: Pflichtdateien gelesen; `REVIEW_QUEUE.md`
+  war nach Codex' BuyDialog/OpenShop-Umsetzung wieder `Status: empty`. Letzter
+  Commit ist `2fabaeb` ("Add Unity open shop controller flow"). Entsprechend der
+  Agent-Control-Regel wurde kein pauschales Codex-"mach weiter" gestartet,
+  sondern ein konkretes Review-Item formuliert: Unity BuyDialog open-shop
+  controller flow review. Scope: Mutation nur ueber
+  `GameController.OpenShop(CityMapHotspot)`, `BuyDialogView` nur als Intent-
+  Ausloeser, `ShopOpeningService` UnityEngine-frei und auf erste
+  Filialeroeffnung begrenzt, erfolgreiche Events/Hotspot-Owned-Status
+  pruefen. Keine RestaurantDetail-Funktionsmutation, keine Upgrades, kein
+  Price-Editing, keine Save-/PlayerPrefs-/Filesystem-Logik und keine Arcade-/
+  Realtime-Serving-/CustomerSpawner-/manuelle Koch-/First-/Third-Person-
+  Systeme freigegeben.
 - Current Claude run 2026-06-06 07:40: Pflichtdateien gelesen und offenes
   Queue-Item "Unity DayReport controller flow review" fuer Commit `c94bbdc`
   geprueft. Ergebnis: akzeptiert. `GameController.SimulateDay()` ruft nur den
@@ -127,18 +157,35 @@ Done:
   fehlt, kein Fokus-Tween, IMGUI statt UI Toolkit (erwartet Schritt 7).
 - Bereit fuer Unity-Editor-Test: Bootstrap auto-fires, keine manuellen Scene-Objekte.
 Next:
-- Claude Code: Pushed SHA der BuyDialog open-shop controller mutation reviewen
-  und danach das naechste kleine kohaerente Management-/Progression-Item
-  setzen.
-- RestaurantDetail-Aktionen, Upgrades und Preis-Editing bleiben bis zu eigenen
-  Review-Items gesperrt.
+- Codex: Genau das offene Queue-Item "Unity RestaurantDetail price controller
+  mutation" umsetzen: Sortiment-Preis nur ueber `GameController`-Intent,
+  fokussierte Tests, Scope-Scan, Handoff, Queue danach wieder `Status: empty`.
+- Upgrades, Equipment-/Personal-/Marketing-Aktionen, Cash-Mutation ausserhalb
+  eigener Items und Save-/Persistenzlogik bleiben gesperrt.
 - UI-Toolkit-Migration (IMGUI ersetzen) geplant fuer Schritt 7 (Premium-Polish).
 - Vor Schritt 4: KPI-Labels korrigieren (Owned: MARKTANTEIL/PROGNOSE;
   Available: KONKURRENZ); Locked-Tap auf Toast-only umstellen.
 
 ## Codex (Implementation)
-State: complete - Unity BuyDialog open-shop controller mutation implemented, validation green (2026-06-06)
+State: complete - Unity RestaurantDetail price controller mutation implemented, validation green (2026-06-06)
 Done:
+- Current Codex run 2026-06-06 08:30: Offenes Review-Item
+  "Unity RestaurantDetail price controller mutation" umgesetzt:
+  - `ProductPricingService` als UnityEngine-freier Preis-Mutationspfad
+    hinzugefuegt; validiert Shop, Produkt und expliziten MVP-Preisbereich
+    1.00 bis 25.00 EUR.
+  - `GameController.SetProductPrice(shopId, productId, price)` ist der
+    einzige Intent fuer Sortiment-Preis-Aenderungen; Fehler publizieren Toasts
+    und lassen State unveraendert, Erfolg publiziert Snapshot, Detail-Refresh
+    und Toast.
+  - `RestaurantDetailView` zeigt im Sortiment einfache IMGUI-Stepper und ruft
+    nur den Controller-Intent auf; keine direkte Mutation von `GameState`,
+    `Shop`, `ShopProduct`, Cash, Save-State, Dateien oder Hotspots.
+  - Fokussierte Tests decken erfolgreiche Preis-Aenderung sowie ungueltige
+    Shop-/Produkt-/Preis-Faelle ohne Mutation ab.
+  - Keine Upgrades, kein Equipment-/Personal-/Marketing-Write, keine Cash-,
+    Save-/PlayerPrefs-/Filesystem-Mutation und keine Arcade-/Realtime-Serving-/
+    CustomerSpawner-/manuelle Koch-/First-/Third-Person-Systeme eingefuehrt.
 - Current Codex run 2026-06-06 07:41: Offenes Review-Item "Unity BuyDialog
   open-shop controller mutation" umgesetzt:
   - `ShopOpeningService` als UnityEngine-freier Open-Shop-Pfad hinzugefuegt:
@@ -412,6 +459,15 @@ Next:
   GameController/EventBus-Anbindung abgestimmt ist.
 
 ## Last Validation
+- Validation 2026-06-06 08:30 (Codex RestaurantDetail price controller mutation):
+  - `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+    -> 103 bestanden, 0 Fehler.
+  - Scope scan in App/UI/Simulation/Models fuer CustomerSpawner/Arcade/
+    Serving/manual/PlayerPrefs/System.IO/first-person/third-person/
+    ShopSizeTier/Cash/Equipment/Personal/Marketing/Upgrade:
+    -> keine neuen gesperrten Implementierungen; Treffer sind bestehende
+       GameEngine-/ShopOpening-Cash-Pfade, read-only Detail-Tabs,
+       Modell-/Katalogfelder und die erlaubte Price-Mutation.
 - Validation 2026-06-06 07:41 (Codex BuyDialog open-shop controller mutation):
   - `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
     -> 98 bestanden, 0 Fehler.

@@ -22,10 +22,12 @@ namespace DoenerEmpire.UI
         private GUIStyle buttonStyle;
         private GameState gameState;
         private Shop shop;
+        private GameController controller;
         private int selectedTab;
 
         public void Initialize(GameController controller)
         {
+            this.controller = controller;
             gameState = controller.State;
             controller.Events.Subscribe<StateSnapshotChangedEvent>(e => gameState = e.State);
             controller.Events.Subscribe<RestaurantDetailRequestedEvent>(ShowDetail);
@@ -106,8 +108,38 @@ namespace DoenerEmpire.UI
             float y = content.y + 48;
             foreach (ShopProduct product in shop.Menu.Take(5))
             {
-                DrawMetric(new Rect(content.x + 18, y, content.width - 36, 44), product.ProductId, $"{product.Price:n2} EUR - read-only");
+                DrawProductPriceRow(new Rect(content.x + 18, y, content.width - 36, 44), product);
                 y += 52;
+            }
+        }
+
+        private void DrawProductPriceRow(Rect rect, ShopProduct product)
+        {
+            DrawPanel(rect, Surface);
+            GUI.Label(new Rect(rect.x + 10, rect.y + 7, rect.width * 0.42f, 18), product.ProductId.ToUpperInvariant(), labelStyle);
+            GUI.Label(new Rect(rect.x + 10, rect.y + 26, rect.width * 0.42f, 20), $"{product.Price:n2} EUR", bodyStyle);
+
+            float buttonY = rect.y + 8;
+            float buttonWidth = 42;
+            float x = rect.x + rect.width - ((buttonWidth + 8) * 4) - 10;
+            if (GUI.Button(new Rect(x, buttonY, buttonWidth, 28), "-1", buttonStyle))
+            {
+                controller.SetProductPrice(shop.Id, product.ProductId, product.Price - 1.0);
+            }
+
+            if (GUI.Button(new Rect(x + 50, buttonY, buttonWidth, 28), "-.5", buttonStyle))
+            {
+                controller.SetProductPrice(shop.Id, product.ProductId, product.Price - 0.5);
+            }
+
+            if (GUI.Button(new Rect(x + 100, buttonY, buttonWidth, 28), "+.5", buttonStyle))
+            {
+                controller.SetProductPrice(shop.Id, product.ProductId, product.Price + 0.5);
+            }
+
+            if (GUI.Button(new Rect(x + 150, buttonY, buttonWidth, 28), "+1", buttonStyle))
+            {
+                controller.SetProductPrice(shop.Id, product.ProductId, product.Price + 1.0);
             }
         }
 

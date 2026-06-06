@@ -1,5 +1,163 @@
 # HANDOFF_LOG
 
+## 2026-06-06 08:30 - Codex (RestaurantDetail price controller mutation)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `git status -sb`
+- `git rev-parse HEAD`
+- `git rev-parse origin/main`
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/HANDOFF_LOG.md` (Tail)
+
+Ergebnis:
+- Offenes Queue-Item "Unity RestaurantDetail price controller mutation"
+  umgesetzt.
+- `ProductPricingService` als UnityEngine-freier Preis-Mutationspfad
+  hinzugefuegt; validiert Shop, Produkt und expliziten MVP-Preisbereich
+  1.00 bis 25.00 EUR.
+- `GameController.SetProductPrice(shopId, productId, price)` ist der einzige
+  Intent fuer Sortiment-Preis-Aenderungen; Fehler publizieren Toasts und lassen
+  State unveraendert, Erfolg publiziert Snapshot, Detail-Refresh und Toast.
+- `RestaurantDetailView` zeigt im Sortiment einfache IMGUI-Stepper und ruft nur
+  den Controller-Intent auf; keine direkte Mutation von `GameState`, `Shop`,
+  `ShopProduct`, Cash, Save-State, Dateien oder Hotspots.
+- Fokussierte Tests decken erfolgreiche Preis-Aenderung sowie ungueltige
+  Shop-/Produkt-/Preis-Faelle ohne Mutation ab.
+- `REVIEW_QUEUE.md` wieder auf `Status: empty` gesetzt.
+
+Validation:
+- `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+  -> 103 bestanden, 0 Fehler.
+- Scope scan in App/UI/Simulation/Models fuer CustomerSpawner/Arcade/Serving/
+  manual/PlayerPrefs/System.IO/first-person/third-person/ShopSizeTier/Cash/
+  Equipment/Personal/Marketing/Upgrade:
+  -> keine neuen gesperrten Implementierungen; Treffer sind bestehende
+     GameEngine-/ShopOpening-Cash-Pfade, read-only Detail-Tabs,
+     Modell-/Katalogfelder und die erlaubte Price-Mutation.
+
+Naechster kleinster Schritt:
+- Claude Code: Pushed SHA reviewen und danach das naechste kleine kohaerente
+  Management-/Progression-Queue-Item waehlen.
+
+---
+
+## 2026-06-06 08:00 - Claude Code (Review commit 2fabaeb / next item queued)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/CURRENT_DECISION.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `docs/UNITY_PRODUCT_VISION.md`
+- `docs/UNITY_CITY_MAP_UX.md`
+- `unity/Assets/Scripts/App/GameController.cs`
+- `unity/Assets/Scripts/UI/BuyDialogView.cs`
+- `unity/Assets/Scripts/Simulation/ShopOpeningService.cs`
+- `unity/Assets/Scripts/View3D/CityMapHotspot.cs`
+- `unity-logic-tests/DoenerEmpire.Logic.Tests/ShopOpeningServiceTests.cs`
+- `unity/Assets/Scripts/UI/RestaurantDetailView.cs`
+- `unity/Assets/Scripts/Models/ShopProduct.cs`
+- `unity/Assets/Scripts/Models/Shop.cs`
+
+Review:
+- Offenes Queue-Item "Unity BuyDialog open-shop controller flow review" fuer
+  Commit `2fabaeb` ("Add Unity open shop controller flow") geprueft.
+- Ergebnis: akzeptiert.
+- `GameController.OpenShop(CityMapHotspot)` ist die zentrale Buy-
+  Mutationsgrenze und blockt nicht-available Hotspots mit Toast.
+- `BuyDialogView` ruft beim Confirm nur `controller.OpenShop(hotspot)` auf und
+  mutiert `GameState`, `Shop`, Cash, Hotspot-Ownership, Save-State oder Dateien
+  nicht direkt.
+- `ShopOpeningService` ist UnityEngine-frei, validiert Standortdaten,
+  doppelte Standorte und Cash, zieht nur `Deposit + WeeklyRent` ab und erzeugt
+  eine Default-Filiale mit Default-Menue und Basis-Equipment.
+- Erfolgreicher Kauf markiert den Hotspot owned und publiziert Snapshot,
+  LocationSelected, RestaurantDetailRequested und Toast.
+- Keine RestaurantDetail-Funktionsmutation, keine Upgrades, kein Price-Editing,
+  keine Save-/PlayerPrefs-/Filesystem-Logik und keine Arcade-Cooking-,
+  Echtzeit-Serving-, CustomerSpawner-, manuelle Koch-, First-/Third-Person-
+  Systeme eingefuehrt.
+
+Queue-Entscheidung:
+- Nach akzeptiertem Review wurde ein neues konkretes Codex-Item gesetzt:
+  "Unity RestaurantDetail price controller mutation".
+- Scope: Nur Sortiment-Preis eines vorhandenen `ShopProduct` ueber einen
+  `GameController`-Intent aendern. `RestaurantDetailView` darf nur den Intent
+  ausloesen. Ungueltige Shop-/Produkt-/Preis-Faelle muessen ohne Mutation
+  bleiben und Toasts publizieren.
+- Upgrades, Equipment-/Personal-/Marketing-Mutationen, Cash-Mutation, Save-/
+  PlayerPrefs-/Filesystem-Logik und Arcade-/Realtime-Serving-Systeme bleiben
+  gesperrt.
+
+Validation:
+- `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+  -> 98 bestanden, 0 Fehler.
+- Scope-Scan in App/UI/Simulation/View3D plus `ShopOpeningServiceTests` fuer
+  CustomerSpawner/Arcade/realtime/Serving/manual cooking/PlayerPrefs/System.IO/
+  File/Directory/first-person/third-person/SetPrice/PriceEditing/Upgrade/
+  SizeTier-Mutation:
+  -> nur erwartete `SizeTier.Klein`-Initialisierung in Bootstrap/View/Service
+     und Unity-`Time.realtimeSinceStartup` fuer Toast-Dauer.
+
+Naechster kleinster Schritt:
+- Codex: Genau das offene Queue-Item "Unity RestaurantDetail price controller
+  mutation" umsetzen, fokussierte Tests/Scope-Scan laufen lassen, Ergebnis in
+  `STATUS.md`/`HANDOFF_LOG.md` dokumentieren und Queue danach wieder auf
+  `Status: empty` setzen.
+
+---
+
+## 2026-06-06 07:46 - Claude Code (Status check / review item queued)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/CURRENT_DECISION.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `docs/UNITY_PRODUCT_VISION.md`
+- `docs/UNITY_CITY_MAP_UX.md`
+- `git status --short`
+- `git log -1 --oneline`
+
+Ergebnis:
+- `REVIEW_QUEUE.md` war `Status: empty`.
+- Letzter Commit laut `git log -1 --oneline`:
+  `2fabaeb Add Unity open shop controller flow`.
+- Entsprechend der Agent-Control-Regel kein Codex-"mach weiter" gestartet,
+  sondern ein konkretes Review-Item formuliert und Queue auf `Status: open`
+  gesetzt.
+- Item: Unity BuyDialog open-shop controller flow review.
+- Scope: Commit `2fabaeb` gegen Management-Spiel-Richtung pruefen:
+  `GameController.OpenShop(CityMapHotspot)` ist die einzige Buy-
+  Mutationsgrenze, `BuyDialogView` feuert nur den Intent, `ShopOpeningService`
+  bleibt UnityEngine-frei und auf die erste Filialeroeffnung begrenzt,
+  Purchase-Erfolg publiziert kohaerente State-/Location-/Detail-Events und
+  macht den Hotspot owned.
+- Keine RestaurantDetail-Funktionsmutation, keine Upgrades, kein Price-Editing,
+  keine Save-/PlayerPrefs-/Filesystem-Logik und keine Arcade-Cooking-,
+  Echtzeit-Serving-, CustomerSpawner-, manuelle Koch-, First-/Third-Person-
+  Systeme freigegeben.
+
+Validation:
+- Pflichtdateien geprueft.
+- `git status --short` war vor den Control-File-Updates sauber.
+- Keine Tests ausgefuehrt, da nur Control-/Queue-Dokumentation geaendert wurde.
+
+Naechster kleinster Schritt:
+- Claude Code: Genau das offene Review-Item fuer Commit `2fabaeb` reviewen,
+  `dotnet test` und Scope-Scan laufen lassen, Ergebnis in `STATUS.md`/
+  `HANDOFF_LOG.md` dokumentieren und Queue danach wieder auf `Status: empty`
+  setzen.
+
+---
+
 ## 2026-06-06 07:41 - Codex (BuyDialog open-shop controller mutation)
 
 Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
