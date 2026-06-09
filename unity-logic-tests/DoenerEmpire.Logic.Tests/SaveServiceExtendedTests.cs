@@ -125,6 +125,44 @@ namespace DoenerEmpire.Logic.Tests
         }
 
         [Fact]
+        public void MissionsInitializedFromTemplate()
+        {
+            var s = GameState.Initial("X", "Y", 15000, tutorialEnabled: false);
+            Assert.NotEmpty(s.Missions);
+            Assert.Equal("open_first_shop", s.Missions[0].Id);
+            Assert.All(s.Missions, m => Assert.False(m.IsDone));
+        }
+
+        [Fact]
+        public void MissionStatusRoundTrip()
+        {
+            var s = GameState.Initial("X", "Y", 15000, tutorialEnabled: false);
+            // Erste zwei Missionen als erledigt markieren
+            s.Missions[0].IsDone = true;
+            s.Missions[1].IsDone = true;
+
+            var r = RoundTrip(s);
+            // Voller Katalog wieder da, Status erhalten
+            Assert.Equal(s.Missions.Count, r.Missions.Count);
+            Assert.True(r.Missions[0].IsDone);
+            Assert.True(r.Missions[1].IsDone);
+            Assert.False(r.Missions[2].IsDone);
+            // Template-Daten (nicht persistiert) korrekt rekonstruiert
+            Assert.Equal(500, r.Missions[0].CashReward);
+            Assert.Equal(MissionType.OpenFirstShop, r.Missions[0].Type);
+        }
+
+        [Fact]
+        public void MissionsSerializeOnlyIdAndStatus()
+        {
+            var s = GameState.Initial("X", "Y", 15000, tutorialEnabled: false);
+            var json = new SaveService().Serialize(s);
+            Assert.Contains("\"missions\"", json);
+            // Mission-Status enthält id + isDone, aber keine Template-Felder wie cashReward
+            Assert.Contains("\"open_first_shop\"", json);
+        }
+
+        [Fact]
         public void HistoryRoundTrip()
         {
             var s = GameState.Initial("X", "Y", 15000, tutorialEnabled: false);

@@ -62,11 +62,14 @@ beim Laden:
 - Legacy-Saves ohne diese Felder laden mit sicheren Defaults (Test gepinnt).
 
 - ✅ `history` (DailyRecord-Liste) — jetzt voll round-trip-fähig.
+- ✅ `missions` — GameState.Missions aus Template initialisiert;
+  Save persistiert nur `{id, isDone}` und merged beim Laden auf das
+  Template (exakt wie Flutter fromJson).
 
 **Verbleibend (Modelle noch nicht in C#-GameState):**
-- `missions` (Mission-Status — C# baut Missionen aus Template, kein
-  Persistenz-Feld), `globalPrices`, `cityPrices`. Folgen, wenn die
-  zugehörigen GameState-Felder portiert werden.
+- `globalPrices`, `cityPrices` (konzern-/stadtweite Preisvorgaben).
+  Folgen, wenn die zugehörige Preis-Override-Logik portiert wird.
+  Aktuell der einzige verbleibende Save-Compat-Rest.
 
 ### Nächste Schritte (Verantwortlichkeiten klar)
 - **Owner (du):** Android Build Support per Hub-GUI nachinstallieren.

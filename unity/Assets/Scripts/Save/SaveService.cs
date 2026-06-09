@@ -62,6 +62,7 @@ namespace DoenerEmpire.Save
                 hrManager = state.HrManager == null ? null : ToDto(state.HrManager),
                 hrStrategy = HrEnumNames.ToDart(state.HrStrategy),
                 hrCandidates = MapList(state.HrCandidates, ToDto),
+                missions = MapList(state.Missions, m => new MissionStatusDto { id = m.Id, isDone = m.IsDone }),
                 completedChapterIds = new List<string>(state.CompletedChapterIds ?? new List<string>()),
                 activeComboIds = new List<string>(state.ActiveComboIds ?? new List<string>()),
                 productQuality = new Dictionary<string, string>(state.ProductQuality ?? new Dictionary<string, string>()),
@@ -106,6 +107,7 @@ namespace DoenerEmpire.Save
                 HrManager = dto.hrManager == null ? null : FromDto(dto.hrManager),
                 HrStrategy = HrEnumNames.StrategyFromDart(dto.hrStrategy),
                 HrCandidates = MapList(dto.hrCandidates, FromDto),
+                Missions = BuildMissionsFromSave(dto.missions),
                 CompletedChapterIds = new List<string>(dto.completedChapterIds ?? new List<string>()),
                 ActiveComboIds = new List<string>(dto.activeComboIds ?? new List<string>()),
                 ProductQuality = new Dictionary<string, string>(dto.productQuality ?? new Dictionary<string, string>()),
@@ -371,6 +373,22 @@ namespace DoenerEmpire.Save
             typeof(ActiveCampaign).GetField("End" + "Day").SetValue(campaign, value);
         }
 
+        /// <summary>
+        /// Baut die Missionsliste aus dem Template + persistiertem isDone-Status
+        /// (entspricht Flutter fromJson: Template-Match nach id, applyJson).
+        /// </summary>
+        private static List<Mission> BuildMissionsFromSave(List<MissionStatusDto> saved)
+        {
+            var missions = MissionTemplates.Build();
+            if (saved == null) return missions;
+            var doneById = new Dictionary<string, bool>();
+            foreach (var s in saved)
+                if (!string.IsNullOrEmpty(s.id)) doneById[s.id] = s.isDone;
+            foreach (var m in missions)
+                if (doneById.TryGetValue(m.Id, out var done)) m.IsDone = done;
+            return missions;
+        }
+
         private static DailyRecordDto ToDto(DailyRecord r)
         {
             return new DailyRecordDto
@@ -547,11 +565,18 @@ namespace DoenerEmpire.Save
             public HrManagerDto hrManager;
             public string hrStrategy = "balanced";
             public List<HrManagerDto> hrCandidates = new();
+            public List<MissionStatusDto> missions = new();
             public List<string> completedChapterIds = new();
             public List<string> activeComboIds = new();
             public Dictionary<string, string> productQuality = new();
             public Dictionary<string, List<ActiveCampaignDto>> activeCityCampaigns = new();
             public List<ActiveCampaignDto> activeGlobalCampaigns = new();
+        }
+
+        private sealed class MissionStatusDto
+        {
+            public string id;
+            public bool isDone;
         }
 
         private sealed class DailyRecordDto

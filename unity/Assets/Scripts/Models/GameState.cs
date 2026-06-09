@@ -51,6 +51,9 @@ namespace DoenerEmpire.Models
         public int TutorialStep = 0;
         public List<string> SeenEventIds = new();
 
+        // ── Missionen (Status; aus Template initialisiert) ──────────────────
+        public List<Mission> Missions = new();
+
         // ── Story-Kampagne (M4c-Port) ───────────────────────────────────────
         public List<string> CompletedChapterIds = new();
 
@@ -132,6 +135,7 @@ namespace DoenerEmpire.Models
                 TutorialEnabled = tutorialEnabled,
                 TutorialStep = 0,
                 SeenEventIds = new List<string>(),
+                Missions = MissionTemplates.Build(),
                 CompletedChapterIds = new List<string>(),
                 HrManager = null,
                 HrStrategy = HrStrategy.Balanced,
@@ -180,6 +184,11 @@ namespace DoenerEmpire.Models
             TutorialDone = TutorialDone, TutorialEnabled = TutorialEnabled,
             TutorialStep = TutorialStep,
             SeenEventIds = new List<string>(SeenEventIds),
+            Missions = Missions.Select(m => new Mission
+            {
+                Id = m.Id, Title = m.Title, Description = m.Description, Emoji = m.Emoji,
+                CashReward = m.CashReward, Type = m.Type, Target = m.Target, IsDone = m.IsDone,
+            }).ToList(),
             CompletedChapterIds = new List<string>(CompletedChapterIds),
             HrManager = HrManager?.Clone(),
             HrStrategy = HrStrategy,
