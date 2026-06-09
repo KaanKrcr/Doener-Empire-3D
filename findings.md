@@ -67,9 +67,85 @@ Codex schließt diese Lücken im Zuge der jeweiligen Engine-Ports (M4–M6).
 - **Owner (du):** Android Build Support per Hub-GUI nachinstallieren.
   Dann meldest du dich → ich erzeuge `Packages/manifest.json` für URP
   und triggere Unity batchmode für initiale `ProjectSettings/`.
-- **Codex:** `CompetitorEngine`-Port als nächste Engine (M4a). Spec
-  liegt in `lib/services/competitor_engine.dart`, Testerwartungen aus
-  Flutter-Test-Suite spiegeln.
+- ~~**Codex:** `CompetitorEngine`-Port als nächste Engine (M4a).~~
+  **Erledigt 2026-06-09 (Claude übernimmt Codex):**
+  - **M4a CompetitorEngine** — `Simulation/CompetitorEngine.cs` mit
+    `EnsureCompetitorsForCity` / `ProcessDay` / `CompetitionPressure`
+    + 16 Tests. RNG injizierbar.
+  - **M4b LocationEngine** — `Simulation/LocationEngine.cs` +
+    `Models/CityMapLocation.cs` (UnityEngine-frei, `MapPosition`-Struct)
+    + 14 Tests.
+  - **M4d MissionEngine** — `Simulation/MissionEngine.cs` +
+    `Models/Mission.cs` (inkl. `MissionTemplates.Build()`)
+    + 21 Tests. `CompanyPublic` bleibt 0 bis Stocks-Port (M5+).
+  - **M4c CampaignEngine** — `Simulation/CampaignEngine.cs` +
+    `Models/CampaignChapter.cs` (`CampaignData.Chapters`,
+    `AggregatePerks`) + 13 Tests. GameState um `CompletedChapterIds`
+    erweitert (Initial + Clone).
+  - **M5-Foundation DemandUtils** — `Simulation/DemandUtils.cs` mit
+    `Season`, `SeasonForDay`, `SeasonCategoryMultiplier`,
+    `DailySpecialProductId`, `PriceDemandFactor` (+ `DailySpecialBoost`,
+    `MonthlyTaxRate`-Konstanten) + 20 Tests. Reine pure Funktionen,
+    Vorbereitung für `GameEngine.calculateShopStats`-Port.
+  - **M4e HrEngine** — `Simulation/HrEngine.cs` + `Models/HrManager.cs`
+    (`HrData.Archetypes`/`Strategies`, `HrEnumNames`) + 19 Tests.
+    RecruitmentModifiers, Pool-Refresh, XP-Intervall, Kandidaten- &
+    Manager-Generierung. RNG injizierbar. GameState um `HrManager`,
+    `HrStrategy`, `HrCandidates` erweitert.
+  - **M5a GameEngineCore** — `Simulation/GameEngineCore.cs` +
+    `ShopDayStats.cs` + `Models/TimeProfile.cs`. `CalculateShopStats`
+    (Kunden/Umsatz/Kapazität), Reputations-/Equipment-/Staff-Faktoren,
+    deterministische `DailyVariation` (FNV-1a stable hash),
+    `HourlyCustomerCurve`, `MaxEmployeesForShop` + 27 Tests.
+  - **M5b Tageskosten + Quality + Combos** — `ComboService.cs`,
+    `Models/MenuCombo.cs`, `Models/IngredientQuality.cs`,
+    `CalculateDailyCostsBreakdown` (+`ShopCostBreakdown`),
+    `UpdateReputation` + 34 Tests (Combo 13, DailyCosts 13, Reputation 8).
+    GameState um `ActiveComboIds`, `ProductQuality` erweitert.
+  - **M6-Foundation Stocks + DayProcessing** — `Models/StockState.cs`
+    (IPO/Quartalsbericht), `DayProcessing.cs` (`CheckCityUnlocks`,
+    `ActiveComboDailyCost`, `UpdateBrand`) + 16 Tests. GameState um
+    `Stocks` erweitert; `MissionEngine.CompanyPublic` liest jetzt
+    `Stocks.IsPublic`.
+  - **M5c Upgrade-Katalog** — `Data/UpgradeData.cs` (`UpgradeCatalog`
+    Shop+Global) + `Simulation/UpgradeService.cs` (Customer/AOV-Boost,
+    Reputation, Brand, Tageskosten, Delivery-Provision mit
+    `eigen_lieferdienst`-Rabatt) + 19 Tests. In GameEngineCore/
+    DayProcessing verdrahtet.
+  - **M6 Marketing-Katalog** — `Data/MarketingCatalog.cs`
+    (Shop/City/Global-Kampagnen) + `Simulation/MarketingService.cs`
+    (Customer-Boost/AOV-Mod/Reputation/Brand-Delta) + 15 Tests.
+    GameState um `ActiveCityCampaigns`, `ActiveGlobalCampaigns`
+    erweitert. In ShopStats/Reputation/Brand verdrahtet.
+  - **M6b ProcessDay** — `DayProcessing.ProcessDay` (Kern-Tagesabschluss:
+    Wettbewerb, Umsatz/Kosten-Aggregation, Reputation, Employee-XP,
+    Kampagnen-Ablauf, Loan-Raten, History-Trim 60, Brand, City-Unlocks,
+    HR-Salary) + `DayResult` + 17 Tests inkl. 60-Tage-Stabilität.
+  - **M7a Stocks/IPO-Engine** — `Simulation/CorporateStocksEngine.cs`
+    (`CanDoIpo`, `EstimateValuation`, `PerformIpo`, `UpdateDailyPrice`
+    Random-Walk, `IsQuarterDue`, `GenerateQuarterlyReport`) + 14 Tests.
+    `UpdateDailyPrice` in `ProcessDay` verdrahtet. RNG injizierbar.
+  - **M7b Production-Facilities** — `Models/ProductionFacility.cs`
+    (`FacilityCatalog`, Tier/Type-Infos) + `Simulation/FacilityEngine.cs`
+    (`BuildFacility`, `FacilityDailyCosts`, `FacilityB2BRevenue`,
+    `FacilitySavingForShop`) + 13 Tests. GameState um `Facilities`
+    erweitert. In `GameEngineCore` (ingredientSaving) + `ProcessDay`
+    (facilityNet auf Cash/TotalProfit/TotalRevenue) verdrahtet.
+  - **M7c M&A-Engine** — `Simulation/MergersEngine.cs` (`AcquisitionPrice`,
+    `AcquireCompetitor` → Konkurrenz-Filialen als Player-Shops mit
+    Default-Menü + übernommener Reputation) + 7 Tests.
+  - **Suite: 115 → 379 grüne Tests (+264).**
+  - **Verdrahtet & getestet:** Season/Special, Preis-Nachfrage,
+    Equipment/Staff/Capacity, Combos, Quality, Upgrades (inkl. Delivery),
+    Marketing (Shop/City/Global), Reputation, Brand, City-Unlocks,
+    Tageskosten, ProcessDay-Kern, Stocks/IPO/Aktienkurs, Facilities
+    (Kosten/B2B/Saving), M&A (Konkurrenz-Übernahme).
+  - **Offen (letzte CorporateEngine-Reste):** HR-Manager-XP-Progress
+    (`_updateHrManagerProgress`), Auto-Pricing (`applyManagerAutoPricing`),
+    Auto-Hire (`applyAutoHire`), `assignManager`/`unassignManager`. In
+    `DayProcessing` als `TODO` markiert. Spec:
+    `lib/services/corporate_engine.dart` (Auto-Pricing ab Z.308).
+    Damit wäre der GameEngine/CorporateEngine-Port logisch vollständig.
 - **Claude (ich):** Code-Review jedes Codex-Engine-Ports vor Merge,
   ggf. Save-DTO um neue Felder erweitern wenn Engine sie braucht.
 

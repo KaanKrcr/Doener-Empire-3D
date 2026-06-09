@@ -55,8 +55,8 @@ namespace DoenerEmpire.Models
         public bool HasEquipment(string equipmentId) =>
             Equipment.Any(e => e.EquipmentId == equipmentId);
 
-        // TODO(M3): timeProfile-Getter portieren, sobald TimeProfile/kTimeProfiles
-        // (lib/models/time_profile_model.dart) übersetzt ist.
+        /// <summary>Tageszeit-Profil dieser Filiale (basierend auf Personality).</summary>
+        public TimeProfile TimeProfile => TimeProfiles.For(Personality);
 
         public Shop Clone() => new()
         {
