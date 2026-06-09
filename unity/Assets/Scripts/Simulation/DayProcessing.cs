@@ -143,10 +143,14 @@ namespace DoenerEmpire.Simulation
             // Aktienkurs täglich aktualisieren (nur wenn an der Börse).
             CorporateStocksEngine.UpdateDailyPrice(state);
 
-            // TODO(M7b/c): Facilities-Kosten/B2B, HR-Manager-XP-Progress,
-            // Auto-Pricing/Auto-Hire (CorporateEngine-Rest).
+            // HR-Manager sammelt XP / steigt im Level (skaliert mit Kundenzahl).
+            UpdateHrManagerProgress(state, totalCustomers);
 
             state.CurrentDay = today + 1;
+
+            // Manager-Automatik nach Tageswechsel (wie im Dart-Original).
+            AutoManagementEngine.ApplyManagerAutoPricing(state);
+            AutoManagementEngine.ApplyAutoHire(state);
 
             return new DayResult
             {
@@ -174,6 +178,19 @@ namespace DoenerEmpire.Simulation
                 }
             }
             return newList;
+        }
+
+        /// <summary>
+        /// HR-Manager-Fortschritt: XP-Gewinn skaliert mit Kundenzahl, Level
+        /// steigt alle 120 XP. Port aus _updateHrManagerProgress. Mutiert Manager.
+        /// </summary>
+        public static void UpdateHrManagerProgress(GameState state, int totalCustomers)
+        {
+            var manager = state.HrManager;
+            if (manager == null) return;
+            var xpGain = System.Math.Clamp((int)System.Math.Round(4 + totalCustomers / 130.0), 4, 30);
+            manager.Xp += xpGain;
+            manager.Level = System.Math.Clamp(1 + manager.Xp / 120, 1, 50);
         }
 
         /// <summary>Konzernweite Tagespauschale aller aktiven Combos.</summary>

@@ -134,18 +134,24 @@ Codex schließt diese Lücken im Zuge der jeweiligen Engine-Ports (M4–M6).
   - **M7c M&A-Engine** — `Simulation/MergersEngine.cs` (`AcquisitionPrice`,
     `AcquireCompetitor` → Konkurrenz-Filialen als Player-Shops mit
     Default-Menü + übernommener Reputation) + 7 Tests.
-  - **Suite: 115 → 379 grüne Tests (+264).**
+  - **M7d Auto-Management** — `Simulation/AutoManagementEngine.cs`
+    (`ApplyManagerAutoPricing`, `ApplyAutoHire` mit Kandidaten-Scoring,
+    Cash-Reserve, Hire-Fee-Multiplikator, City-Cap) +
+    `Simulation/ManagerService.cs` (assign/unassign/ShopHasActiveManager)
+    + 18 Tests (12 Auto-Mgmt, 6 Manager). RNG injizierbar.
+  - **HR-Manager-XP-Progress** — `DayProcessing.UpdateHrManagerProgress`
+    (XP skaliert mit Kundenzahl, Level alle 120 XP) in ProcessDay
+    verdrahtet + Test.
+  - **Suite: 115 → 398 grüne Tests (+283).**
   - **Verdrahtet & getestet:** Season/Special, Preis-Nachfrage,
     Equipment/Staff/Capacity, Combos, Quality, Upgrades (inkl. Delivery),
     Marketing (Shop/City/Global), Reputation, Brand, City-Unlocks,
-    Tageskosten, ProcessDay-Kern, Stocks/IPO/Aktienkurs, Facilities
-    (Kosten/B2B/Saving), M&A (Konkurrenz-Übernahme).
-  - **Offen (letzte CorporateEngine-Reste):** HR-Manager-XP-Progress
-    (`_updateHrManagerProgress`), Auto-Pricing (`applyManagerAutoPricing`),
-    Auto-Hire (`applyAutoHire`), `assignManager`/`unassignManager`. In
-    `DayProcessing` als `TODO` markiert. Spec:
-    `lib/services/corporate_engine.dart` (Auto-Pricing ab Z.308).
-    Damit wäre der GameEngine/CorporateEngine-Port logisch vollständig.
+    Tageskosten, **vollständiger ProcessDay** (inkl. Stocks-Preis,
+    Facility-Net, HR-Progress, Auto-Pricing, Auto-Hire), IPO/Quartal,
+    Facilities, M&A.
+  - **GameEngine + CorporateEngine-Port logisch VOLLSTÄNDIG.** Verbleibend
+    nur reine UI-Aktionen/Tick-Helfer (calculateHourly*, openShop etc.) —
+    nicht teil der Tagessimulation und für die Logik-Schicht unkritisch.
 - **Claude (ich):** Code-Review jedes Codex-Engine-Ports vor Merge,
   ggf. Save-DTO um neue Felder erweitern wenn Engine sie braucht.
 

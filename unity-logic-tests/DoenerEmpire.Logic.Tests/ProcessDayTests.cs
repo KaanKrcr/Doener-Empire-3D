@@ -211,6 +211,24 @@ namespace DoenerEmpire.Logic.Tests
         }
 
         [Fact]
+        public void HrManagerGainsXpAndLevels()
+        {
+            var s = StateWithShop();
+            s.HrManager = new HrManager
+            {
+                Id = "m", Name = "X", Archetype = HrManagerArchetype.ProcessManager,
+                TalentSense = 5, Network = 5, Negotiation = 5, Speed = 5, Training = 5,
+                SalaryPerDay = 200, Level = 1, Xp = 0,
+            };
+            DayProcessing.ProcessDay(s);
+            Assert.True(s.HrManager.Xp >= 4);
+            // Über viele Tage steigt das Level.
+            for (var i = 0; i < 60; i++) DayProcessing.ProcessDay(s);
+            Assert.True(s.HrManager.Level > 1, $"level={s.HrManager.Level}");
+            Assert.InRange(s.HrManager.Level, 1, 50);
+        }
+
+        [Fact]
         public void HrManagerSalaryAddedToCosts()
         {
             var noMgr = StateWithShop();
