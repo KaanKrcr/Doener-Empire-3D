@@ -211,27 +211,37 @@ namespace DoenerEmpire.Logic.Tests
         }
 
         /// <summary>
-        /// Dokumentiert die bekannten, NICHT-MVP-Felder aus Flutter, die das
-        /// C# DTO heute (noch) nicht roundtrippen kann. Wenn dieser Test rot
-        /// wird, hat Codex die Lücke geschlossen — dann den Erwartungswert
-        /// anpassen und Save-Compat-Doku updaten.
+        /// Stand 2026-06-09: Die zuvor offenen Felder werden jetzt vom C#-DTO
+        /// geladen (SaveService erweitert). Dieser Test verifiziert, dass die
+        /// Fixture-Werte korrekt ankommen bzw. sichere Defaults greifen.
         /// </summary>
         [Fact]
-        public void FlutterFixture_KnownGapsAreStillGaps_2026_06_06()
+        public void FlutterFixture_ExtendedFieldsNowLoad_2026_06_09()
         {
             GameState state = new SaveService().Deserialize(LoadFixture());
 
-            // Daily history-Einträge sollte das C# DTO bei MVP nicht laden — es gibt
-            // History auf GameState nur als List<DailyRecord>, das DTO mapped sie aber
-            // (noch) nicht aus dem Flutter-Save heraus.
-            Assert.Empty(state.History);
+            // History wird jetzt geladen (Fixture: 1 Eintrag, Tag 17).
+            Assert.NotEmpty(state.History);
+            Assert.Equal(17, state.History[0].Day);
+            Assert.Equal(1820.0, state.History[0].Revenue);
+            Assert.Equal(248, state.History[0].Customers);
 
-            // Diese Fixture enthält "missions","stocks","facilities","hrManager",
-            // "hrStrategy","hrCandidates","globalPrices","cityPrices",
-            // "activeCityCampaigns","activeGlobalCampaigns","completedChapterIds",
-            // "activeComboIds","productQuality" — der Test stürzt nicht ab, wenn
-            // sie ignoriert werden. Das ist der eigentliche Bestätigungs-Assert.
-            // (Kein Crash bis hierher = OK.)
+            // Leere/null-Felder der Fixture → sichere Defaults.
+            Assert.NotNull(state.Stocks);
+            Assert.False(state.Stocks.IsPublic);
+            Assert.Empty(state.Facilities);
+            Assert.Null(state.HrManager);
+            Assert.Equal(HrStrategy.Balanced, state.HrStrategy);
+            Assert.Empty(state.HrCandidates);
+            Assert.Empty(state.CompletedChapterIds);
+            Assert.Empty(state.ActiveComboIds);
+            Assert.Empty(state.ProductQuality);
+            Assert.Empty(state.ActiveCityCampaigns);
+            Assert.Empty(state.ActiveGlobalCampaigns);
+
+            // Verbleibende, noch nicht in C#-GameState modellierte Felder
+            // (missions, globalPrices, cityPrices) werden weiterhin ignoriert
+            // — kein Crash bis hierher = OK.
         }
     }
 }

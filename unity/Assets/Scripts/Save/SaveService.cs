@@ -41,6 +41,7 @@ namespace DoenerEmpire.Save
                 loans = MapList(state.Loans, ToDto),
                 totalRevenue = state.TotalRevenue,
                 totalProfit = state.TotalProfit,
+                history = MapList(state.History, ToDto),
                 customersServedTotal = state.CustomersServedTotal,
                 difficulty = EnumNames.ToDart(state.Difficulty),
                 brand = ToDto(state.Brand),
@@ -84,6 +85,7 @@ namespace DoenerEmpire.Save
                 Loans = MapList(dto.loans, FromDto),
                 TotalRevenue = dto.totalRevenue,
                 TotalProfit = dto.totalProfit,
+                History = MapList(dto.history, FromDto),
                 CustomersServedTotal = dto.customersServedTotal,
                 Difficulty = EnumNames.DifficultyFromDart(dto.difficulty),
                 Brand = FromDto(dto.brand),
@@ -369,6 +371,40 @@ namespace DoenerEmpire.Save
             typeof(ActiveCampaign).GetField("End" + "Day").SetValue(campaign, value);
         }
 
+        private static DailyRecordDto ToDto(DailyRecord r)
+        {
+            return new DailyRecordDto
+            {
+                day = r.Day,
+                revenue = r.Revenue,
+                costs = r.Costs,
+                customers = r.Customers,
+                rentCosts = r.RentCosts,
+                salaryCosts = r.SalaryCosts,
+                ingredientCosts = r.IngredientCosts,
+                deliveryCommissionCosts = r.DeliveryCommissionCosts,
+                loanPayments = r.LoanPayments,
+                investments = r.Investments,
+            };
+        }
+
+        private static DailyRecord FromDto(DailyRecordDto dto)
+        {
+            return new DailyRecord
+            {
+                Day = dto.day,
+                Revenue = dto.revenue,
+                Costs = dto.costs,
+                Customers = dto.customers,
+                RentCosts = dto.rentCosts,
+                SalaryCosts = dto.salaryCosts,
+                IngredientCosts = dto.ingredientCosts,
+                DeliveryCommissionCosts = dto.deliveryCommissionCosts,
+                LoanPayments = dto.loanPayments,
+                Investments = dto.investments,
+            };
+        }
+
         private static StockStateDto ToDto(StockState s)
         {
             s ??= new StockState();
@@ -490,6 +526,7 @@ namespace DoenerEmpire.Save
             public List<LoanDto> loans = new();
             public double totalRevenue;
             public double totalProfit;
+            public List<DailyRecordDto> history = new();
             public int customersServedTotal;
             public string difficulty = "normal";
             public BrandStatsDto brand = new();
@@ -515,6 +552,20 @@ namespace DoenerEmpire.Save
             public Dictionary<string, string> productQuality = new();
             public Dictionary<string, List<ActiveCampaignDto>> activeCityCampaigns = new();
             public List<ActiveCampaignDto> activeGlobalCampaigns = new();
+        }
+
+        private sealed class DailyRecordDto
+        {
+            public int day;
+            public double revenue;
+            public double costs;
+            public int customers;
+            public double rentCosts;
+            public double salaryCosts;
+            public double ingredientCosts;
+            public double deliveryCommissionCosts;
+            public double loanPayments;
+            public double investments;
         }
 
         private sealed class StockStateDto

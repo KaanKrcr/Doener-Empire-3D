@@ -61,10 +61,12 @@ beim Laden:
 - ✅ `completedChapterIds`, `activeComboIds`, `productQuality`
 - Legacy-Saves ohne diese Felder laden mit sicheren Defaults (Test gepinnt).
 
+- ✅ `history` (DailyRecord-Liste) — jetzt voll round-trip-fähig.
+
 **Verbleibend (Modelle noch nicht in C#-GameState):**
-- `history` (DailyRecord-Liste wird in ProcessDay neu aufgebaut, aber nicht
-  persistiert), `missions` (Mission-Status), `globalPrices`, `cityPrices`.
-  Folgen, wenn die zugehörigen GameState-Felder portiert werden.
+- `missions` (Mission-Status — C# baut Missionen aus Template, kein
+  Persistenz-Feld), `globalPrices`, `cityPrices`. Folgen, wenn die
+  zugehörigen GameState-Felder portiert werden.
 
 ### Nächste Schritte (Verantwortlichkeiten klar)
 - **Owner (du):** Android Build Support per Hub-GUI nachinstallieren.

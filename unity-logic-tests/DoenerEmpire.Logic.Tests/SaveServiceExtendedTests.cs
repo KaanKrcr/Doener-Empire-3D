@@ -125,6 +125,26 @@ namespace DoenerEmpire.Logic.Tests
         }
 
         [Fact]
+        public void HistoryRoundTrip()
+        {
+            var s = GameState.Initial("X", "Y", 15000, tutorialEnabled: false);
+            s.History.Add(new DailyRecord
+            {
+                Day = 1, Revenue = 1234, Costs = 567, Customers = 89,
+                RentCosts = 200, SalaryCosts = 145, IngredientCosts = 180,
+                DeliveryCommissionCosts = 12, LoanPayments = 30, Investments = 0,
+            });
+            s.History.Add(new DailyRecord { Day = 2, Revenue = 1500, Costs = 600, Customers = 95 });
+
+            var r = RoundTrip(s);
+            Assert.Equal(2, r.History.Count);
+            Assert.Equal(1234, r.History[0].Revenue);
+            Assert.Equal(89, r.History[0].Customers);
+            Assert.Equal(12, r.History[0].DeliveryCommissionCosts);
+            Assert.Equal(2, r.History[1].Day);
+        }
+
+        [Fact]
         public void ProductQualityRoundTrip()
         {
             var s = GameState.Initial("X", "Y", 15000, tutorialEnabled: false);
