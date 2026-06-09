@@ -78,6 +78,12 @@ namespace DoenerEmpire.Models
         public Dictionary<string, List<ActiveCampaign>> ActiveCityCampaigns = new();
         public List<ActiveCampaign> ActiveGlobalCampaigns = new();
 
+        // ── Preis-Overrides (konzern- / stadtweit) ──────────────────────────
+        /// <summary>productId → globaler Preis-Override (für neue Filialen).</summary>
+        public Dictionary<string, double> GlobalPrices = new();
+        /// <summary>cityId → (productId → Preis-Override).</summary>
+        public Dictionary<string, Dictionary<string, double>> CityPrices = new();
+
         // TODO(Port): Endgame-Felder, sobald ihre Typen portiert sind —
         //   missions (Mission), stocks (StockState), facilities (ProductionFacility),
         //   hrManager (HrManager), hrStrategy (HrStrategy), hrCandidates,
@@ -146,6 +152,8 @@ namespace DoenerEmpire.Models
                 ProductQuality = new Dictionary<string, string>(),
                 ActiveCityCampaigns = new Dictionary<string, List<ActiveCampaign>>(),
                 ActiveGlobalCampaigns = new List<ActiveCampaign>(),
+                GlobalPrices = new Dictionary<string, double>(),
+                CityPrices = new Dictionary<string, Dictionary<string, double>>(),
             };
         }
 
@@ -200,6 +208,9 @@ namespace DoenerEmpire.Models
             ActiveCityCampaigns = ActiveCityCampaigns.ToDictionary(
                 kv => kv.Key, kv => kv.Value.Select(c => c.Clone()).ToList()),
             ActiveGlobalCampaigns = ActiveGlobalCampaigns.Select(c => c.Clone()).ToList(),
+            GlobalPrices = new Dictionary<string, double>(GlobalPrices),
+            CityPrices = CityPrices.ToDictionary(
+                kv => kv.Key, kv => new Dictionary<string, double>(kv.Value)),
         };
     }
 }

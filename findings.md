@@ -65,11 +65,13 @@ beim Laden:
 - ✅ `missions` — GameState.Missions aus Template initialisiert;
   Save persistiert nur `{id, isDone}` und merged beim Laden auf das
   Template (exakt wie Flutter fromJson).
+- ✅ `globalPrices`, `cityPrices` — als GameState-Felder + Save-Round-Trip
+  ergänzt. (Preis-Override-Aktionen wie `openShop` sind UI-Layer und
+  folgen separat; die Persistenz steht.)
 
-**Verbleibend (Modelle noch nicht in C#-GameState):**
-- `globalPrices`, `cityPrices` (konzern-/stadtweite Preisvorgaben).
-  Folgen, wenn die zugehörige Preis-Override-Logik portiert wird.
-  Aktuell der einzige verbleibende Save-Compat-Rest.
+**Save-Kompatibilität ist damit VOLLSTÄNDIG** — alle von Flutter
+`toJson()` geschriebenen Felder werden vom C#-SaveService round-trip-fähig
+geladen. 11 Round-Trip-Tests + Flutter-Fixture-Test pinnen das.
 
 ### Nächste Schritte (Verantwortlichkeiten klar)
 - **Owner (du):** Android Build Support per Hub-GUI nachinstallieren.

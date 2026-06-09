@@ -195,6 +195,24 @@ namespace DoenerEmpire.Logic.Tests
         }
 
         [Fact]
+        public void PriceOverridesRoundTrip()
+        {
+            var s = GameState.Initial("X", "Y", 15000, tutorialEnabled: false);
+            s.GlobalPrices["doener_fladen"] = 7.20;
+            s.CityPrices["berlin"] = new Dictionary<string, double>
+            {
+                ["doener_fladen"] = 8.50,
+                ["ayran"] = 2.50,
+            };
+
+            var r = RoundTrip(s);
+            Assert.Equal(7.20, r.GlobalPrices["doener_fladen"]);
+            Assert.True(r.CityPrices.ContainsKey("berlin"));
+            Assert.Equal(8.50, r.CityPrices["berlin"]["doener_fladen"]);
+            Assert.Equal(2.50, r.CityPrices["berlin"]["ayran"]);
+        }
+
+        [Fact]
         public void ExtendedFieldsHaveSafeDefaultsForLegacySave()
         {
             // Legacy-Save ohne die neuen Felder → Defaults greifen.
@@ -211,6 +229,9 @@ namespace DoenerEmpire.Logic.Tests
             Assert.NotNull(r.ProductQuality);
             Assert.NotNull(r.ActiveGlobalCampaigns);
             Assert.NotNull(r.ActiveCityCampaigns);
+            Assert.NotNull(r.GlobalPrices);
+            Assert.NotNull(r.CityPrices);
+            Assert.NotEmpty(r.Missions); // aus Template aufgebaut
         }
 
         [Fact]

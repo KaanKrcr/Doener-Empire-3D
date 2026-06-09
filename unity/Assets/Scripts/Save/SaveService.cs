@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using DoenerEmpire.Core;
 using DoenerEmpire.Models;
@@ -68,6 +69,9 @@ namespace DoenerEmpire.Save
                 productQuality = new Dictionary<string, string>(state.ProductQuality ?? new Dictionary<string, string>()),
                 activeCityCampaigns = MapCampaignDict(state.ActiveCityCampaigns),
                 activeGlobalCampaigns = MapList(state.ActiveGlobalCampaigns, ToDto),
+                globalPrices = new Dictionary<string, double>(state.GlobalPrices ?? new Dictionary<string, double>()),
+                cityPrices = (state.CityPrices ?? new Dictionary<string, Dictionary<string, double>>())
+                    .ToDictionary(kv => kv.Key, kv => new Dictionary<string, double>(kv.Value)),
             };
         }
 
@@ -113,6 +117,9 @@ namespace DoenerEmpire.Save
                 ProductQuality = new Dictionary<string, string>(dto.productQuality ?? new Dictionary<string, string>()),
                 ActiveCityCampaigns = UnmapCampaignDict(dto.activeCityCampaigns),
                 ActiveGlobalCampaigns = MapList(dto.activeGlobalCampaigns, FromDto),
+                GlobalPrices = new Dictionary<string, double>(dto.globalPrices ?? new Dictionary<string, double>()),
+                CityPrices = (dto.cityPrices ?? new Dictionary<string, Dictionary<string, double>>())
+                    .ToDictionary(kv => kv.Key, kv => new Dictionary<string, double>(kv.Value ?? new Dictionary<string, double>())),
             };
         }
 
@@ -571,6 +578,8 @@ namespace DoenerEmpire.Save
             public Dictionary<string, string> productQuality = new();
             public Dictionary<string, List<ActiveCampaignDto>> activeCityCampaigns = new();
             public List<ActiveCampaignDto> activeGlobalCampaigns = new();
+            public Dictionary<string, double> globalPrices = new();
+            public Dictionary<string, Dictionary<string, double>> cityPrices = new();
         }
 
         private sealed class MissionStatusDto
