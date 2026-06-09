@@ -355,29 +355,18 @@ namespace DoenerEmpire.Save
             {
                 campaignId = campaign.CampaignId,
                 startDay = campaign.StartDay,
-                endDay = GetCampaignEnd(campaign),
+                endDay = campaign.EndDay,
             };
         }
 
         private static ActiveCampaign FromDto(ActiveCampaignDto dto)
         {
-            ActiveCampaign campaign = new()
+            return new ActiveCampaign
             {
                 CampaignId = dto.campaignId,
                 StartDay = dto.startDay,
+                EndDay = dto.endDay,
             };
-            SetCampaignEnd(campaign, dto.endDay);
-            return campaign;
-        }
-
-        private static int GetCampaignEnd(ActiveCampaign campaign)
-        {
-            return (int)typeof(ActiveCampaign).GetField("End" + "Day").GetValue(campaign);
-        }
-
-        private static void SetCampaignEnd(ActiveCampaign campaign, int value)
-        {
-            typeof(ActiveCampaign).GetField("End" + "Day").SetValue(campaign, value);
         }
 
         /// <summary>

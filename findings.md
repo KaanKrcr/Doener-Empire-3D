@@ -2,6 +2,36 @@
 
 ---
 
+## ⚠️ OFFENE ENTSCHEIDUNG: Zwei Tagessimulationen (Owner-Balancing)
+
+Stand 2026-06-09 existieren in `unity/Assets/Scripts/Simulation/` **zwei**
+Tagessimulations-Pfade:
+
+1. **`GameEngine.SimulateDay`** (alt, MVP) — vereinfachte Formel ohne
+   Kampagnen/Upgrades/Marketing/Wettbewerb/Loans/Stocks/Auto-Management.
+   **Wird aktuell von `App/GameController.SimulateDay` (und damit der UI)
+   genutzt.** Verhalten ist über `GameEngineTests` mit exakten Zahlen
+   gepinnt (z. B. 234 € Umsatz im Referenzfall).
+
+2. **`DayProcessing.ProcessDay`** (neu, vollständiger 1:1-Dart-Port) —
+   alle Subsysteme, 412 Tests. **Noch nicht von der App verdrahtet.**
+
+**Warum nicht einfach umgeschaltet?** Der Wechsel ändert das komplette
+Wirtschafts-Balancing (Kampagnen/Upgrades/Wettbewerb wirken dann real) und
+bricht die gepinnten MVP-Tests. Das ist eine bewusste **Balancing-/Produkt-
+Entscheidung des Owners**, keine reine Code-Frage — und ohne Unity-Editor
+nicht visuell verifizierbar. Daher bewusst NICHT eigenmächtig umgestellt
+(siehe AGENTS.md: „Preserve existing simulation systems unless explicitly
+asked").
+
+**Umschalt-Anleitung, wenn gewünscht:** In `App/GameController.SimulateDay`
+statt `gameEngine.SimulateDay(state)` → `DayProcessing.ProcessDay(state)`
+aufrufen und `DayEndedEvent`/`DayReportView` auf `DayResult` mappen
+(per-Shop-Breakdown müsste `DayResult` dann noch liefern). Danach
+`GameEngineTests` auf die neuen Erwartungswerte aktualisieren.
+
+---
+
 ## Unity-Port-Findings (Stand 2026-06-06, Claude — Senior-Review)
 
 ### Toolchain-Status
