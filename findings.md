@@ -54,14 +54,17 @@ beim Laden:
 - `Shop.sizeTier` → `Klein`
 - `Employee.shift` → `Ganztags`
 
-Flutter `toJson()` schreibt diese Felder, C#-DTO ignoriert sie:
-- `history`, `missions`, `stocks`, `facilities`
-- `hrManager`, `hrStrategy`, `hrCandidates`
-- `globalPrices`, `cityPrices`
-- `activeCityCampaigns`, `activeGlobalCampaigns`
-- `completedChapterIds`, `activeComboIds`, `productQuality`
+~~Flutter `toJson()` schreibt diese Felder, C#-DTO ignoriert sie~~
+**Geschlossen 2026-06-09 (SaveService erweitert, 9 Round-Trip-Tests):**
+- ✅ `stocks`, `facilities`, `hrManager`, `hrStrategy`, `hrCandidates`
+- ✅ `activeCityCampaigns`, `activeGlobalCampaigns`
+- ✅ `completedChapterIds`, `activeComboIds`, `productQuality`
+- Legacy-Saves ohne diese Felder laden mit sicheren Defaults (Test gepinnt).
 
-Codex schließt diese Lücken im Zuge der jeweiligen Engine-Ports (M4–M6).
+**Verbleibend (Modelle noch nicht in C#-GameState):**
+- `history` (DailyRecord-Liste wird in ProcessDay neu aufgebaut, aber nicht
+  persistiert), `missions` (Mission-Status), `globalPrices`, `cityPrices`.
+  Folgen, wenn die zugehörigen GameState-Felder portiert werden.
 
 ### Nächste Schritte (Verantwortlichkeiten klar)
 - **Owner (du):** Android Build Support per Hub-GUI nachinstallieren.

@@ -55,6 +55,17 @@ namespace DoenerEmpire.Save
                 tutorialEnabled = state.TutorialEnabled,
                 tutorialStep = state.TutorialStep,
                 seenEventIds = new List<string>(state.SeenEventIds ?? new List<string>()),
+                // ── Erweiterte Felder (M4–M7-Ports), Flutter-kompatibel ──
+                stocks = ToDto(state.Stocks),
+                facilities = MapList(state.Facilities, ToDto),
+                hrManager = state.HrManager == null ? null : ToDto(state.HrManager),
+                hrStrategy = HrEnumNames.ToDart(state.HrStrategy),
+                hrCandidates = MapList(state.HrCandidates, ToDto),
+                completedChapterIds = new List<string>(state.CompletedChapterIds ?? new List<string>()),
+                activeComboIds = new List<string>(state.ActiveComboIds ?? new List<string>()),
+                productQuality = new Dictionary<string, string>(state.ProductQuality ?? new Dictionary<string, string>()),
+                activeCityCampaigns = MapCampaignDict(state.ActiveCityCampaigns),
+                activeGlobalCampaigns = MapList(state.ActiveGlobalCampaigns, ToDto),
             };
         }
 
@@ -87,7 +98,38 @@ namespace DoenerEmpire.Save
                 TutorialEnabled = dto.tutorialEnabled,
                 TutorialStep = dto.tutorialStep,
                 SeenEventIds = new List<string>(dto.seenEventIds ?? new List<string>()),
+                // ── Erweiterte Felder (M4–M7-Ports) mit sicheren Defaults ──
+                Stocks = FromDto(dto.stocks),
+                Facilities = MapList(dto.facilities, FromDto),
+                HrManager = dto.hrManager == null ? null : FromDto(dto.hrManager),
+                HrStrategy = HrEnumNames.StrategyFromDart(dto.hrStrategy),
+                HrCandidates = MapList(dto.hrCandidates, FromDto),
+                CompletedChapterIds = new List<string>(dto.completedChapterIds ?? new List<string>()),
+                ActiveComboIds = new List<string>(dto.activeComboIds ?? new List<string>()),
+                ProductQuality = new Dictionary<string, string>(dto.productQuality ?? new Dictionary<string, string>()),
+                ActiveCityCampaigns = UnmapCampaignDict(dto.activeCityCampaigns),
+                ActiveGlobalCampaigns = MapList(dto.activeGlobalCampaigns, FromDto),
             };
+        }
+
+        private static Dictionary<string, List<ActiveCampaignDto>> MapCampaignDict(
+            Dictionary<string, List<ActiveCampaign>> source)
+        {
+            Dictionary<string, List<ActiveCampaignDto>> result = new();
+            if (source == null) return result;
+            foreach (var kv in source)
+                result[kv.Key] = MapList(kv.Value, ToDto);
+            return result;
+        }
+
+        private static Dictionary<string, List<ActiveCampaign>> UnmapCampaignDict(
+            Dictionary<string, List<ActiveCampaignDto>> source)
+        {
+            Dictionary<string, List<ActiveCampaign>> result = new();
+            if (source == null) return result;
+            foreach (var kv in source)
+                result[kv.Key] = MapList(kv.Value, FromDto);
+            return result;
         }
 
         private static ShopDto ToDto(Shop shop)
@@ -327,6 +369,98 @@ namespace DoenerEmpire.Save
             typeof(ActiveCampaign).GetField("End" + "Day").SetValue(campaign, value);
         }
 
+        private static StockStateDto ToDto(StockState s)
+        {
+            s ??= new StockState();
+            return new StockStateDto
+            {
+                isPublic = s.IsPublic,
+                ipoDay = s.IpoDay,
+                sharePrice = s.SharePrice,
+                totalShares = s.TotalShares,
+                playerShares = s.PlayerShares,
+                priceHistory = new List<double>(s.PriceHistory ?? new List<double>()),
+                lastQuarterProfit = s.LastQuarterProfit,
+                analystExpectation = s.AnalystExpectation,
+                lastQuarterDay = s.LastQuarterDay,
+            };
+        }
+
+        private static StockState FromDto(StockStateDto dto)
+        {
+            dto ??= new StockStateDto();
+            return new StockState
+            {
+                IsPublic = dto.isPublic,
+                IpoDay = dto.ipoDay,
+                SharePrice = dto.sharePrice,
+                TotalShares = dto.totalShares,
+                PlayerShares = dto.playerShares,
+                PriceHistory = new List<double>(dto.priceHistory ?? new List<double>()),
+                LastQuarterProfit = dto.lastQuarterProfit,
+                AnalystExpectation = dto.analystExpectation,
+                LastQuarterDay = dto.lastQuarterDay,
+            };
+        }
+
+        private static ProductionFacilityDto ToDto(ProductionFacility f)
+        {
+            return new ProductionFacilityDto
+            {
+                id = f.Id,
+                type = ProductionInfo.ToDart(f.Type),
+                tier = FacilityTierInfo.ToDart(f.Tier),
+                dayBuilt = f.DayBuilt,
+            };
+        }
+
+        private static ProductionFacility FromDto(ProductionFacilityDto dto)
+        {
+            return new ProductionFacility
+            {
+                Id = dto.id,
+                Type = ProductionInfo.TypeFromDart(dto.type),
+                Tier = FacilityTierInfo.FromDart(dto.tier),
+                DayBuilt = dto.dayBuilt,
+            };
+        }
+
+        private static HrManagerDto ToDto(HrManager m)
+        {
+            return new HrManagerDto
+            {
+                id = m.Id,
+                name = m.Name,
+                archetype = HrEnumNames.ToDart(m.Archetype),
+                talentSense = m.TalentSense,
+                network = m.Network,
+                negotiation = m.Negotiation,
+                speed = m.Speed,
+                training = m.Training,
+                salaryPerDay = m.SalaryPerDay,
+                level = m.Level,
+                xp = m.Xp,
+            };
+        }
+
+        private static HrManager FromDto(HrManagerDto dto)
+        {
+            return new HrManager
+            {
+                Id = dto.id,
+                Name = dto.name ?? "HR Manager",
+                Archetype = HrEnumNames.ArchetypeFromDart(dto.archetype),
+                TalentSense = System.Math.Clamp(dto.talentSense, 1, 10),
+                Network = System.Math.Clamp(dto.network, 1, 10),
+                Negotiation = System.Math.Clamp(dto.negotiation, 1, 10),
+                Speed = System.Math.Clamp(dto.speed, 1, 10),
+                Training = System.Math.Clamp(dto.training, 1, 10),
+                SalaryPerDay = dto.salaryPerDay,
+                Level = System.Math.Clamp(dto.level <= 0 ? 1 : dto.level, 1, 50),
+                Xp = dto.xp < 0 ? 0 : dto.xp,
+            };
+        }
+
         private static List<TOut> MapList<TIn, TOut>(IEnumerable<TIn> source, System.Func<TIn, TOut> map)
         {
             List<TOut> result = new();
@@ -370,6 +504,53 @@ namespace DoenerEmpire.Save
             public bool tutorialEnabled;
             public int tutorialStep;
             public List<string> seenEventIds = new();
+            // ── Erweiterte Felder (M4–M7-Ports) ──
+            public StockStateDto stocks = new();
+            public List<ProductionFacilityDto> facilities = new();
+            public HrManagerDto hrManager;
+            public string hrStrategy = "balanced";
+            public List<HrManagerDto> hrCandidates = new();
+            public List<string> completedChapterIds = new();
+            public List<string> activeComboIds = new();
+            public Dictionary<string, string> productQuality = new();
+            public Dictionary<string, List<ActiveCampaignDto>> activeCityCampaigns = new();
+            public List<ActiveCampaignDto> activeGlobalCampaigns = new();
+        }
+
+        private sealed class StockStateDto
+        {
+            public bool isPublic;
+            public int ipoDay;
+            public double sharePrice;
+            public int totalShares;
+            public int playerShares;
+            public List<double> priceHistory = new();
+            public double lastQuarterProfit;
+            public double analystExpectation;
+            public int lastQuarterDay;
+        }
+
+        private sealed class ProductionFacilityDto
+        {
+            public string id;
+            public string type = "fleisch";
+            public string tier = "klein";
+            public int dayBuilt;
+        }
+
+        private sealed class HrManagerDto
+        {
+            public string id;
+            public string name;
+            public string archetype = "processManager";
+            public int talentSense = 5;
+            public int network = 5;
+            public int negotiation = 5;
+            public int speed = 5;
+            public int training = 5;
+            public double salaryPerDay = 180.0;
+            public int level = 1;
+            public int xp;
         }
 
         private sealed class ShopDto
