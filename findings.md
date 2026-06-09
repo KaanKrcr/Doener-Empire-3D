@@ -194,11 +194,13 @@ geladen. 11 Round-Trip-Tests + Flutter-Fixture-Test pinnen das.
   - **Analyse-Schicht ergänzt (für Dashboard/Stats/Finanz-Screens):**
     - `DemandUtils.RevenueOptimalPrice` (Preis-Empfehlung)
     - `AnalyticsService` (DailyChallenge, MonthlyTaxDue, BuildWeeklyReport)
-    - `CompanyAnalytics` (ShopsByProfit, PlayerMarketShareIn, Health)
+    - `CompanyAnalytics` (ShopsByProfit, PlayerMarketShareIn, Health, ShopAlerts)
+    - `ProductAnalytics` (ProductProfitBreakdown)
+    - `ReviewService` (prozedurale Kundenbewertungen)
     - `ShopOpeningService` wendet jetzt globale/stadtweite Preis-Overrides an
-  - **Stand 2026-06-09: 439 grüne Unity-Logik-Tests.** Verbleibende
-    Analyse-Helfer (productProfitBreakdown, shopAlerts, reviews) sind
-    optional und folgen bei Bedarf der jeweiligen UI-Screen-Integration.
+  - **Stand 2026-06-09: 455 grüne Unity-Logik-Tests.** Die gesamte
+    Analyse-/Dashboard-/Stats-/Finanz-Schicht ist damit portiert. Verbleibend
+    nur reine UI-Aktionen/Tick-Helfer + die Unity-Scene/View3D-Integration.
 - **Claude (ich):** Code-Review jedes Codex-Engine-Ports vor Merge,
   ggf. Save-DTO um neue Felder erweitern wenn Engine sie braucht.
 
