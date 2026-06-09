@@ -22,6 +22,15 @@ namespace DoenerEmpire.Simulation
         public string Label;
     }
 
+    public enum AlertLevel { Warn, Danger }
+
+    public sealed class ShopAlert
+    {
+        public AlertLevel Level;
+        public string Message;
+        public string ShopId;
+    }
+
     public static class CompanyAnalytics
     {
         /// <summary>Filialen nach geschätztem Tagesgewinn (Umsatz − Kosten), absteigend.</summary>
@@ -88,6 +97,49 @@ namespace DoenerEmpire.Simulation
                 : "Kritisch";
 
             return new HealthScore { Score = Math.Clamp(score, 0, 100), Label = label };
+        }
+
+        /// <summary>
+        /// Hinweise/Warnungen für den Spieler (verlustreiche Filialen, schlechter
+        /// Ruf, niedrige Liquidität). Rein abgeleitet, keine Seiteneffekte.
+        /// </summary>
+        public static List<ShopAlert> ShopAlerts(GameState state)
+        {
+            var alerts = new List<ShopAlert>();
+            double dailyCostTotal = 0;
+            foreach (var shop in state.Shops)
+            {
+                var rev = GameEngineCore.CalculateDailyRevenue(shop, state.CurrentDay, state);
+                var cost = GameEngineCore.CalculateDailyCosts(shop, state.CurrentDay, state);
+                dailyCostTotal += cost;
+                if (rev - cost < 0)
+                {
+                    alerts.Add(new ShopAlert
+                    {
+                        Level = AlertLevel.Danger,
+                        Message = $"{shop.DisplayName} macht Verlust ({(int)Math.Round(rev - cost)} €/Tag)",
+                        ShopId = shop.Id,
+                    });
+                }
+                else if (shop.Reputation < 2.0)
+                {
+                    alerts.Add(new ShopAlert
+                    {
+                        Level = AlertLevel.Warn,
+                        Message = $"{shop.DisplayName}: schlechter Ruf ({shop.Reputation:0.0} ⭐)",
+                        ShopId = shop.Id,
+                    });
+                }
+            }
+            if (state.Cash >= 0 && dailyCostTotal > 0 && state.Cash < dailyCostTotal * 2)
+            {
+                alerts.Add(new ShopAlert
+                {
+                    Level = AlertLevel.Warn,
+                    Message = "Liquidität niedrig — die Kasse reicht nur wenige Tage.",
+                });
+            }
+            return alerts;
         }
     }
 }
