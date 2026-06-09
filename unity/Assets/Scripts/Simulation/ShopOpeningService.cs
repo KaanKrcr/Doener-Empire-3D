@@ -111,7 +111,9 @@ namespace DoenerEmpire.Simulation
                     .Select(product => new ShopProduct
                     {
                         ProductId = product.Id,
-                        Price = product.BasePrice,
+                        // Preis-Override-Präzedenz wie im Dart-openShop:
+                        // Stadtpreis > globaler Preis > Basispreis.
+                        Price = ResolveOpeningPrice(state, request.CityId, product.Id, product.BasePrice),
                         IsActive = true,
                     })
                     .ToList(),
@@ -121,6 +123,30 @@ namespace DoenerEmpire.Simulation
                     new ShopEquipment { EquipmentId = "kasse_basic" },
                 },
             };
+        }
+
+        /// <summary>
+        /// Preis für ein Default-Produkt beim Eröffnen: Stadtpreis-Override hat
+        /// Vorrang vor globalem Preis-Override, sonst Basispreis (Dart-Semantik).
+        /// </summary>
+        private static double ResolveOpeningPrice(
+            GameState state, string cityId, string productId, double basePrice)
+        {
+            if (state.CityPrices != null
+                && state.CityPrices.TryGetValue(cityId, out var cityP)
+                && cityP != null
+                && cityP.TryGetValue(productId, out var cityPrice))
+            {
+                return cityPrice;
+            }
+
+            if (state.GlobalPrices != null
+                && state.GlobalPrices.TryGetValue(productId, out var globalPrice))
+            {
+                return globalPrice;
+            }
+
+            return basePrice;
         }
     }
 }
