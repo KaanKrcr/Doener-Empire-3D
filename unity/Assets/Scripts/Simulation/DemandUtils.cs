@@ -117,5 +117,30 @@ namespace DoenerEmpire.Simulation
             var demand = Math.Exp(-Math.Pow(overshoot * 1.6 * sensitivity, 2));
             return Math.Clamp(demand, 0.0, 1.0);
         }
+
+        /// <summary>
+        /// Umsatzoptimaler Preis für ein Produkt (numerischer Scan über
+        /// Nachfrage × Preis). Preis-Empfehlung für die UI. Port aus
+        /// GameEngine.revenueOptimalPrice.
+        /// </summary>
+        public static double RevenueOptimalPrice(
+            double basePrice, GameDifficulty difficulty = GameDifficulty.Normal)
+        {
+            if (basePrice <= 0) return basePrice;
+            var bestPrice = basePrice;
+            var bestRev = -1.0;
+            var step = basePrice * 0.02;
+            for (var p = basePrice * 0.5; p <= basePrice * 2.0; p += step)
+            {
+                var d = PriceDemandFactor(p, basePrice, difficulty);
+                var rev = d * p;
+                if (rev > bestRev)
+                {
+                    bestRev = rev;
+                    bestPrice = p;
+                }
+            }
+            return Math.Round(Math.Clamp(bestPrice, 0.5, 99.0), 2);
+        }
     }
 }

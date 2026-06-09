@@ -144,5 +144,40 @@ namespace DoenerEmpire.Logic.Tests
             var hard = DemandUtils.PriceDemandFactor(9.0, 6.50, GameDifficulty.Hard);
             Assert.True(easy > hard, $"easy={easy} hard={hard}");
         }
+
+        // ── RevenueOptimalPrice ──────────────────────────────────────────────
+
+        [Fact]
+        public void OptimalPriceZeroBaseReturnsBase()
+        {
+            Assert.Equal(0, DemandUtils.RevenueOptimalPrice(0));
+        }
+
+        [Fact]
+        public void OptimalPriceWithinScanBounds()
+        {
+            var basePrice = 6.50;
+            var opt = DemandUtils.RevenueOptimalPrice(basePrice);
+            Assert.InRange(opt, basePrice * 0.5, basePrice * 2.0);
+        }
+
+        [Fact]
+        public void OptimalPriceBeatsOrEqualsBaseRevenuePerUnit()
+        {
+            var basePrice = 6.50;
+            var opt = DemandUtils.RevenueOptimalPrice(basePrice, GameDifficulty.Normal);
+            var revAtOpt = DemandUtils.PriceDemandFactor(opt, basePrice) * opt;
+            var revAtBase = DemandUtils.PriceDemandFactor(basePrice, basePrice) * basePrice;
+            Assert.True(revAtOpt >= revAtBase - 1e-9, $"opt-rev={revAtOpt} base-rev={revAtBase}");
+        }
+
+        [Fact]
+        public void OptimalPriceLowerOnHardDifficulty()
+        {
+            // Preissensiblere Kundschaft (hard) → niedrigerer optimaler Preis
+            var easy = DemandUtils.RevenueOptimalPrice(6.50, GameDifficulty.Easy);
+            var hard = DemandUtils.RevenueOptimalPrice(6.50, GameDifficulty.Hard);
+            Assert.True(hard <= easy, $"easy={easy} hard={hard}");
+        }
     }
 }
