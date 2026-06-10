@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart'; // StateProvider (riverpod 3: nach legacy verschoben)
 import '../models/game_state.dart';
@@ -845,7 +846,14 @@ class GameNotifier extends Notifier<GameState?> {
     }
   }
 
-  void _save() => SaveService.save(state!);
+  void _save() {
+    // Fire-and-forget: ein fehlgeschlagener Speichervorgang (Storage- oder
+    // Serialisierungsfehler) darf das Spiel nicht mit einem unbehandelten
+    // async-Fehler abstürzen lassen — Fehler abfangen statt eskalieren.
+    SaveService.save(state!).catchError(
+      (Object e) => debugPrint('Spielstand speichern fehlgeschlagen: $e'),
+    );
+  }
 
   void _completeTutorialStep(
     TutorialStep expectedStep, {
