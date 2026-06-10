@@ -82,6 +82,9 @@ jobs:
         with:
           projectPath: unity
           targetPlatform: Android
+          # Version aus ProjectSettings (bundleVersion) statt aus Git ableiten —
+          # verhindert "Branch is dirty"-Abbruch durch LFS-normalisierte Assets.
+          versioning: None
           # unityVersion wird aus unity/ProjectSettings/ProjectVersion.txt gelesen
           # (6000.4.9f1) — kein explizites Setzen nötig.
           androidExportType: ${{ github.event.inputs.exportType || 'androidPackage' }}
