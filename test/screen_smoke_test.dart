@@ -6,7 +6,6 @@ import 'package:doener_empire/providers/game_provider.dart';
 import 'package:doener_empire/ui/main_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Render-Smoke-Tests für Screens mit Laufzeit-Risiko nach den Major-Bumps
