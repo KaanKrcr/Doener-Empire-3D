@@ -4,6 +4,7 @@ import 'package:doener_empire/models/product_model.dart';
 import 'package:doener_empire/models/shop_model.dart';
 import 'package:doener_empire/providers/game_provider.dart';
 import 'package:doener_empire/ui/main_scaffold.dart';
+import 'package:doener_empire/ui/screens/shop_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -95,6 +96,19 @@ void main() {
 
   testWidgets('Bank-Tab rendert ohne Exception', (tester) async {
     await _pumpTab(tester, 5); // BankScreen
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Filial-Detail rendert ohne Exception', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          gameProvider.overrideWith(() => _StaticGameNotifier(_seed())),
+        ],
+        child: const MaterialApp(home: ShopDetailScreen(shopId: 's1')),
+      ),
+    );
+    await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
   });
 }
