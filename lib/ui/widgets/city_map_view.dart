@@ -167,7 +167,8 @@ class CityMapView extends StatelessWidget {
                     height: height,
                     footprint: footprint,
                     lit: isSelected,
-                    windows: owned > 0,
+                    owned: owned > 0,
+                    seed: location.id.hashCode,
                   ),
                 ),
               ],
@@ -288,74 +289,85 @@ class _CityBadge extends StatelessWidget {
   }
 }
 
-// ── Ein isometrisches Gebäude (Dach + zwei beleuchtete Wände + Bodenschatten) ──
+/// Isometrisches Gebäude mit Fenster-Rastern, Dach-Details und — bei eigenen
+/// Filialen — Hero-Look (Neon-Umrandung, Schildband, Innenglühen, Terrasse).
+///
+/// SPRITE-UPGRADE: Sobald echte Iso-PNGs vorliegen, kann [IsoArt.spriteFor]
+/// einen Asset-Pfad liefern; der Renderer zeichnet dann das Sprite statt der
+/// Vektor-Geometrie (siehe `_buildHotspot`). Fehlt ein Sprite → dieser Vektor-
+/// Fallback. So ist die Map heute spielbar und später auf Foto-Look upgradebar.
 class _IsoBuildingPainter extends CustomPainter {
   final Color color;
   final double height;
   final double footprint;
-  final bool lit;
-  final bool windows;
+  final bool lit; // ausgewählt
+  final bool owned; // eigene Filiale → Hero-Look
+  final int seed;
 
   _IsoBuildingPainter({
     required this.color,
     required this.height,
     required this.footprint,
     required this.lit,
-    required this.windows,
+    required this.owned,
+    this.seed = 0,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final w = footprint;
-    final th = w * 0.5; // Tile-Diamant-Höhe
+    final th = w * 0.5;
     final cx = size.width / 2;
-    final baseY = size.height - th / 2; // Mittelpunkt der Bodenraute
+    final baseY = size.height - th / 2;
+    final hh = height;
 
-    // Bodenschatten (gestauchte, weiche Ellipse)
-    final shadow = Paint()
-      ..color = Colors.black.withAlpha(95)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
-    canvas.drawOval(
-      Rect.fromCenter(center: Offset(cx + 8, baseY + 4), width: w * 0.9, height: th * 0.7),
-      shadow,
-    );
-
-    // Eckpunkte der Bodenraute
     final top = Offset(cx, baseY - th / 2);
     final right = Offset(cx + w / 2, baseY);
     final bottom = Offset(cx, baseY + th / 2);
     final left = Offset(cx - w / 2, baseY);
-
-    final hh = height;
     Offset up(Offset p) => Offset(p.dx, p.dy - hh);
 
-    // Wandfarben: linke Wand dunkler, rechte heller (Lichteinfall von rechts).
-    final hsl = HSLColor.fromColor(color);
-    final roofPaint = Paint()..color = hsl.withLightness((hsl.lightness * 1.18).clamp(0, 1)).toColor();
-    final leftWall = Paint()..color = hsl.withLightness((hsl.lightness * 0.62).clamp(0, 1)).toColor();
-    final rightWall = Paint()..color = hsl.withLightness((hsl.lightness * 0.85).clamp(0, 1)).toColor();
+    // Bodenschatten
+    canvas.drawOval(
+      Rect.fromCenter(center: Offset(cx + 7, baseY + 4), width: w * 0.92, height: th * 0.7),
+      Paint()
+        ..color = Colors.black.withAlpha(105)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 7),
+    );
 
-    // Linke Wand (left→bottom)
-    canvas.drawPath(
-      Path()
-        ..moveTo(left.dx, left.dy)
-        ..lineTo(bottom.dx, bottom.dy)
-        ..lineTo(up(bottom).dx, up(bottom).dy)
-        ..lineTo(up(left).dx, up(left).dy)
-        ..close(),
-      leftWall,
-    );
-    // Rechte Wand (bottom→right)
-    canvas.drawPath(
-      Path()
-        ..moveTo(bottom.dx, bottom.dy)
-        ..lineTo(right.dx, right.dy)
-        ..lineTo(up(right).dx, up(right).dy)
-        ..lineTo(up(bottom).dx, up(bottom).dy)
-        ..close(),
-      rightWall,
-    );
-    // Dach
+    // Terrasse vor dem Eingang (nur eigene Filiale): Tische + Gäste
+    if (owned) _terrace(canvas, bottom, w);
+
+    // Wandfarben (Licht von rechts oben)
+    final hsl = HSLColor.fromColor(color);
+    Color shade(double f) => hsl.withLightness((hsl.lightness * f).clamp(0.0, 1.0)).toColor();
+    final roofPaint = Paint()..color = shade(1.15);
+    final leftWall = Paint()..color = shade(0.55);
+    final rightWall = Paint()..color = shade(0.80);
+
+    // Wände
+    final leftPath = Path()
+      ..moveTo(left.dx, left.dy)
+      ..lineTo(bottom.dx, bottom.dy)
+      ..lineTo(up(bottom).dx, up(bottom).dy)
+      ..lineTo(up(left).dx, up(left).dy)
+      ..close();
+    final rightPath = Path()
+      ..moveTo(bottom.dx, bottom.dy)
+      ..lineTo(right.dx, right.dy)
+      ..lineTo(up(right).dx, up(right).dy)
+      ..lineTo(up(bottom).dx, up(bottom).dy)
+      ..close();
+    canvas.drawPath(leftPath, leftWall);
+    canvas.drawPath(rightPath, rightWall);
+
+    // Fenster-Raster auf beiden Wänden
+    final cols = (w / 22).round().clamp(2, 5);
+    final rows = (hh / 22).round().clamp(1, 6);
+    _windows(canvas, left, bottom, hh, cols, rows, warm: owned, dim: true);
+    _windows(canvas, bottom, right, hh, cols, rows, warm: owned, dim: false);
+
+    // Dach + Parapet + Aufbauten
     canvas.drawPath(
       Path()
         ..moveTo(up(top).dx, up(top).dy)
@@ -365,33 +377,145 @@ class _IsoBuildingPainter extends CustomPainter {
         ..close(),
       roofPaint,
     );
+    // Dach-Aufbauten (AC-Units)
+    final acPaint = Paint()..color = shade(0.7);
+    final roofC = Offset(cx, up(top).dy + (up(bottom).dy - up(top).dy) * 0.5);
+    canvas.drawRect(Rect.fromCenter(center: roofC.translate(-w * 0.12, -2), width: 12, height: 8), acPaint);
+    canvas.drawRect(Rect.fromCenter(center: roofC.translate(w * 0.14, 3), width: 9, height: 6), acPaint);
 
-    // Fenster (kleine helle Punkte auf der rechten Wand, nur bei eigenen Filialen)
-    if (windows) {
-      final winPaint = Paint()..color = AppColors.gold.withAlpha(210);
-      for (var i = 0; i < 3; i++) {
-        final t = 0.25 + i * 0.22;
-        final wx = bottom.dx + (right.dx - bottom.dx) * 0.5;
-        final wy = bottom.dy + (right.dy - bottom.dy) * 0.5 - hh * t;
-        canvas.drawRect(
-          Rect.fromCenter(center: Offset(wx, wy), width: 6, height: 8),
-          winPaint,
-        );
-      }
+    if (owned) {
+      // Schildband oben auf der Frontwand (rechts)
+      _signBand(canvas, bottom, right, hh);
+      // Döner-Leuchtschild auf dem Dach
+      _roofSign(canvas, roofC);
+      // Neon-Umrandung der Silhouette
+      _neonRim(canvas, [up(left), up(top), up(right), right, bottom, left], up(bottom), bottom);
     }
 
     // Auswahl-Glow
     if (lit) {
-      final glow = Paint()
-        ..color = color.withAlpha(60)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 16);
-      canvas.drawCircle(up(top).translate(0, hh * 0.4), w * 0.5, glow);
+      canvas.drawCircle(
+        up(top).translate(0, hh * 0.4),
+        w * 0.55,
+        Paint()
+          ..color = color.withAlpha(64)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 18),
+      );
+    }
+  }
+
+  Offset _wp(Offset p0, Offset p1, double h, double s, double t) {
+    final base = Offset.lerp(p0, p1, s)!;
+    return Offset(base.dx, base.dy - h * t);
+  }
+
+  void _windows(Canvas canvas, Offset p0, Offset p1, double h, int cols, int rows,
+      {required bool warm, required bool dim}) {
+    final dark = Paint()..color = Colors.black.withAlpha(dim ? 70 : 55);
+    var s = seed == 0 ? 11 : seed;
+    for (var c = 0; c < cols; c++) {
+      for (var r = 0; r < rows; r++) {
+        s = (s * 1103515245 + 12345) & 0x7fffffff;
+        final sx = 0.12 + (c + 0.5) / cols * 0.76;
+        final ty = 0.14 + (r + 0.5) / rows * 0.74;
+        const wsf = 0.5; // Fensterbreite relativ zur Zellbreite
+        final ws = (0.76 / cols) * wsf;
+        final wt = (0.74 / rows) * 0.55;
+        final quad = Path()
+          ..moveTo(_wp(p0, p1, h, sx - ws / 2, ty - wt / 2).dx, _wp(p0, p1, h, sx - ws / 2, ty - wt / 2).dy)
+          ..lineTo(_wp(p0, p1, h, sx + ws / 2, ty - wt / 2).dx, _wp(p0, p1, h, sx + ws / 2, ty - wt / 2).dy)
+          ..lineTo(_wp(p0, p1, h, sx + ws / 2, ty + wt / 2).dx, _wp(p0, p1, h, sx + ws / 2, ty + wt / 2).dy)
+          ..lineTo(_wp(p0, p1, h, sx - ws / 2, ty + wt / 2).dx, _wp(p0, p1, h, sx - ws / 2, ty + wt / 2).dy)
+          ..close();
+        final isLit = (s % 100) < (warm ? 70 : 38);
+        if (isLit) {
+          final c2 = warm ? AppColors.gold : const Color(0xFF9FD0FF);
+          canvas.drawPath(quad, Paint()..color = c2.withAlpha(dim ? 150 : 205));
+        } else {
+          canvas.drawPath(quad, dark);
+        }
+      }
+    }
+  }
+
+  void _signBand(Canvas canvas, Offset p0, Offset p1, double h) {
+    final band = Path()
+      ..moveTo(_wp(p0, p1, h, 0.1, 0.80).dx, _wp(p0, p1, h, 0.1, 0.80).dy)
+      ..lineTo(_wp(p0, p1, h, 0.9, 0.80).dx, _wp(p0, p1, h, 0.9, 0.80).dy)
+      ..lineTo(_wp(p0, p1, h, 0.9, 0.92).dx, _wp(p0, p1, h, 0.9, 0.92).dy)
+      ..lineTo(_wp(p0, p1, h, 0.1, 0.92).dx, _wp(p0, p1, h, 0.1, 0.92).dy)
+      ..close();
+    canvas.drawPath(band, Paint()..color = AppColors.primary);
+    canvas.drawPath(
+      band,
+      Paint()
+        ..color = AppColors.gold.withAlpha(120)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
+    );
+  }
+
+  void _roofSign(Canvas canvas, Offset roofC) {
+    final p = roofC.translate(0, -10);
+    canvas.drawCircle(p, 7, Paint()
+      ..color = AppColors.primary.withAlpha(160)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8));
+    canvas.drawCircle(p, 4, Paint()..color = AppColors.gold);
+  }
+
+  void _neonRim(Canvas canvas, List<Offset> roofAndBase, Offset upBottom, Offset bottom) {
+    final outline = Path()..moveTo(roofAndBase.first.dx, roofAndBase.first.dy);
+    for (final pt in roofAndBase.skip(1)) {
+      outline.lineTo(pt.dx, pt.dy);
+    }
+    outline.close();
+    // Vordere Vertikalkante betonen
+    final front = Path()
+      ..moveTo(bottom.dx, bottom.dy)
+      ..lineTo(upBottom.dx, upBottom.dy);
+
+    final glow = Paint()
+      ..color = AppColors.primary.withAlpha(200)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+    final crisp = Paint()
+      ..color = AppColors.gold
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.6;
+    canvas.drawPath(outline, glow);
+    canvas.drawPath(front, glow);
+    canvas.drawPath(outline, crisp);
+    canvas.drawPath(front, crisp);
+  }
+
+  void _terrace(Canvas canvas, Offset bottom, double w) {
+    final ground = bottom.translate(0, 10);
+    final table = Paint()..color = const Color(0xFF6B5640);
+    final guest = Paint()..color = AppColors.gold.withAlpha(180);
+    final spots = [
+      ground.translate(-w * 0.22, 6),
+      ground.translate(w * 0.05, 12),
+      ground.translate(w * 0.26, 4),
+    ];
+    for (final s in spots) {
+      canvas.drawOval(Rect.fromCenter(center: s, width: 10, height: 5), table);
+      canvas.drawCircle(s.translate(-6, -3), 1.8, guest);
+      canvas.drawCircle(s.translate(6, -3), 1.8, guest);
     }
   }
 
   @override
   bool shouldRepaint(covariant _IsoBuildingPainter old) =>
-      old.color != color || old.height != height || old.lit != lit || old.windows != windows;
+      old.color != color || old.height != height || old.lit != lit || old.owned != owned || old.seed != seed;
+}
+
+/// Sprite-Upgrade-Hook. Liefert (später) den Asset-Pfad eines Iso-Sprites je
+/// Gebäudeart; null → Vektor-Fallback. Heute leer = reiner Vektor-Look.
+/// Aktivieren: PNGs unter `assets/iso/` ablegen, in pubspec.yaml deklarieren,
+/// hier den Pfad zurückgeben und in `_buildHotspot` eine Image-Ebene rendern.
+class IsoArt {
+  const IsoArt._();
+  static String? spriteFor({required bool owned, required int ownedCount}) => null;
 }
 
 // ── Iso-Boden: Tile-Grid, Straßen, Dekor-Gebäude, Ambient-Licht ───────────────
