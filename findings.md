@@ -35,9 +35,13 @@ brachliegen ließ.
 - **.NET 8 SDK:** 8.0.421 — vorhanden.
 - **Unity Hub:** vorhanden.
 - **Unity 6 LTS (6000.4.9f1) Editor:** installiert.
-- **Unity Android Build Support:** ⚠ NICHT installiert — pausierte Downloads
-  vorhanden, Hub-CLI-Bug verworfen sie. **Manueller Hub-GUI-Install
-  durch Owner ausstehend.**
+- **Unity Android Build Support:** ✅ installiert & verifiziert (2026-06-10):
+  AndroidPlayer-Modul vollständig — SDK (811 MB, Platforms android-34/35/36),
+  NDK r27c (2.2 GB), OpenJDK 17 (228 MB), Gradle-Tools vorhanden.
+  Build-Chain damit einsatzbereit.
+- **ProjectVersion.txt korrigiert:** stand auf `UnknownUnityVersion`
+  (blockierte Hub-Editor-Matching) → auf `6000.4.9f1 (f7258d6eebbe)` gesetzt
+  (Revision aus installierter Unity.exe verifiziert).
 
 ### Code-Stand Logikschicht
 - 31 C#-Dateien unter `unity/Assets/Scripts/` (M1+M2 + Beginn M3).
