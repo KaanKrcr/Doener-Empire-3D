@@ -580,10 +580,13 @@ class _SpriteBuildingPainter extends CustomPainter {
 
     final iw = image.width.toDouble();
     final ih = image.height.toDouble();
-    final dw = size.width;
+    // Detaillierte Iso-Gebäude sind meist breiter als ihr Tile → leicht
+    // überzeichnen und horizontal zentrieren, Fuß auf der Tile-Raute verankern.
+    const scale = 1.7;
+    final dw = size.width * scale;
     final dh = dw * ih / iw;
-    // Bodenkontakt des Sprites ~ etwas oberhalb der Box-Unterkante (auf der Raute).
-    final dst = Rect.fromLTWH(0, (baseY + th * 0.18) - dh, dw, dh);
+    final dx = (size.width - dw) / 2;
+    final dst = Rect.fromLTWH(dx, (baseY + th * 0.12) - dh, dw, dh);
 
     if (lit) {
       canvas.drawCircle(
