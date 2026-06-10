@@ -82,4 +82,19 @@ void main() {
     await _pumpTab(tester, 0); // DashboardScreen
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('Städte-Tab rendert ohne Exception', (tester) async {
+    await _pumpTab(tester, 1); // CitiesScreen
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Statistik-Tab rendert ohne Exception', (tester) async {
+    await _pumpTab(tester, 2); // StatsScreen (Verlaufsdaten/Charts)
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Bank-Tab rendert ohne Exception', (tester) async {
+    await _pumpTab(tester, 5); // BankScreen
+    expect(tester.takeException(), isNull);
+  });
 }
