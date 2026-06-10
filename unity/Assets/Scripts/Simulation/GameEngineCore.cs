@@ -198,6 +198,29 @@ namespace DoenerEmpire.Simulation
             => state.Shops.Sum(s => CalculateDailyCustomers(s, state.CurrentDay, state));
 
         // ──────────────────────────────────────────────────────────────────────
+        // Stündlicher Tick (Live-Cash-Dripping über den Spieltag)
+        // ──────────────────────────────────────────────────────────────────────
+
+        /// <summary>Stündlicher Umsatz = Tagesumsatz / Öffnungsstunden, über alle Filialen.</summary>
+        public static double CalculateHourlyRevenue(GameState state)
+            => state.Shops.Sum(s =>
+                CalculateDailyRevenue(s, state.CurrentDay, state) / GameData.DailyOpenHours);
+
+        /// <summary>
+        /// Stündliche Kosten = Tageskosten / Öffnungsstunden (je Filiale) plus
+        /// anteilige globale Upgrade- und Combo-Tageskosten.
+        /// </summary>
+        public static double CalculateHourlyCosts(GameState state)
+        {
+            var shopCosts = state.Shops.Sum(s =>
+                CalculateDailyCosts(s, state.CurrentDay, state) / GameData.DailyOpenHours);
+            var pressure = state.Modifiers.EconomicPressureMultiplier;
+            var globalCosts = UpgradeService.GlobalUpgradeDailyCost(state) * pressure / GameData.DailyOpenHours;
+            var comboCosts = DayProcessing.ActiveComboDailyCost(state) * pressure / GameData.DailyOpenHours;
+            return shopCosts + globalCosts + comboCosts;
+        }
+
+        // ──────────────────────────────────────────────────────────────────────
         // Tageskosten (Breakdown)
         // ──────────────────────────────────────────────────────────────────────
         //
