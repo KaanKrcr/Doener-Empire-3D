@@ -19,10 +19,22 @@
   (stocks, facilities, hr*, history, missions, campaigns, combos,
   productQuality, globalPrices, cityPrices); Legacy-Saves mit Defaults
 
+### Content-Systeme (C#)
+
+- Achievements (19 Trophäen) + Unlock-Auswertung
+- Start-Szenarien, Marken-Skins, Tutorial-Schritte
+- Events/Krisen (24 Events, generiert via `tools/gen_event_catalog.py`) +
+  gewichtete Auswahl & Anwendung
+- `EndOfDayService`: vollständiger Tagesabschluss (Wirtschaft + Missionen,
+  Kampagne, Achievements, Event, Quartal/Woche, Steuer, Daily Challenge)
+- Analyse-Schicht: Produkt-Profitabilität, Filial-Ranking, Marktanteil,
+  Unternehmens-Gesundheit, Warnungen, Kundenbewertungen, Preis-Empfehlung,
+  stündlicher Tick
+
 ### Sonstiges
 
 - Android App-Label `doener_empire` → `Döner Empire`
-- 419 Unity-Logik-Tests (xUnit) grün; Flutter 86 Tests + analyze clean
+- 507 Unity-Logik-Tests (xUnit) grün; Flutter 86 Tests + analyze clean
 
 ## 1.1.0-internal - 2026-05-30
 
