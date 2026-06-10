@@ -1,6 +1,8 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 import '../../core/theme.dart';
 import '../../models/city_map_model.dart';
@@ -11,7 +13,7 @@ import '../../models/shop_model.dart';
 /// shops/selected/onSelect) — die Spiellogik bleibt unangetastet; nur die
 /// Render-Schicht ist pseudo-3D (Iso-Grid + gestapelte Gebäude + Schatten +
 /// Tiefensortierung + Pan/Zoom).
-class CityMapView extends StatelessWidget {
+class CityMapView extends StatefulWidget {
   final CityData city;
   final List<CityMapLocation> locations;
   final List<Shop> shops;
@@ -50,15 +52,56 @@ class CityMapView extends StatelessWidget {
   }
 
   @override
+  State<CityMapView> createState() => _CityMapViewState();
+}
+
+class _CityMapViewState extends State<CityMapView> {
+  /// Geladene Iso-Sprites (Slot → Bild). Leer, solange keine PNGs vorliegen →
+  /// Vektor-Fallback. Wird beim Ablegen echter Assets automatisch befüllt.
+  final Map<String, ui.Image> _sprites = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSprites();
+  }
+
+  Future<void> _loadSprites() async {
+    final loaded = <String, ui.Image>{};
+    for (final entry in IsoArt.manifest.entries) {
+      final img = await _tryLoad(entry.value);
+      if (img != null) loaded[entry.key] = img;
+    }
+    if (loaded.isNotEmpty && mounted) {
+      setState(() => _sprites
+        ..clear()
+        ..addAll(loaded));
+    }
+  }
+
+  /// Lädt ein Asset-Bild; liefert null, wenn das Asset (noch) nicht existiert.
+  Future<ui.Image?> _tryLoad(String path) async {
+    try {
+      final data = await rootBundle.load(path);
+      final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
+      final frame = await codec.getNextFrame();
+      return frame.image;
+    } catch (_) {
+      return null; // Asset fehlt → Vektor-Fallback
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     // Belegte Tiles (für Dekor-Aussparung) + stabile Index-basierte Entzerrung,
     // damit zwei Locations nicht auf demselben Tile landen.
     final placed = <_Tile, CityMapLocation>{};
-    for (final loc in locations) {
-      var t = _tileFor(loc);
+    for (final loc in widget.locations) {
+      var t = CityMapView._tileFor(loc);
       var guard = 0;
-      while (placed.containsKey(t) && guard < _gridN * _gridN) {
-        t = _Tile((t.col + 1) % _gridN, t.col + 1 >= _gridN ? (t.row + 1) % _gridN : t.row);
+      while (placed.containsKey(t) && guard < CityMapView._gridN * CityMapView._gridN) {
+        t = _Tile((t.col + 1) % CityMapView._gridN,
+            t.col + 1 >= CityMapView._gridN ? (t.row + 1) % CityMapView._gridN : t.row);
         guard++;
       }
       placed[t] = loc;
@@ -82,8 +125,8 @@ class CityMapView extends StatelessWidget {
                 boundaryMargin: const EdgeInsets.all(220),
                 constrained: false,
                 child: SizedBox(
-                  width: _sceneW,
-                  height: _sceneH,
+                  width: CityMapView._sceneW,
+                  height: CityMapView._sceneH,
                   child: Stack(
                     clipBehavior: Clip.none,
                     children: [
@@ -102,7 +145,7 @@ class CityMapView extends StatelessWidget {
                   ),
                 ),
               ),
-              Positioned(left: 16, top: 16, child: _CityBadge(city: city)),
+              Positioned(left: 16, top: 16, child: _CityBadge(city: widget.city)),
               const Positioned(
                 right: 14,
                 bottom: 12,
@@ -116,12 +159,12 @@ class CityMapView extends StatelessWidget {
   }
 
   Widget _buildHotspot(_Tile tile, CityMapLocation location) {
-    final base = _iso(tile.col.toDouble(), tile.row.toDouble());
-    final owned = shops
-        .where((s) => s.cityId == city.id && s.locationName == location.template.name)
+    final base = CityMapView._iso(tile.col.toDouble(), tile.row.toDouble());
+    final owned = widget.shops
+        .where((s) => s.cityId == widget.city.id && s.locationName == location.template.name)
         .length;
-    final isSelected = selected?.id == location.id;
-    final score = location.attractivenessScore(city).round();
+    final isSelected = widget.selected?.id == location.id;
+    final score = location.attractivenessScore(widget.city).round();
 
     // Gebäudehöhe: leer = niedrig, im Besitz wächst sie mit Filialzahl.
     final height = 46.0 + (owned > 0 ? 26.0 + math.min(owned, 4) * 14.0 : 0.0);
@@ -137,12 +180,15 @@ class CityMapView extends StatelessWidget {
     final left = base.dx - footprint / 2;
     final top = base.dy - height - footprint * 0.30;
 
+    // Sprite-Slot (falls echtes Asset geladen) → sonst Vektor-Fallback.
+    final sprite = _sprites[IsoArt.slotFor(owned: owned > 0, ownedCount: owned)];
+
     return Positioned(
       left: left,
       top: top,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: () => onSelect(location),
+        onTap: () => widget.onSelect(location),
         child: AnimatedScale(
           scale: isSelected ? 1.06 : 1.0,
           duration: const Duration(milliseconds: 160),
@@ -162,14 +208,16 @@ class CityMapView extends StatelessWidget {
                 const SizedBox(height: 3),
                 CustomPaint(
                   size: Size(footprint, height + footprint * 0.5),
-                  painter: _IsoBuildingPainter(
-                    color: color,
-                    height: height,
-                    footprint: footprint,
-                    lit: isSelected,
-                    owned: owned > 0,
-                    seed: location.id.hashCode,
-                  ),
+                  painter: sprite != null
+                      ? _SpriteBuildingPainter(image: sprite, lit: isSelected, glow: color)
+                      : _IsoBuildingPainter(
+                          color: color,
+                          height: height,
+                          footprint: footprint,
+                          lit: isSelected,
+                          owned: owned > 0,
+                          seed: location.id.hashCode,
+                        ),
                 ),
               ],
             ),
@@ -509,13 +557,74 @@ class _IsoBuildingPainter extends CustomPainter {
       old.color != color || old.height != height || old.lit != lit || old.owned != owned || old.seed != seed;
 }
 
-/// Sprite-Upgrade-Hook. Liefert (später) den Asset-Pfad eines Iso-Sprites je
-/// Gebäudeart; null → Vektor-Fallback. Heute leer = reiner Vektor-Look.
-/// Aktivieren: PNGs unter `assets/iso/` ablegen, in pubspec.yaml deklarieren,
-/// hier den Pfad zurückgeben und in `_buildHotspot` eine Image-Ebene rendern.
+/// Zeichnet ein geladenes Iso-Sprite (PNG) als Gebäude: Bodenschatten,
+/// breitenfüllend + seitenverhältnistreu, unten verankert. Auswahl-Glow.
+class _SpriteBuildingPainter extends CustomPainter {
+  final ui.Image image;
+  final bool lit;
+  final Color glow;
+  _SpriteBuildingPainter({required this.image, required this.lit, required this.glow});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final th = size.width * 0.5;
+    final baseY = size.height - th / 2;
+
+    // Bodenschatten unter dem Sprite
+    canvas.drawOval(
+      Rect.fromCenter(center: Offset(size.width / 2 + 6, baseY + 2), width: size.width * 0.8, height: th * 0.6),
+      Paint()
+        ..color = Colors.black.withAlpha(100)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 7),
+    );
+
+    final iw = image.width.toDouble();
+    final ih = image.height.toDouble();
+    final dw = size.width;
+    final dh = dw * ih / iw;
+    // Bodenkontakt des Sprites ~ etwas oberhalb der Box-Unterkante (auf der Raute).
+    final dst = Rect.fromLTWH(0, (baseY + th * 0.18) - dh, dw, dh);
+
+    if (lit) {
+      canvas.drawCircle(
+        Offset(size.width / 2, dst.top + dh * 0.45),
+        size.width * 0.55,
+        Paint()
+          ..color = glow.withAlpha(60)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 18),
+      );
+    }
+
+    canvas.drawImageRect(
+      image,
+      Rect.fromLTWH(0, 0, iw, ih),
+      dst,
+      Paint()..filterQuality = FilterQuality.medium,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _SpriteBuildingPainter old) =>
+      old.image != image || old.lit != lit || old.glow != glow;
+}
+
+/// Sprite-Pipeline. [manifest] listet Slot → Asset-Pfad. Liegt das PNG unter
+/// `assets/iso/` (in pubspec deklariert) vor, nutzt die Map automatisch das
+/// Sprite (Foto-Look); fehlt es, greift der Vektor-Fallback.
+///
+/// Aktivieren: PNGs gemäß manifest unter `assets/iso/` ablegen (Namen exakt),
+/// dann `flutter pub get` + Neustart. Siehe assets/iso/README.md.
 class IsoArt {
   const IsoArt._();
-  static String? spriteFor({required bool owned, required int ownedCount}) => null;
+
+  static const Map<String, String> manifest = {
+    'owned': 'assets/iso/building_owned.png', // eigene Filiale (Hero-Restaurant)
+    'empty': 'assets/iso/building_empty.png', // freier/baubarer Standort
+  };
+
+  /// Slot-Auswahl je Gebäudeart.
+  static String slotFor({required bool owned, required int ownedCount}) =>
+      owned ? 'owned' : 'empty';
 }
 
 // ── Iso-Boden: Tile-Grid, Straßen, Dekor-Gebäude, Ambient-Licht ───────────────
