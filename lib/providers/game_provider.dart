@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart'; // StateProvider (riverpod 3: nach legacy verschoben)
 import '../models/game_state.dart';
 import '../models/shop_model.dart';
 import '../models/employee_model.dart';
