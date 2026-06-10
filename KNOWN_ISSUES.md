@@ -19,8 +19,9 @@
     erfolgreich). Künftige Flutter-Versionen könnten das erzwingen.
   - **To-do:** `flutter pub upgrade audioplayers` sobald der Maintainer eine
     migrierte Version veröffentlicht; dann verschwindet die Warnung ganz.
-- Build-Warnung zu erwarteten Cupertino-Fonts (nicht build-blockierend).
-  Prüfen, ob `cupertino_icons` benötigt und konsistent eingebunden werden soll.
+- ~~Build-Warnung zu erwarteten Cupertino-Fonts (nicht build-blockierend).~~
+  Erledigt 2026-06-10: `cupertino_icons` als Dependency ergänzt (Flutter-Default);
+  Font-Manifest-Warnung verschwindet, ungenutzte Glyphen werden tree-geshaked.
 
 ## Produkt-/UX-Risiken für Testphase
 
