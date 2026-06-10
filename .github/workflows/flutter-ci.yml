@@ -15,16 +15,11 @@ on:
       - 'analysis_options.yaml'
       - 'assets/**'
       - '.github/workflows/flutter-ci.yml'
+  # Läuft auf ALLEN PRs nach main (kein Pfadfilter), damit der Check als
+  # required Branch-Protection-Gate für jeden PR zuverlässig meldet. Bei
+  # Nicht-Flutter-Änderungen ist analyze+test trivial grün und schnell.
   pull_request:
     branches: [main]
-    paths:
-      - 'lib/**'
-      - 'test/**'
-      - 'pubspec.yaml'
-      - 'pubspec.lock'
-      - 'analysis_options.yaml'
-      - 'assets/**'
-      - '.github/workflows/flutter-ci.yml'
   workflow_dispatch:
 
 permissions:
