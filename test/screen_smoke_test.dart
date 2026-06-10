@@ -4,6 +4,11 @@ import 'package:doener_empire/models/product_model.dart';
 import 'package:doener_empire/models/shop_model.dart';
 import 'package:doener_empire/providers/game_provider.dart';
 import 'package:doener_empire/ui/main_scaffold.dart';
+import 'package:doener_empire/ui/screens/achievements_screen.dart';
+import 'package:doener_empire/ui/screens/branding_screen.dart';
+import 'package:doener_empire/ui/screens/campaign_screen.dart';
+import 'package:doener_empire/ui/screens/empire_card_screen.dart';
+import 'package:doener_empire/ui/screens/settings_screen.dart';
 import 'package:doener_empire/ui/screens/shop_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -72,6 +77,19 @@ Future<void> _pumpTab(WidgetTester tester, int navIndex) async {
   await tester.pumpAndSettle();
 }
 
+/// Pumpt einen einzelnen Screen (Pushed-Route) mit Seed-State.
+Future<void> _pumpScreen(WidgetTester tester, Widget screen) async {
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        gameProvider.overrideWith(() => _StaticGameNotifier(_seed())),
+      ],
+      child: MaterialApp(home: screen),
+    ),
+  );
+  await tester.pumpAndSettle();
+}
+
 void main() {
   testWidgets('Finanz-Tab rendert (fl_chart LineChart) ohne Exception',
       (tester) async {
@@ -109,6 +127,31 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Kampagne-Screen rendert ohne Exception', (tester) async {
+    await _pumpScreen(tester, const CampaignScreen());
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Trophäen-Screen rendert ohne Exception', (tester) async {
+    await _pumpScreen(tester, const AchievementsScreen());
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Branding-Screen rendert ohne Exception', (tester) async {
+    await _pumpScreen(tester, const BrandingScreen());
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Empire-Card-Screen rendert ohne Exception', (tester) async {
+    await _pumpScreen(tester, const EmpireCardScreen());
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Settings-Screen rendert ohne Exception', (tester) async {
+    await _pumpScreen(tester, const SettingsScreen());
     expect(tester.takeException(), isNull);
   });
 }
