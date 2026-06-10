@@ -61,9 +61,9 @@ namespace DoenerEmpire.App
     public readonly struct DayEndedEvent
     {
         public readonly DailyRecord Record;
-        public readonly DaySimulationResult Result;
+        public readonly DayResult Result;
 
-        public DayEndedEvent(DailyRecord record, DaySimulationResult result)
+        public DayEndedEvent(DailyRecord record, DayResult result)
         {
             Record = record;
             Result = result;
@@ -73,20 +73,13 @@ namespace DoenerEmpire.App
     public sealed class GameController
     {
         private readonly GameState state;
-        private readonly GameEngine gameEngine;
         private readonly ShopOpeningService shopOpeningService = new();
         private readonly ProductPricingService productPricingService = new();
 
         public GameController(GameState initialState, EventBus eventBus)
-            : this(initialState, eventBus, new GameEngine())
-        {
-        }
-
-        public GameController(GameState initialState, EventBus eventBus, GameEngine engine)
         {
             state = initialState ?? throw new ArgumentNullException(nameof(initialState));
             Events = eventBus ?? throw new ArgumentNullException(nameof(eventBus));
-            gameEngine = engine ?? throw new ArgumentNullException(nameof(engine));
         }
 
         public EventBus Events { get; }
@@ -198,9 +191,8 @@ namespace DoenerEmpire.App
 
         public void SimulateDay()
         {
-            DaySimulationResult result = gameEngine.SimulateDay(state);
-            DailyRecord record = state.History.LastOrDefault();
-            Events.Publish(new DayEndedEvent(record, result));
+            DayResult result = DayProcessing.ProcessDay(state);
+            Events.Publish(new DayEndedEvent(result.Record, result));
             PublishSnapshot();
         }
 

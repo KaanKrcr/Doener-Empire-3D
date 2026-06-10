@@ -2,6 +2,10 @@
 // 1:1-Port aus lib/core/constants.dart (kAllCampaigns, kCityMarketingCampaigns,
 // kGlobalMarketingCampaigns, kAllMarketingCampaigns).
 // MarketingCampaign-Modell liegt in Models/Marketing.cs.
+//
+// Liegt im Simulation-Ordner (nicht Data), weil die Data-Assembly per Asmdef
+// UNTER Models liegt und MarketingCampaign dort nicht sichtbar ist. Namespace
+// bleibt DoenerEmpire.Data (Katalogdaten; einziger Nutzer: MarketingService).
 
 using System.Collections.Generic;
 using System.Linq;

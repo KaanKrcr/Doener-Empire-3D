@@ -1,10 +1,7 @@
-// Döner Empire 3D — Tagesabschluss-Helfer (City-Unlocks, Combo-Kosten, Brand)
-// Port aus lib/services/game_engine.dart (Teile von processDay + _updateBrand
-// + _checkCityUnlocks + activeComboDailyCost + globalUpgradeDailyCost).
-//
-// Der volle processDay() braucht CorporateEngine (Facilities/Stocks/Auto-Hire),
-// Loans und den Marketing-Katalog — diese folgen in M6. Hier sind die
-// vollständig isolierbaren, deterministischen Bausteine portiert und getestet.
+// Döner Empire 3D — vollständiger Tagesabschluss
+// Port aus lib/services/game_engine.dart (processDay + _updateBrand
+// + _checkCityUnlocks + activeComboDailyCost) inkl. CorporateEngine-Anteile
+// (Facilities, Stocks, HR-Manager, Auto-Pricing/Auto-Hire) und Loans.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -20,21 +17,31 @@ namespace DoenerEmpire.Simulation
         public GameState State;
         public DailyRecord Record;
         public List<string> NewlyUnlockedCities = new();
+        public List<ShopDayResult> ShopResults = new();
+    }
+
+    /// <summary>Per-Filiale-Aufschlüsselung eines Tagesabschlusses (für DayReport-UI).</summary>
+    public sealed class ShopDayResult
+    {
+        public string ShopId;
+        public double Revenue;
+        public double RentCosts;
+        public double SalaryCosts;
+        public double IngredientCosts;
+        public double DeliveryCommissionCosts;
+        public int Customers;
+
+        public double Costs => RentCosts + SalaryCosts + IngredientCosts + DeliveryCommissionCosts;
+        public double Profit => Revenue - Costs;
     }
 
     public static class DayProcessing
     {
         /// <summary>
-        /// Kern-Tagesabschluss: führt alle bereits portierten Subsysteme zusammen
+        /// Vollständiger Tagesabschluss: führt alle portierten Subsysteme zusammen
         /// (Wettbewerb, Umsatz/Kosten, Reputation, Employee-XP, Kampagnen-Ablauf,
-        /// Loans, Brand, City-Unlocks). Mutiert und liefert den State zurück.
-        ///
-        /// NICHT enthalten (CorporateEngine-Port M7 ausstehend):
-        ///   • Facility-Kosten/-B2B-Umsatz
-        ///   • Stocks-Tagespreis-Update
-        ///   • HR-Manager-XP-Progress
-        ///   • Auto-Pricing / Auto-Hire
-        /// Diese Posten fließen daher (noch) nicht in Cash/History ein.
+        /// Loans, Facilities, Brand, City-Unlocks, Stocks, HR-Manager-Progress,
+        /// Auto-Pricing/Auto-Hire). Mutiert und liefert den State zurück.
         /// </summary>
         public static DayResult ProcessDay(GameState state)
         {
@@ -49,12 +56,24 @@ namespace DoenerEmpire.Simulation
             var totalCustomers = 0;
 
             var trainingGrowth = HrEngine.TrainingGrowthMultiplier(state);
+            var shopResults = new List<ShopDayResult>();
 
             foreach (var shop in state.Shops)
             {
                 var revenue = GameEngineCore.CalculateDailyRevenue(shop, today, state);
                 var br = GameEngineCore.CalculateDailyCostsBreakdown(shop, today, state);
                 var customers = GameEngineCore.CalculateDailyCustomers(shop, today, state);
+
+                shopResults.Add(new ShopDayResult
+                {
+                    ShopId = shop.Id,
+                    Revenue = revenue,
+                    RentCosts = br.Rent,
+                    SalaryCosts = br.Salaries,
+                    IngredientCosts = br.Ingredients,
+                    DeliveryCommissionCosts = br.DeliveryCommission,
+                    Customers = customers,
+                });
 
                 totalRevenue += revenue;
                 totalRent += br.Rent;
@@ -157,6 +176,7 @@ namespace DoenerEmpire.Simulation
                 State = state,
                 Record = record,
                 NewlyUnlockedCities = newlyUnlocked,
+                ShopResults = shopResults,
             };
         }
 

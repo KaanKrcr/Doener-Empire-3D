@@ -243,5 +243,62 @@ namespace DoenerEmpire.Logic.Tests
             var rWith = DayProcessing.ProcessDay(withMgr);
             Assert.True(rWith.Record.SalaryCosts > rNo.Record.SalaryCosts);
         }
+
+        [Fact]
+        public void ShopResultsContainOneEntryPerShop()
+        {
+            var s = StateWithShop();
+            var shop2 = new Shop
+            {
+                Id = "s2", CityId = "fulda", IsOpen = true, Reputation = 3.0,
+                FootTraffic = 2500, WeeklyRent = 900, DayOpened = 1,
+            };
+            shop2.Menu.Add(new ShopProduct { ProductId = "doener_fladen", Price = 6.0 });
+            shop2.Employees.Add(new Employee { Id = "e9", TypeId = "kassierer",
+                Speed = 6, Friendliness = 6, Reliability = 6, Experience = 4, SalaryPerDay = 65 });
+            s.Shops.Add(shop2);
+
+            var r = DayProcessing.ProcessDay(s);
+
+            Assert.Equal(2, r.ShopResults.Count);
+            Assert.Equal(new[] { "s1", "s2" }, r.ShopResults.Select(x => x.ShopId).ToArray());
+        }
+
+        [Fact]
+        public void ShopResultsSumToRecordTotals()
+        {
+            var s = StateWithShop();
+            var shop2 = new Shop
+            {
+                Id = "s2", CityId = "fulda", IsOpen = true, Reputation = 3.0,
+                FootTraffic = 2500, WeeklyRent = 900, DayOpened = 1,
+            };
+            shop2.Menu.Add(new ShopProduct { ProductId = "doener_fladen", Price = 6.0 });
+            shop2.Employees.Add(new Employee { Id = "e9", TypeId = "kassierer",
+                Speed = 6, Friendliness = 6, Reliability = 6, Experience = 4, SalaryPerDay = 65 });
+            s.Shops.Add(shop2);
+
+            var r = DayProcessing.ProcessDay(s);
+
+            Assert.Equal(r.Record.Revenue, r.ShopResults.Sum(x => x.Revenue), precision: 6);
+            Assert.Equal(r.Record.RentCosts, r.ShopResults.Sum(x => x.RentCosts), precision: 6);
+            // Kein HR-Manager im Fixture → Record.SalaryCosts == Summe der Shop-Gehälter.
+            Assert.Equal(r.Record.SalaryCosts, r.ShopResults.Sum(x => x.SalaryCosts), precision: 6);
+            Assert.Equal(r.Record.IngredientCosts, r.ShopResults.Sum(x => x.IngredientCosts), precision: 6);
+            Assert.Equal(r.Record.DeliveryCommissionCosts,
+                r.ShopResults.Sum(x => x.DeliveryCommissionCosts), precision: 6);
+            Assert.Equal(r.Record.Customers, r.ShopResults.Sum(x => x.Customers));
+        }
+
+        [Fact]
+        public void ShopDayResultProfitIsRevenueMinusCosts()
+        {
+            var s = StateWithShop();
+            var r = DayProcessing.ProcessDay(s);
+            var sr = Assert.Single(r.ShopResults);
+            Assert.Equal(sr.RentCosts + sr.SalaryCosts + sr.IngredientCosts
+                + sr.DeliveryCommissionCosts, sr.Costs, precision: 9);
+            Assert.Equal(sr.Revenue - sr.Costs, sr.Profit, precision: 9);
+        }
     }
 }

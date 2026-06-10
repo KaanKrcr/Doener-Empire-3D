@@ -6,6 +6,11 @@ using DoenerEmpire.Models;
 
 namespace DoenerEmpire.Simulation
 {
+    /// <summary>
+    /// LEGACY (MVP-Tagessimulation): Seit 2026-06-10 nutzt die App
+    /// DayProcessing.ProcessDay (vollständiger Flutter-Port). Diese vereinfachte
+    /// Formel bleibt nur als Referenz erhalten und wird von GameEngineTests gepinnt.
+    /// </summary>
     public sealed class GameEngine
     {
         public DaySimulationResult SimulateDay(GameState state)
