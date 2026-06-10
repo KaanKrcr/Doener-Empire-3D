@@ -31,6 +31,18 @@ namespace DoenerEmpire.Logic.Tests
         }
 
         [Fact]
+        public void AccumulatesCustomersServedTotal()
+        {
+            var s = StateWithShop();
+            Assert.Equal(0, s.CustomersServedTotal);
+            var r = DayProcessing.ProcessDay(s);
+            Assert.Equal(r.Record.Customers, s.CustomersServedTotal);
+            var before = s.CustomersServedTotal;
+            var r2 = DayProcessing.ProcessDay(s);
+            Assert.Equal(before + r2.Record.Customers, s.CustomersServedTotal);
+        }
+
+        [Fact]
         public void AdvancesDay()
         {
             var s = StateWithShop();

@@ -193,9 +193,18 @@ geladen. 11 Round-Trip-Tests + Flutter-Fixture-Test pinnen das.
     - `ProductAnalytics` (ProductProfitBreakdown)
     - `ReviewService` (prozedurale Kundenbewertungen)
     - `ShopOpeningService` wendet jetzt globale/stadtweite Preis-Overrides an
-  - **Stand 2026-06-09: 455 grüne Unity-Logik-Tests.** Die gesamte
-    Analyse-/Dashboard-/Stats-/Finanz-Schicht ist damit portiert. Verbleibend
-    nur reine UI-Aktionen/Tick-Helfer + die Unity-Scene/View3D-Integration.
+  - **Content-Schicht portiert (2026-06-10):** Achievements (+Service),
+    Szenarien, Share-Text, Brand-Skins, Tutorial-Schritte, Events/Krisen
+    (24 Events, generiert via `tools/gen_event_catalog.py`) + `EventEngine`
+    (Roll/Apply). `EndOfDayService` orchestriert den vollen Tagesabschluss
+    (ProcessDay + Missionen/Kampagne/Achievements/Event/Quartal/Woche/
+    Steuer/Daily-Challenge).
+  - **Bugfix:** `ProcessDay` schreibt jetzt `CustomersServedTotal` fort
+    (war seit dem MVP→ProcessDay-Wechsel verloren → kundenbasierte
+    Achievements feuerten nie).
+  - **Stand 2026-06-10: 502 grüne Unity-Logik-Tests.** Die komplette
+    Spiel- + Analyse- + Content-Logik ist portiert. Verbleibend nur die
+    Unity-Scene/View3D-Integration (Owner, Editor).
 - **Claude (ich):** Code-Review jedes Codex-Engine-Ports vor Merge,
   ggf. Save-DTO um neue Felder erweitern wenn Engine sie braucht.
 

@@ -151,6 +151,10 @@ namespace DoenerEmpire.Simulation
             var progressRevenue = (totalRevenue + facilityRevenue) * mods.ProgressSpeedMultiplier;
             state.TotalRevenue += progressRevenue;
             state.TotalProfit += netCash + facilityNet;
+            // Kundenstamm fortschreiben (in Flutter im Provider-endDay; in Unity
+            // ist ProcessDay der einzige Tageseinstieg). Wichtig für kundenbasierte
+            // Achievements (thousand_customers, ten_thousand_customers).
+            state.CustomersServedTotal += totalCustomers;
 
             var before = new HashSet<string>(state.UnlockedCityIds);
             state.UnlockedCityIds = CheckCityUnlocks(state.UnlockedCityIds, state.TotalRevenue);
