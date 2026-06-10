@@ -20,7 +20,7 @@ dependencies:
   shared_preferences: ^2.2.3
 
   # Zahlenformatierung
-  intl: ^0.19.0
+  intl: ^0.20.2
 
   # Eindeutige IDs
   uuid: ^4.4.0
@@ -40,7 +40,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.0
+  flutter_lints: ^6.0.0
 
 flutter:
   uses-material-design: true
