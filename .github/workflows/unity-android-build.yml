@@ -82,6 +82,10 @@ jobs:
         with:
           projectPath: unity
           targetPlatform: Android
+          # CI nutzt 6000.4.10f1 (game-ci hat KEIN Docker-Image für das lokal
+          # installierte 6000.4.9f1; 10f1 ist eine Patch-Version neuer, gleiche
+          # Minor — öffnet das Projekt problemlos). Lokal bleibt 6000.4.9f1.
+          unityVersion: 6000.4.10f1
           # Version aus ProjectSettings (bundleVersion) statt aus Git ableiten —
           # verhindert "Branch is dirty"-Abbruch durch LFS-normalisierte Assets.
           versioning: None
