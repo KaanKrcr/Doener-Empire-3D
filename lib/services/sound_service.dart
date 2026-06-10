@@ -43,11 +43,16 @@ class SoundService {
   }
 
   /// Spielt einen Effekt ab (fire-and-forget, fehlertolerant).
+  ///
+  /// Wichtig: `stop()`/`play()` liefern Futures, die in Headless-/Test-
+  /// Umgebungen ohne Audio-Plugin **asynchron** werfen (MissingPluginException).
+  /// Das synchrone try/catch fängt das nicht — daher zusätzlich `.catchError`,
+  /// sonst entstehen unbehandelte async-Fehler (z.B. sporadische Test-Failures).
   static void play(Sfx s) {
     if (!enabled) return;
     try {
-      _player.stop();
-      _player.play(AssetSource(_asset(s)), volume: 0.55);
+      _player.stop().catchError((_) {});
+      _player.play(AssetSource(_asset(s)), volume: 0.55).catchError((_) {});
     } catch (_) {/* ignore (z.B. kein Audio im Test) */}
   }
 }
