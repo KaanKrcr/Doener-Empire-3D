@@ -51,6 +51,39 @@ namespace DoenerEmpire.Models
         public int TutorialStep = 0;
         public List<string> SeenEventIds = new();
 
+        // ── Missionen (Status; aus Template initialisiert) ──────────────────
+        public List<Mission> Missions = new();
+
+        // ── Story-Kampagne (M4c-Port) ───────────────────────────────────────
+        public List<string> CompletedChapterIds = new();
+
+        // ── HR-System (M4e-Port) ────────────────────────────────────────────
+        public HrManager HrManager;                    // null = kein Manager
+        public HrStrategy HrStrategy = HrStrategy.Balanced;
+        public List<HrManager> HrCandidates = new();   // verfügbare Manager-Kandidaten
+
+        // ── Börse/Aktien (M6-Foundation) ────────────────────────────────────
+        public StockState Stocks = new();
+
+        // ── Produktionsanlagen (M7b) ────────────────────────────────────────
+        public List<ProductionFacility> Facilities = new();
+
+        // ── Combos & Quality (M5b-Foundation) ───────────────────────────────
+        public List<string> ActiveComboIds = new();
+        /// <summary>productId → IngredientQuality (Dart-Name: budget/standard/premium).</summary>
+        public Dictionary<string, string> ProductQuality = new();
+
+        // ── Marketing-Kampagnen (M6) ────────────────────────────────────────
+        /// <summary>cityId → laufende stadtweite Kampagnen.</summary>
+        public Dictionary<string, List<ActiveCampaign>> ActiveCityCampaigns = new();
+        public List<ActiveCampaign> ActiveGlobalCampaigns = new();
+
+        // ── Preis-Overrides (konzern- / stadtweit) ──────────────────────────
+        /// <summary>productId → globaler Preis-Override (für neue Filialen).</summary>
+        public Dictionary<string, double> GlobalPrices = new();
+        /// <summary>cityId → (productId → Preis-Override).</summary>
+        public Dictionary<string, Dictionary<string, double>> CityPrices = new();
+
         // TODO(Port): Endgame-Felder, sobald ihre Typen portiert sind —
         //   missions (Mission), stocks (StockState), facilities (ProductionFacility),
         //   hrManager (HrManager), hrStrategy (HrStrategy), hrCandidates,
@@ -108,6 +141,19 @@ namespace DoenerEmpire.Models
                 TutorialEnabled = tutorialEnabled,
                 TutorialStep = 0,
                 SeenEventIds = new List<string>(),
+                Missions = MissionTemplates.Build(),
+                CompletedChapterIds = new List<string>(),
+                HrManager = null,
+                HrStrategy = HrStrategy.Balanced,
+                HrCandidates = new List<HrManager>(),
+                Stocks = new StockState(),
+                Facilities = new List<ProductionFacility>(),
+                ActiveComboIds = new List<string>(),
+                ProductQuality = new Dictionary<string, string>(),
+                ActiveCityCampaigns = new Dictionary<string, List<ActiveCampaign>>(),
+                ActiveGlobalCampaigns = new List<ActiveCampaign>(),
+                GlobalPrices = new Dictionary<string, double>(),
+                CityPrices = new Dictionary<string, Dictionary<string, double>>(),
             };
         }
 
@@ -146,6 +192,25 @@ namespace DoenerEmpire.Models
             TutorialDone = TutorialDone, TutorialEnabled = TutorialEnabled,
             TutorialStep = TutorialStep,
             SeenEventIds = new List<string>(SeenEventIds),
+            Missions = Missions.Select(m => new Mission
+            {
+                Id = m.Id, Title = m.Title, Description = m.Description, Emoji = m.Emoji,
+                CashReward = m.CashReward, Type = m.Type, Target = m.Target, IsDone = m.IsDone,
+            }).ToList(),
+            CompletedChapterIds = new List<string>(CompletedChapterIds),
+            HrManager = HrManager?.Clone(),
+            HrStrategy = HrStrategy,
+            HrCandidates = HrCandidates.Select(h => h.Clone()).ToList(),
+            Stocks = Stocks?.Clone() ?? new StockState(),
+            Facilities = Facilities.Select(f => f.Clone()).ToList(),
+            ActiveComboIds = new List<string>(ActiveComboIds),
+            ProductQuality = new Dictionary<string, string>(ProductQuality),
+            ActiveCityCampaigns = ActiveCityCampaigns.ToDictionary(
+                kv => kv.Key, kv => kv.Value.Select(c => c.Clone()).ToList()),
+            ActiveGlobalCampaigns = ActiveGlobalCampaigns.Select(c => c.Clone()).ToList(),
+            GlobalPrices = new Dictionary<string, double>(GlobalPrices),
+            CityPrices = CityPrices.ToDictionary(
+                kv => kv.Key, kv => new Dictionary<string, double>(kv.Value)),
         };
     }
 }

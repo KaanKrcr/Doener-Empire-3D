@@ -1,5 +1,41 @@
 # Changelog
 
+## Unreleased - Unity-Port (2026-06-09)
+
+### Engine-Port (Flutter → Unity C#)
+
+- Vollständige Spiellogik nach C# portiert (`unity/Assets/Scripts/`):
+  Competitor-, Location-, Campaign-, Mission-, Hr-, Marketing-,
+  Facility-, M&A-, Stocks-, Auto-Management-Engines
+- `DayProcessing.ProcessDay`: vollständiger Tagesabschluss (Umsatz/Kosten,
+  Reputation, Employee-XP, Kampagnen, Loans, Brand, City-Unlocks, Stocks,
+  Facilities, HR-Progress, Auto-Pricing/Auto-Hire)
+- Preis-Empfehlung (`RevenueOptimalPrice`) portiert
+- Shop-Eröffnung wendet globale/stadtweite Preis-Overrides an
+
+### Save-Kompatibilität
+
+- Unity-`SaveService` lädt alle Flutter-`toJson`-Felder round-trip-fähig
+  (stocks, facilities, hr*, history, missions, campaigns, combos,
+  productQuality, globalPrices, cityPrices); Legacy-Saves mit Defaults
+
+### Content-Systeme (C#)
+
+- Achievements (19 Trophäen) + Unlock-Auswertung
+- Start-Szenarien, Marken-Skins, Tutorial-Schritte
+- Events/Krisen (24 Events, generiert via `tools/gen_event_catalog.py`) +
+  gewichtete Auswahl & Anwendung
+- `EndOfDayService`: vollständiger Tagesabschluss (Wirtschaft + Missionen,
+  Kampagne, Achievements, Event, Quartal/Woche, Steuer, Daily Challenge)
+- Analyse-Schicht: Produkt-Profitabilität, Filial-Ranking, Marktanteil,
+  Unternehmens-Gesundheit, Warnungen, Kundenbewertungen, Preis-Empfehlung,
+  stündlicher Tick
+
+### Sonstiges
+
+- Android App-Label `doener_empire` → `Döner Empire`
+- 507 Unity-Logik-Tests (xUnit) grün; Flutter 86 Tests + analyze clean
+
 ## 1.1.0-internal - 2026-05-30
 
 ### Optik & Game-Feel

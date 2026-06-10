@@ -2,6 +2,31 @@
 
 ---
 
+## ✅ ENTSCHIEDEN (2026-06-10): App nutzt DayProcessing.ProcessDay
+
+Die zuvor offene Balancing-Entscheidung ist umgesetzt: Die App wurde von der
+MVP-Formel auf das vollständige Wirtschaftssystem umgestellt.
+
+**Begründung:** `DayProcessing.ProcessDay` ist der verifizierte 1:1-Port der
+Flutter-Engine (das referenz-balancierte, ausgelieferte Wirtschaftssystem).
+Die MVP-Formel war eine Zwischenlösung, die alle bereits portierten Subsysteme
+(Kampagnen/Upgrades/Marketing/Wettbewerb/Loans/Stocks/Auto-Management)
+brachliegen ließ.
+
+**Umsetzung:**
+- `App/GameController.SimulateDay` ruft jetzt `DayProcessing.ProcessDay(state)`.
+- `DayResult` liefert einen per-Shop-Breakdown (`ShopResults`:
+  Revenue/Rent/Salaries/Ingredients/DeliveryCommission/Customers je Filiale);
+  `DayEndedEvent` trägt `DayResult` statt `DaySimulationResult`.
+  `DayReportView` nutzt weiterhin `Record` — unverändert kompatibel.
+- `GameEngine.SimulateDay` (MVP) bleibt als LEGACY erhalten (nicht mehr von
+  der App referenziert); `GameEngineTests` pinnen weiterhin sein Verhalten.
+- Neue Tests: per-Shop-Summen == Record-Totale (ProcessDayTests), 458 grün.
+- Visuelle Verifikation im Unity-Editor (Balancing-Gefühl) steht beim Owner
+  noch aus.
+
+---
+
 ## Unity-Port-Findings (Stand 2026-06-06, Claude — Senior-Review)
 
 ### Toolchain-Status
@@ -10,9 +35,13 @@
 - **.NET 8 SDK:** 8.0.421 — vorhanden.
 - **Unity Hub:** vorhanden.
 - **Unity 6 LTS (6000.4.9f1) Editor:** installiert.
-- **Unity Android Build Support:** ⚠ NICHT installiert — pausierte Downloads
-  vorhanden, Hub-CLI-Bug verworfen sie. **Manueller Hub-GUI-Install
-  durch Owner ausstehend.**
+- **Unity Android Build Support:** ✅ installiert & verifiziert (2026-06-10):
+  AndroidPlayer-Modul vollständig — SDK (811 MB, Platforms android-34/35/36),
+  NDK r27c (2.2 GB), OpenJDK 17 (228 MB), Gradle-Tools vorhanden.
+  Build-Chain damit einsatzbereit.
+- **ProjectVersion.txt korrigiert:** stand auf `UnknownUnityVersion`
+  (blockierte Hub-Editor-Matching) → auf `6000.4.9f1 (f7258d6eebbe)` gesetzt
+  (Revision aus installierter Unity.exe verifiziert).
 
 ### Code-Stand Logikschicht
 - 31 C#-Dateien unter `unity/Assets/Scripts/` (M1+M2 + Beginn M3).
@@ -54,22 +83,132 @@ beim Laden:
 - `Shop.sizeTier` → `Klein`
 - `Employee.shift` → `Ganztags`
 
-Flutter `toJson()` schreibt diese Felder, C#-DTO ignoriert sie:
-- `history`, `missions`, `stocks`, `facilities`
-- `hrManager`, `hrStrategy`, `hrCandidates`
-- `globalPrices`, `cityPrices`
-- `activeCityCampaigns`, `activeGlobalCampaigns`
-- `completedChapterIds`, `activeComboIds`, `productQuality`
+~~Flutter `toJson()` schreibt diese Felder, C#-DTO ignoriert sie~~
+**Geschlossen 2026-06-09 (SaveService erweitert, 9 Round-Trip-Tests):**
+- ✅ `stocks`, `facilities`, `hrManager`, `hrStrategy`, `hrCandidates`
+- ✅ `activeCityCampaigns`, `activeGlobalCampaigns`
+- ✅ `completedChapterIds`, `activeComboIds`, `productQuality`
+- Legacy-Saves ohne diese Felder laden mit sicheren Defaults (Test gepinnt).
 
-Codex schließt diese Lücken im Zuge der jeweiligen Engine-Ports (M4–M6).
+- ✅ `history` (DailyRecord-Liste) — jetzt voll round-trip-fähig.
+- ✅ `missions` — GameState.Missions aus Template initialisiert;
+  Save persistiert nur `{id, isDone}` und merged beim Laden auf das
+  Template (exakt wie Flutter fromJson).
+- ✅ `globalPrices`, `cityPrices` — als GameState-Felder + Save-Round-Trip
+  ergänzt. (Preis-Override-Aktionen wie `openShop` sind UI-Layer und
+  folgen separat; die Persistenz steht.)
+
+**Save-Kompatibilität ist damit VOLLSTÄNDIG** — alle von Flutter
+`toJson()` geschriebenen Felder werden vom C#-SaveService round-trip-fähig
+geladen. 11 Round-Trip-Tests + Flutter-Fixture-Test pinnen das.
 
 ### Nächste Schritte (Verantwortlichkeiten klar)
 - **Owner (du):** Android Build Support per Hub-GUI nachinstallieren.
   Dann meldest du dich → ich erzeuge `Packages/manifest.json` für URP
   und triggere Unity batchmode für initiale `ProjectSettings/`.
-- **Codex:** `CompetitorEngine`-Port als nächste Engine (M4a). Spec
-  liegt in `lib/services/competitor_engine.dart`, Testerwartungen aus
-  Flutter-Test-Suite spiegeln.
+- ~~**Codex:** `CompetitorEngine`-Port als nächste Engine (M4a).~~
+  **Erledigt 2026-06-09 (Claude übernimmt Codex):**
+  - **M4a CompetitorEngine** — `Simulation/CompetitorEngine.cs` mit
+    `EnsureCompetitorsForCity` / `ProcessDay` / `CompetitionPressure`
+    + 16 Tests. RNG injizierbar.
+  - **M4b LocationEngine** — `Simulation/LocationEngine.cs` +
+    `Models/CityMapLocation.cs` (UnityEngine-frei, `MapPosition`-Struct)
+    + 14 Tests.
+  - **M4d MissionEngine** — `Simulation/MissionEngine.cs` +
+    `Models/Mission.cs` (inkl. `MissionTemplates.Build()`)
+    + 21 Tests. `CompanyPublic` bleibt 0 bis Stocks-Port (M5+).
+  - **M4c CampaignEngine** — `Simulation/CampaignEngine.cs` +
+    `Models/CampaignChapter.cs` (`CampaignData.Chapters`,
+    `AggregatePerks`) + 13 Tests. GameState um `CompletedChapterIds`
+    erweitert (Initial + Clone).
+  - **M5-Foundation DemandUtils** — `Simulation/DemandUtils.cs` mit
+    `Season`, `SeasonForDay`, `SeasonCategoryMultiplier`,
+    `DailySpecialProductId`, `PriceDemandFactor` (+ `DailySpecialBoost`,
+    `MonthlyTaxRate`-Konstanten) + 20 Tests. Reine pure Funktionen,
+    Vorbereitung für `GameEngine.calculateShopStats`-Port.
+  - **M4e HrEngine** — `Simulation/HrEngine.cs` + `Models/HrManager.cs`
+    (`HrData.Archetypes`/`Strategies`, `HrEnumNames`) + 19 Tests.
+    RecruitmentModifiers, Pool-Refresh, XP-Intervall, Kandidaten- &
+    Manager-Generierung. RNG injizierbar. GameState um `HrManager`,
+    `HrStrategy`, `HrCandidates` erweitert.
+  - **M5a GameEngineCore** — `Simulation/GameEngineCore.cs` +
+    `ShopDayStats.cs` + `Models/TimeProfile.cs`. `CalculateShopStats`
+    (Kunden/Umsatz/Kapazität), Reputations-/Equipment-/Staff-Faktoren,
+    deterministische `DailyVariation` (FNV-1a stable hash),
+    `HourlyCustomerCurve`, `MaxEmployeesForShop` + 27 Tests.
+  - **M5b Tageskosten + Quality + Combos** — `ComboService.cs`,
+    `Models/MenuCombo.cs`, `Models/IngredientQuality.cs`,
+    `CalculateDailyCostsBreakdown` (+`ShopCostBreakdown`),
+    `UpdateReputation` + 34 Tests (Combo 13, DailyCosts 13, Reputation 8).
+    GameState um `ActiveComboIds`, `ProductQuality` erweitert.
+  - **M6-Foundation Stocks + DayProcessing** — `Models/StockState.cs`
+    (IPO/Quartalsbericht), `DayProcessing.cs` (`CheckCityUnlocks`,
+    `ActiveComboDailyCost`, `UpdateBrand`) + 16 Tests. GameState um
+    `Stocks` erweitert; `MissionEngine.CompanyPublic` liest jetzt
+    `Stocks.IsPublic`.
+  - **M5c Upgrade-Katalog** — `Data/UpgradeData.cs` (`UpgradeCatalog`
+    Shop+Global) + `Simulation/UpgradeService.cs` (Customer/AOV-Boost,
+    Reputation, Brand, Tageskosten, Delivery-Provision mit
+    `eigen_lieferdienst`-Rabatt) + 19 Tests. In GameEngineCore/
+    DayProcessing verdrahtet.
+  - **M6 Marketing-Katalog** — `Data/MarketingCatalog.cs`
+    (Shop/City/Global-Kampagnen) + `Simulation/MarketingService.cs`
+    (Customer-Boost/AOV-Mod/Reputation/Brand-Delta) + 15 Tests.
+    GameState um `ActiveCityCampaigns`, `ActiveGlobalCampaigns`
+    erweitert. In ShopStats/Reputation/Brand verdrahtet.
+  - **M6b ProcessDay** — `DayProcessing.ProcessDay` (Kern-Tagesabschluss:
+    Wettbewerb, Umsatz/Kosten-Aggregation, Reputation, Employee-XP,
+    Kampagnen-Ablauf, Loan-Raten, History-Trim 60, Brand, City-Unlocks,
+    HR-Salary) + `DayResult` + 17 Tests inkl. 60-Tage-Stabilität.
+  - **M7a Stocks/IPO-Engine** — `Simulation/CorporateStocksEngine.cs`
+    (`CanDoIpo`, `EstimateValuation`, `PerformIpo`, `UpdateDailyPrice`
+    Random-Walk, `IsQuarterDue`, `GenerateQuarterlyReport`) + 14 Tests.
+    `UpdateDailyPrice` in `ProcessDay` verdrahtet. RNG injizierbar.
+  - **M7b Production-Facilities** — `Models/ProductionFacility.cs`
+    (`FacilityCatalog`, Tier/Type-Infos) + `Simulation/FacilityEngine.cs`
+    (`BuildFacility`, `FacilityDailyCosts`, `FacilityB2BRevenue`,
+    `FacilitySavingForShop`) + 13 Tests. GameState um `Facilities`
+    erweitert. In `GameEngineCore` (ingredientSaving) + `ProcessDay`
+    (facilityNet auf Cash/TotalProfit/TotalRevenue) verdrahtet.
+  - **M7c M&A-Engine** — `Simulation/MergersEngine.cs` (`AcquisitionPrice`,
+    `AcquireCompetitor` → Konkurrenz-Filialen als Player-Shops mit
+    Default-Menü + übernommener Reputation) + 7 Tests.
+  - **M7d Auto-Management** — `Simulation/AutoManagementEngine.cs`
+    (`ApplyManagerAutoPricing`, `ApplyAutoHire` mit Kandidaten-Scoring,
+    Cash-Reserve, Hire-Fee-Multiplikator, City-Cap) +
+    `Simulation/ManagerService.cs` (assign/unassign/ShopHasActiveManager)
+    + 18 Tests (12 Auto-Mgmt, 6 Manager). RNG injizierbar.
+  - **HR-Manager-XP-Progress** — `DayProcessing.UpdateHrManagerProgress`
+    (XP skaliert mit Kundenzahl, Level alle 120 XP) in ProcessDay
+    verdrahtet + Test.
+  - **Suite: 115 → 398 grüne Tests (+283).**
+  - **Verdrahtet & getestet:** Season/Special, Preis-Nachfrage,
+    Equipment/Staff/Capacity, Combos, Quality, Upgrades (inkl. Delivery),
+    Marketing (Shop/City/Global), Reputation, Brand, City-Unlocks,
+    Tageskosten, **vollständiger ProcessDay** (inkl. Stocks-Preis,
+    Facility-Net, HR-Progress, Auto-Pricing, Auto-Hire), IPO/Quartal,
+    Facilities, M&A.
+  - **GameEngine + CorporateEngine-Port logisch VOLLSTÄNDIG.** Verbleibend
+    nur reine UI-Aktionen/Tick-Helfer (calculateHourly* etc.).
+  - **Analyse-Schicht ergänzt (für Dashboard/Stats/Finanz-Screens):**
+    - `DemandUtils.RevenueOptimalPrice` (Preis-Empfehlung)
+    - `AnalyticsService` (DailyChallenge, MonthlyTaxDue, BuildWeeklyReport)
+    - `CompanyAnalytics` (ShopsByProfit, PlayerMarketShareIn, Health, ShopAlerts)
+    - `ProductAnalytics` (ProductProfitBreakdown)
+    - `ReviewService` (prozedurale Kundenbewertungen)
+    - `ShopOpeningService` wendet jetzt globale/stadtweite Preis-Overrides an
+  - **Content-Schicht portiert (2026-06-10):** Achievements (+Service),
+    Szenarien, Share-Text, Brand-Skins, Tutorial-Schritte, Events/Krisen
+    (24 Events, generiert via `tools/gen_event_catalog.py`) + `EventEngine`
+    (Roll/Apply). `EndOfDayService` orchestriert den vollen Tagesabschluss
+    (ProcessDay + Missionen/Kampagne/Achievements/Event/Quartal/Woche/
+    Steuer/Daily-Challenge).
+  - **Bugfix:** `ProcessDay` schreibt jetzt `CustomersServedTotal` fort
+    (war seit dem MVP→ProcessDay-Wechsel verloren → kundenbasierte
+    Achievements feuerten nie).
+  - **Stand 2026-06-10: 502 grüne Unity-Logik-Tests.** Die komplette
+    Spiel- + Analyse- + Content-Logik ist portiert. Verbleibend nur die
+    Unity-Scene/View3D-Integration (Owner, Editor).
 - **Claude (ich):** Code-Review jedes Codex-Engine-Ports vor Merge,
   ggf. Save-DTO um neue Felder erweitern wenn Engine sie braucht.
 

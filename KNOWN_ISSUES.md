@@ -16,8 +16,8 @@
 
 ## Produkt-/UX-Risiken für Testphase
 
-- App-Label auf Android ist derzeit technisch (`doener_empire`) statt
-  marketingfreundlich (`Döner Empire`).
+- ~~App-Label auf Android ist derzeit technisch (`doener_empire`) statt
+  marketingfreundlich (`Döner Empire`).~~ Erledigt 2026-06-09: Label auf `Döner Empire` gesetzt.
 - Keine Crash-Reproduktion in den aktuellen Smoke-Tests, aber Fokus für Tester:
   - Corporate-/Imperium-Tab mehrmals öffnen/schließen
   - Alt-Save laden und mehrere Tage fortsetzen

@@ -60,6 +60,49 @@ namespace DoenerEmpire.Logic.Tests
             Assert.Single(state.Shops);
         }
 
+        [Fact]
+        public void OpenShopAppliesGlobalPriceOverride()
+        {
+            var state = GameState.Initial("Doener Empire", "Kaan", 10000);
+            state.GlobalPrices["doener_fladen"] = 7.40;
+
+            ShopOpeningResult result = new ShopOpeningService().OpenShop(state, Request());
+
+            Assert.True(result.Success);
+            Assert.Equal(7.40, result.Shop.Menu.First(p => p.ProductId == "doener_fladen").Price);
+        }
+
+        [Fact]
+        public void OpenShopCityPriceOverridesGlobalPrice()
+        {
+            var state = GameState.Initial("Doener Empire", "Kaan", 10000);
+            state.GlobalPrices["doener_fladen"] = 7.40;
+            state.CityPrices["fulda"] = new System.Collections.Generic.Dictionary<string, double>
+            {
+                ["doener_fladen"] = 8.10,
+            };
+
+            ShopOpeningResult result = new ShopOpeningService().OpenShop(state, Request());
+
+            // Stadtpreis (fulda) hat Vorrang vor globalem Preis.
+            Assert.Equal(8.10, result.Shop.Menu.First(p => p.ProductId == "doener_fladen").Price);
+        }
+
+        [Fact]
+        public void OpenShopFallsBackToBasePriceWithoutOverrides()
+        {
+            var state = GameState.Initial("Doener Empire", "Kaan", 10000);
+            // City-Override für eine ANDERE Stadt darf fulda nicht beeinflussen.
+            state.CityPrices["berlin"] = new System.Collections.Generic.Dictionary<string, double>
+            {
+                ["doener_fladen"] = 9.90,
+            };
+
+            ShopOpeningResult result = new ShopOpeningService().OpenShop(state, Request());
+
+            Assert.Equal(6.5, result.Shop.Menu.First(p => p.ProductId == "doener_fladen").Price);
+        }
+
         private static ShopOpeningRequest Request()
         {
             return new ShopOpeningRequest(
