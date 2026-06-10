@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart'; // StateProvider (riverpod 3: nach legacy verschoben)
 import 'package:go_router/go_router.dart';
 import '../core/theme.dart';
 import '../models/tutorial_model.dart';
