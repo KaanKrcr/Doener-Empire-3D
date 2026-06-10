@@ -37,6 +37,10 @@ dependencies:
   # Sound-Effekte
   audioplayers: ^6.1.0
 
+  # iOS-Style-Icon-Font (Flutter-Default; behebt die Font-Manifest-Warnung
+  # beim Build. Wird tree-geshaked → praktisch keine APK-Größe, da ungenutzt.)
+  cupertino_icons: ^1.0.8
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
