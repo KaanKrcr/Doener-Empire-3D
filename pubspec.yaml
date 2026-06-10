@@ -26,7 +26,7 @@ dependencies:
   uuid: ^4.4.0
 
   # Charts für Finanzen
-  fl_chart: ^0.68.0
+  fl_chart: ^1.2.0
 
   # Externe Links (z.B. Feedback-Formular) im Browser öffnen
   url_launcher: ^6.3.1
