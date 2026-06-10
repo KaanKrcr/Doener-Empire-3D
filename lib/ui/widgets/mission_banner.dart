@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../core/theme.dart';
+import '../../services/haptics_service.dart';
 import '../../models/mission_model.dart';
 import '../../providers/game_provider.dart';
 import '../../services/mission_engine.dart';
@@ -213,7 +213,7 @@ class MissionCompletedDialog extends StatelessWidget {
   const MissionCompletedDialog({super.key, required this.mission});
 
   static Future<void> show(BuildContext context, Mission mission) {
-    HapticFeedback.heavyImpact();
+    Haptics.heavy();
     SoundService.play(Sfx.reward);
     return showGeneralDialog(
       context: context,

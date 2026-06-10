@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme.dart';
+import '../../services/haptics_service.dart';
 import '../../core/constants.dart';
 import '../../services/sound_service.dart';
 import '../../models/game_state.dart';
@@ -40,7 +40,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   Future<void> _endDay() async {
     if (_endingDay) return;
-    HapticFeedback.mediumImpact();
+    Haptics.medium();
     SoundService.play(Sfx.dayend);
     setState(() => _endingDay = true);
     final notifier = ref.read(gameProvider.notifier);

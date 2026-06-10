@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../../services/haptics_service.dart';
 
 /// Tap-Feedback-Wrapper: skaliert das Kind beim Drücken leicht herunter und
 /// federt zurück. Gibt jedem antippbaren Element (Karten, Buttons, Tiles)
@@ -39,7 +39,7 @@ class _PressableState extends State<Pressable> {
       onTapDown: enabled
           ? (_) {
               _set(true);
-              if (widget.haptic) HapticFeedback.lightImpact();
+              if (widget.haptic) Haptics.light();
             }
           : null,
       onTapUp: enabled ? (_) => _set(false) : null,
