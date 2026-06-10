@@ -38,6 +38,16 @@ Details: siehe [CHANGELOG.md](CHANGELOG.md).
 4. Lokaler Start:
    - `flutter run`
 
+## Tests & CI
+
+- Lokal vor jedem Commit: `flutter analyze` und `flutter test` (müssen grün sein).
+- **GitHub-Actions-Gate** (`.github/workflows/flutter-ci.yml`): `analyze` +
+  `test` laufen automatisch auf jedem Pull Request nach `main`.
+- `main` ist **branch-protected** — ein PR ist erst bei grünem CI-Check
+  mergebar; keine Force-Pushes. Daher: für Änderungen einen Branch + PR nutzen.
+- Render-Smoke-Tests (`test/screen_smoke_test.dart`) prüfen, dass die
+  Haupt-Tabs ohne Exception rendern — bei UI-Änderungen mitlaufen lassen.
+
 ## Android Build
 
 - Debug APK:
