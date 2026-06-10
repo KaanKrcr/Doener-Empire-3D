@@ -61,3 +61,20 @@ Für Play-Store-Builds einen echten Keystore hinterlegen:
   den `Library`-Cache und sind deutlich schneller.
 - Player-Settings (Produktname, Bundle-ID `com.doenerempire.doener_empire`,
   IL2CPP, Build-Szene) sind bereits in `ProjectSettings` hinterlegt.
+
+## ⚠️ Bekannte Einschränkung: Personal-Lizenz + Cloud-CI
+
+Unity-**Personal**-Lizenzen aktivieren sich mit dem neuen Licensing-Client
+(Unity 2021.3.16+ / alle Unity 6) **nicht zuverlässig** in game-ci/Docker:
+game-ci erwartet im `UNITY_LICENSE` ein klassisches `.ulf` mit Serial-Feld
+(`<DeveloperData>`); die neue `UnityEntitlementLicense.xml` hat das nicht →
+Aktivierung scheitert mit `[Licensing::Client] Code 20110 (serial invalid)`.
+
+**Konsequenz / empfohlene Wege:**
+- **Lokaler Build im Editor** (Personal-Lizenz, funktioniert zuverlässig) —
+  Projekt ist dafür vollständig vorkonfiguriert (Szene, Player-Settings,
+  IL2CPP, Android Build Support). Siehe Build-Checkliste.
+- **Cloud-CI** funktioniert sauber mit **Unity Pro/Plus** (`UNITY_SERIAL`).
+
+Das Logic-Test-Gate (`dotnet test`) im Build-Workflow läuft unabhängig davon
+und bleibt als Regressionsschutz aktiv.
