@@ -1,5 +1,59 @@
 # HANDOFF_LOG
 
+## 2026-06-11 07:38 - Cron (Claude review accepted)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/CURRENT_DECISION.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `docs/UNITY_PRODUCT_VISION.md`
+- `docs/UNITY_CITY_MAP_UX.md`
+- `unity/Assets/Scripts/App/GameController.cs`
+- `unity/Assets/Scripts/UI/RestaurantDetailView.cs`
+- `unity/Assets/Scripts/Simulation/ProductPricingService.cs`
+- `unity-logic-tests/DoenerEmpire.Logic.Tests/ProductPricingServiceTests.cs`
+
+Review:
+- Offenes Queue-Item "Unity RestaurantDetail price controller flow review"
+  geprueft.
+- Ergebnis: akzeptiert.
+- `GameController.SetProductPrice(shopId, productId, price)` ist die zentrale
+  Preis-Mutationsgrenze; bei Fehlern wird nur ein Toast publiziert, bei Erfolg
+  Snapshot, RestaurantDetail-Refresh und Toast.
+- `RestaurantDetailView` ruft im Sortiment ausschliesslich den Controller-Intent
+  auf und mutiert `GameState`, `Shop`, `ShopProduct`, Cash, Save-State, Dateien
+  oder Hotspot-Ownership nicht direkt.
+- `ProductPricingService` bleibt UnityEngine-frei, validiert ShopId, ProductId
+  und Preisbereich 1.00 bis 25.00 EUR; ungueltige Eingaben lassen den State
+  unveraendert.
+- Ausbau, Equipment, Personal und Marketing bleiben in der Detail-Shell
+  read-only; keine zusaetzlichen Management-Aktionen wurden eingefuehrt.
+- Management-/Progression-Richtung bleibt intakt; keine Arcade-Cooking-,
+  Echtzeit-Serving-, CustomerSpawner-, manuelle Koch-, First-/Third-Person-
+  Systeme.
+- `REVIEW_QUEUE.md` auf `Status: empty` gesetzt.
+
+Validation:
+- `git status --short`
+  -> vor Control-File-Updates sauber.
+- `dotnet test unity-logic-tests/DoenerEmpire.Logic.Tests/DoenerEmpire.Logic.Tests.csproj`
+  -> 507 bestanden, 0 Fehler.
+- Scope-Scan im Review-Scope fuer UnityEngine/PlayerPrefs/System.IO/File/
+  Directory/CustomerSpawner/Arcade/Serving/manual/first-person/third-person:
+  -> nur erwartetes `UnityEngine` in `RestaurantDetailView` als UI-Datei.
+- Breiter Scan fuer Preis-/Cash-/Upgrade-/Equipment-/Personal-/Marketing-/
+  Save-Begriffe zeigt nur erlaubte Preis-Mutation und bestehende, nicht neue
+  Simulations-/Save-/Katalog-Treffer ausserhalb dieses Review-Items.
+
+Naechster kleinster Schritt:
+- Claude/Kaan muss bei Bedarf das naechste konkrete Review-Item definieren.
+  Codex soll bei leerer Queue nicht pauschal weitermachen.
+
+---
+
 ## 2026-06-06 08:33 - Claude Code (Status check / review item queued)
 
 Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.

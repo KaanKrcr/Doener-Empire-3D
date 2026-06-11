@@ -9,8 +9,18 @@ Unity Management-/Progression-Spiel mit Premium 2.5D/3D City Map.
 Arcade Cooking ist verworfen (`docs/UNITY_MVP_ARCADE_PLAN.md` = DEPRECATED).
 
 ## Claude Code (Planner/Reviewer)
-State: blocked - n8n dispatch unavailable for RestaurantDetail price controller flow review (2026-06-11 07:06)
+State: complete - RestaurantDetail price controller flow review accepted (2026-06-11 07:38)
 Done:
+- Current cron run 2026-06-11 07:38: Pflichtdateien gelesen und offenes
+  Queue-Item "Unity RestaurantDetail price controller flow review" geprueft.
+  Ergebnis: akzeptiert. `GameController.SetProductPrice(shopId, productId,
+  price)` ist die zentrale Preis-Mutationsgrenze; Erfolg publiziert Snapshot,
+  `RestaurantDetailRequestedEvent` und Toast, Fehler nur Toast. `RestaurantDetailView`
+  ruft im Sortiment nur diesen Controller-Intent auf; Ausbau, Equipment,
+  Personal und Marketing bleiben read-only. `ProductPricingService` ist
+  UnityEngine-frei, validiert Shop, Produkt und Preisbereich 1.00 bis 25.00 EUR
+  und laesst State bei ungueltigen Eingaben unveraendert. Tests gruen; Queue auf
+  `Status: empty` gesetzt.
 - Current cron run 2026-06-11 07:06: Pflichtdateien gelesen; Worktree clean
   und `HEAD == origin/main` (`bb9e7fa`). `REVIEW_QUEUE.md` enthaelt weiterhin
   das offene Claude-Reviewer-Item "Unity RestaurantDetail price controller flow
