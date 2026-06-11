@@ -1,5 +1,51 @@
 # HANDOFF_LOG
 
+## 2026-06-11 17:48 - Codex (RestaurantDetail premium console UI)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Ausloeser:
+- Kaan: "Wann fangen wir mit dem UI an? Codex soll ueber GitHub Skills
+  durchsuchen und dann sein bestes geben und was Umwerfendes zaubern"
+
+Recherche:
+- GitHub-Skill-Suche nach UI/Game/Flutter/Unity Skills.
+- Relevanter Treffer: `ui-ux-pro-max` von
+  `https://github.com/nextlevelbuilder/ui-ux-pro-max-skill`.
+- Genutzte Regeln: Informationshierarchie, Touch-Ziele, sichtbare Zustaende,
+  konsistente Navigation, Preise/KPIs als scanbare Management-Daten.
+
+Geaendert:
+- `unity/Assets/Scripts/UI/RestaurantDetailView.cs`
+
+Ergebnis:
+- RestaurantDetail von technischer IMGUI-Liste zu einer hochwertigeren
+  Management-Konsole ausgebaut.
+- Neuer Hero-Header mit Filialname, Standort, Cash, Ruf, Team-Cap und Tag.
+- Linke Management-Navigation ersetzt die flache Toolbar und zeigt aktive Tabs
+  deutlicher.
+- Sortiment, Ausbau, Equipment, Personal und Marketing haben klarere
+  Section-Headers, groessere Decision-Rows, Accent-Bars und Status-Badges.
+- Aktive Kampagnen werden in der Navigation zusammengefasst.
+- Aktionen bleiben strikt auf bestehende Controller-Intents begrenzt:
+  `SetProductPrice`, `UpgradeShopSizeTier`, `BuyEquipment`, `HireEmployee`,
+  `StartShopCampaign`.
+- Keine neue Wirtschaftslogik, keine neuen Services, keine Save-/PlayerPrefs-/
+  Filesystem-Logik und keine Arcade-/Realtime-Serving-/CustomerSpawner-/
+  manuelle Koch-/First-/Third-Person-Systeme eingefuehrt.
+- Review-Item "Unity RestaurantDetail premium console UI review" gesetzt.
+
+Validation:
+- `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+  -> 528 bestanden, 0 Fehler.
+- `git diff --check` -> clean.
+
+Naechster kleinster Schritt:
+- Claude Code: UI-Slice reviewen, Lesbarkeit/Scope pruefen und Queue bei
+  Akzeptanz leeren.
+
+---
+
 ## 2026-06-11 17:39 - Codex (RestaurantDetail shop marketing controller flow review)
 
 Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.

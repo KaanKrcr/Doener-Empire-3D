@@ -9,8 +9,20 @@ Unity Management-/Progression-Spiel mit Premium 2.5D/3D City Map.
 Arcade Cooking ist verworfen (`docs/UNITY_MVP_ARCADE_PLAN.md` = DEPRECATED).
 
 ## Claude Code (Planner/Reviewer)
-State: reviewed - RestaurantDetail shop marketing controller flow accepted (2026-06-11 17:39)
+State: implementation complete - RestaurantDetail premium console UI pending review (2026-06-11 17:48)
 Done:
+- Current run 2026-06-11 17:48: Kaan hat den Start fuer UI gegeben und
+  verlangt, dass Codex GitHub-Skills durchsucht und sichtbar besseres UI baut.
+  Passender GitHub-Skill recherchiert: `ui-ux-pro-max` (UI/UX Design
+  Intelligence). Verwendete Leitlinien: klare Informationshierarchie, groessere
+  Touch-Ziele, bessere Status-Zustaende, Management-Konsole statt technischer
+  Listen. `RestaurantDetailView` wurde als erster sichtbarer UI-Slice
+  ueberarbeitet: Hero-Header mit Cash/Ruf/Team/Tag, linke Management-
+  Navigation, deutlichere KPI-Kacheln, Decision-Rows mit Accent-Bar,
+  Status-Badges fuer installierte/aktive Optionen und klarere Abschnitts-
+  Unterzeilen. Keine neue Wirtschaftsmutation und keine neuen Services; die UI
+  feuert weiterhin nur bestehende Controller-Intents. Tests gruen; Review-Item
+  "Unity RestaurantDetail premium console UI review" gesetzt.
 - Current run 2026-06-11 17:39: Offenes Queue-Item "Unity RestaurantDetail
   shop marketing controller flow review" fuer Commit `7bbb7bf` geprueft.
   Ergebnis: akzeptiert. `GameController.StartShopCampaign(shopId, campaignId)`
