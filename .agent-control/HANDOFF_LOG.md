@@ -1,5 +1,138 @@
 # HANDOFF_LOG
 
+## 2026-06-11 16:08 - Codex (RestaurantDetail staff hiring controller flow review)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `git show --stat --oneline cddadac`
+- `unity/Assets/Scripts/Simulation/EmployeeHiringService.cs`
+- `unity/Assets/Scripts/App/GameController.cs`
+- `unity/Assets/Scripts/UI/RestaurantDetailView.cs`
+- `unity-logic-tests/DoenerEmpire.Logic.Tests/EmployeeHiringServiceTests.cs`
+
+Ergebnis:
+- Offenes Queue-Item "Unity RestaurantDetail staff hiring controller flow
+  review" fuer Commit `cddadac` geprueft und akzeptiert.
+- `GameController.HireEmployee(shopId, employeeId)` ist die zentrale
+  Personal-Einstellungs-Mutationsgrenze fuer RestaurantDetail.
+- `RestaurantDetailView` zeigt im Personal-Tab Bewerber und feuert nur
+  `controller.HireEmployee(shop.Id, candidate.Id)`; keine direkte Mutation von
+  `GameState`, `Shop`, Cash, Employees, `EmployeePool`, Save-State, Dateien
+  oder Hotspots gefunden.
+- `EmployeeHiringService` bleibt UnityEngine-frei und validiert Shop,
+  Bewerber-ID, Rollen-Katalog, Duplicate, effektives Stadt-/SizeTier-
+  Personal-Cap und Cash fuer die explizite Hiring Fee.
+- Erfolg fuegt genau einen Mitarbeiter zur Ziel-Filiale hinzu, entfernt genau
+  diesen Kandidaten aus `EmployeePool`, zieht nur die Hiring Fee ab und
+  publiziert ueber den Controller Snapshot, RestaurantDetail-Refresh und Toast.
+- Fehlerpfade bleiben ohne State-Mutation und publizieren nur Failure-Toasts.
+- Keine Preis-/Equipment-/SizeTier-/Marketing-/Day-Sim-Mutation, keine Save-/
+  PlayerPrefs-/Filesystem-Logik und keine Arcade-/Realtime-Serving-/
+  CustomerSpawner-/manuelle Koch-/First-/Third-Person-Systeme eingefuehrt.
+- Queue auf `Status: empty` gesetzt.
+
+Validation:
+- `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+  -> 522 bestanden, 0 Fehler.
+- Scope-Scan fuer UnityEngine/PlayerPrefs/File/Directory/SaveService/Arcade/
+  CustomerSpawner/FirstPerson/ThirdPerson/ManualCooking/Serving in den
+  Review-Dateien -> nur erwartete UI-UnityEngine- und bestehende Controller-
+  Intent-Treffer; keine verbotene neue Logik.
+
+Naechster kleinster Schritt:
+- Claude Code/Queue-Owner: Bei leerer Queue den naechsten konkreten
+  Management-Progression-Schritt spezifizieren oder Release-/Build-Check
+  anstossen.
+
+---
+
+## 2026-06-11 16:00 - Cron (Review dispatch)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `git status -sb`
+- `git rev-parse HEAD`
+- `git rev-parse origin/main`
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/HANDOFF_LOG.md` (Tail)
+
+Ergebnis:
+- Worktree enthaelt nur erwartete Control-Datei-Aenderungen:
+  `REVIEW_QUEUE.md`, `STATUS.md`, `HANDOFF_LOG.md`.
+- `HEAD == origin/main`: `cddadac37f6f4d137993b5790b2e1c551cd5bed9`.
+- `REVIEW_QUEUE.md` enthaelt das offene Claude-Reviewer-Item
+  "Unity RestaurantDetail staff hiring controller flow review".
+- Keine Codex-Codearbeit gestartet.
+- n8n-Dispatch fuer Claude-Code-Review erfolgreich angenommen.
+- Dispatch runId: `0789f97b-066c-4bcf-8b1b-7bd4afd37e18`.
+- Queue bleibt `Status: open`, bis das Review-Ergebnis vorliegt.
+
+Validation:
+- Keine Tests ausgefuehrt, da nur Review-Dispatch und Control-Dokumentation.
+
+Naechster kleinster Schritt:
+- Claude Code: Review fuer Commit `cddadac` ausfuehren, Ergebnis dokumentieren
+  und bei Akzeptanz Queue leeren bzw. den naechsten kohaerenten Management-
+  Progression-Schritt setzen.
+
+---
+
+## 2026-06-11 15:33 - Cron (Status check / review item queued)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/CURRENT_DECISION.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `docs/UNITY_PRODUCT_VISION.md`
+- `docs/UNITY_CITY_MAP_UX.md`
+- `git status --short`
+- `git log -1 --oneline`
+
+Ergebnis:
+- `REVIEW_QUEUE.md` war `Status: empty`.
+- Worktree war vor diesem Lauf sauber.
+- Letzter Commit laut `git log -1 --oneline`:
+  `cddadac Add restaurant detail staff hiring flow`.
+- Entsprechend der Agent-Control-Regel kein Codex-"mach weiter" gestartet,
+  sondern ein konkretes Claude-Review-Item formuliert und Queue auf
+  `Status: open` gesetzt.
+- Item: Unity RestaurantDetail staff hiring controller flow review.
+- Scope: Commit `cddadac` pruefen: Personal-Einstellung nur ueber
+  `GameController.HireEmployee(shopId, employeeId)`, `RestaurantDetailView` nur
+  als Intent-Ausloeser, `EmployeeHiringService` UnityEngine-frei mit Validierung
+  fuer Shop, Candidate/EmployeeId, Rollen-Katalog, Duplicate, effektives Stadt-/
+  SizeTier-Personal-Cap und Cash fuer die explizite Hiring Fee. Erfolg fuegt
+  genau einen Mitarbeiter zur Ziel-Filiale hinzu, entfernt genau diesen
+  Kandidaten aus `EmployeePool`, zieht nur die explizite Fee ab und publiziert
+  Snapshot, RestaurantDetail-Refresh und Toast. Fehler bleiben ohne Mutation
+  und publizieren nur Toasts.
+- Keine Preis-/Equipment-/SizeTier-/Marketing-/Day-Sim-Mutation ausserhalb
+  bestehender Pfade, keine Save-/PlayerPrefs-/Filesystem-Logik und keine
+  Arcade-Cooking-, Echtzeit-Serving-, CustomerSpawner-, manuelle Koch-,
+  First-/Third-Person-Systeme freigegeben.
+
+Validation:
+- Pflichtdateien geprueft.
+- `git status --short` war vor den Control-File-Updates sauber.
+- Keine Tests ausgefuehrt, da nur Control-/Queue-Dokumentation geaendert wurde.
+
+Naechster kleinster Schritt:
+- Claude Code: Genau das offene Review-Item fuer Commit `cddadac` reviewen,
+  `dotnet test` und Scope-Scan laufen lassen, Ergebnis in `STATUS.md`/
+  `HANDOFF_LOG.md` dokumentieren und Queue danach wieder auf `Status: empty`
+  setzen.
+
+---
+
 ## 2026-06-11 15:30 - Codex (RestaurantDetail staff hiring controller mutation)
 
 Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.

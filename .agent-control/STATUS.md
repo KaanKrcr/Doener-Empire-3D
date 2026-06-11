@@ -9,8 +9,52 @@ Unity Management-/Progression-Spiel mit Premium 2.5D/3D City Map.
 Arcade Cooking ist verworfen (`docs/UNITY_MVP_ARCADE_PLAN.md` = DEPRECATED).
 
 ## Claude Code (Planner/Reviewer)
-State: implemented - RestaurantDetail staff hiring controller mutation (2026-06-11 15:30)
+State: reviewed - RestaurantDetail staff hiring controller flow accepted (2026-06-11 16:08)
 Done:
+- Current run 2026-06-11 16:08: Offenes Queue-Item "Unity RestaurantDetail
+  staff hiring controller flow review" fuer Commit `cddadac` geprueft.
+  Ergebnis: akzeptiert. `GameController.HireEmployee(shopId, employeeId)` ist
+  die zentrale Personal-Einstellungs-Mutationsgrenze; bei Fehlern wird nur ein
+  Toast publiziert, bei Erfolg Snapshot, RestaurantDetail-Refresh und Toast.
+  `RestaurantDetailView` ruft im Personal-Tab ausschliesslich diesen
+  Controller-Intent auf und mutiert `GameState`, `Shop`, Cash, Employees,
+  `EmployeePool`, Save-State, Dateien oder Hotspots nicht direkt.
+  `EmployeeHiringService` bleibt UnityEngine-frei, validiert Shop, Bewerber-ID,
+  Rollen-Katalog, Duplicate, effektives Stadt-/SizeTier-Personal-Cap und Cash
+  fuer die explizite Hiring Fee. Erfolg fuegt genau einen Mitarbeiter zur
+  Ziel-Filiale hinzu, entfernt genau diesen Kandidaten aus `EmployeePool` und
+  zieht nur die Hiring Fee ab. Keine Preis-/Equipment-/SizeTier-/Marketing-/
+  Day-Sim-Mutation, keine Save-/PlayerPrefs-/Filesystem-Logik und keine
+  Arcade-/Realtime-Serving-/CustomerSpawner-/manuelle Koch-/First-/Third-
+  Person-Systeme eingefuehrt. Tests gruen; Queue auf `Status: empty` gesetzt.
+- Current cron run 2026-06-11 16:00: Pflichtdateien gelesen; Worktree enthaelt
+  nur erwartete Control-Datei-Aenderungen aus dem 15:33-Queue-Setup.
+  `HEAD == origin/main` (`cddadac`). Offenes Claude-Reviewer-Item
+  "Unity RestaurantDetail staff hiring controller flow review" wurde gemaess
+  Queue-Regel nicht durch Codex implementiert, sondern via n8n an Claude Code
+  dispatcht. Dispatch erfolgreich angenommen, runId:
+  `0789f97b-066c-4bcf-8b1b-7bd4afd37e18`. Queue bleibt `Status: open`, bis
+  das Review-Ergebnis dokumentiert ist.
+- Current cron run 2026-06-11 15:33: Pflichtdateien gelesen;
+  `REVIEW_QUEUE.md` war nach Codex' Staff-Hiring-Umsetzung wieder
+  `Status: empty`. Worktree war vor diesem Lauf sauber. Letzter Commit ist
+  `cddadac` ("Add restaurant detail staff hiring flow"). Entsprechend der
+  Agent-Control-Regel wurde kein pauschales Codex-"mach weiter" gestartet,
+  sondern ein konkretes Claude-Review-Item formuliert: "Unity RestaurantDetail
+  staff hiring controller flow review". Scope: Commit `cddadac` gegen
+  Management-Spiel-Richtung pruefen: `GameController.HireEmployee(shopId,
+  employeeId)` ist die einzige Personal-Einstellungs-Mutationsgrenze,
+  `RestaurantDetailView` feuert im Personal-Tab nur den Intent,
+  `EmployeeHiringService` bleibt UnityEngine-frei und validiert Shop,
+  Candidate/EmployeeId, Rollen-Katalog, Duplicate, effektives Stadt-/
+  SizeTier-Personal-Cap und Cash fuer die explizite Hiring Fee. Erfolg muss
+  genau einen Mitarbeiter zur Ziel-Filiale hinzufuegen, genau diesen Kandidaten
+  aus `EmployeePool` entfernen, nur die explizite Fee abziehen und Snapshot,
+  RestaurantDetail-Refresh und Toast publizieren. Fehler bleiben ohne Mutation
+  und publizieren nur Toasts. Keine Preis-/Equipment-/SizeTier-/Marketing-/
+  Day-Sim-Mutation ausserhalb bestehender Pfade, keine Save-/PlayerPrefs-/
+  Filesystem-Logik und keine Arcade-/Realtime-Serving-/CustomerSpawner-/
+  manuelle Koch-/First-/Third-Person-Systeme freigegeben.
 - Current cron run 2026-06-11 15:30: Offenes Codex-Item "Unity
   RestaurantDetail staff hiring controller mutation" umgesetzt.
   `EmployeeHiringService` ist UnityEngine-frei und validiert Shop,
