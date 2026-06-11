@@ -9,8 +9,15 @@ Unity Management-/Progression-Spiel mit Premium 2.5D/3D City Map.
 Arcade Cooking ist verworfen (`docs/UNITY_MVP_ARCADE_PLAN.md` = DEPRECATED).
 
 ## Claude Code (Planner/Reviewer)
-State: implementation complete - RestaurantDetail premium console UI pending review (2026-06-11 17:48)
+State: Claude review dispatched - RestaurantDetail premium console UI (2026-06-11 18:30)
 Done:
+- Current cron run 2026-06-11 18:30: Pflichtdateien gelesen; Worktree sauber
+  und `HEAD == origin/main` (`bc34855`). Offenes Claude-Reviewer-Item
+  "Unity RestaurantDetail premium console UI review" wurde gemaess Queue-Regel
+  nicht durch Codex implementiert, sondern via n8n an Claude Code dispatcht.
+  Dispatch erfolgreich angenommen, runId:
+  `5bc9c346-55bb-4349-a56f-ae3c65f8ac28`. Queue bleibt `Status: open`, bis
+  das Review-Ergebnis dokumentiert ist.
 - Current run 2026-06-11 17:48: Kaan hat den Start fuer UI gegeben und
   verlangt, dass Codex GitHub-Skills durchsucht und sichtbar besseres UI baut.
   Passender GitHub-Skill recherchiert: `ui-ux-pro-max` (UI/UX Design

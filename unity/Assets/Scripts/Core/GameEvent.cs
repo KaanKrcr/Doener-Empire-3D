@@ -1,6 +1,6 @@
-// Döner Empire 3D — Spiel-Events / Krisen (Entscheidungen am Tagesende)
-// Modell-Port aus lib/models/event_model.dart. Der Event-Katalog selbst liegt
-// in Data/EventCatalog.cs (generiert aus der Dart-Quelle).
+// Doener Empire 3D - Spiel-Events / Krisen (Entscheidungen am Tagesende).
+// Lives in the Core assembly so generated Data catalogs can reference it
+// without creating an asmdef cycle with the Models assembly.
 
 using System.Collections.Generic;
 
@@ -21,8 +21,8 @@ namespace DoenerEmpire.Models
     public sealed class EventEffect
     {
         public double CashDelta;
-        public double ReputationDelta;       // wirkt auf ALLE Filialen
-        public double BrandAwarenessDelta;   // wirkt auf Marken-Bekanntheit
+        public double ReputationDelta;
+        public double BrandAwarenessDelta;
         public string ResultMessage;
     }
 

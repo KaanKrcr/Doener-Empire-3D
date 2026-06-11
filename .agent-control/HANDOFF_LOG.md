@@ -4689,6 +4689,37 @@ Naechster Schritt:
 
 ---
 
+## 2026-06-11 18:30 - Codex (RestaurantDetail premium console UI review dispatch)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `git status -sb`
+- `git rev-parse HEAD`
+- `git rev-parse origin/main`
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/HANDOFF_LOG.md` (Tail)
+
+Ergebnis:
+- Worktree war sauber; `HEAD == origin/main` (`bc34855`).
+- Offenes Queue-Item ist ein Claude-Reviewer-Item:
+  "Unity RestaurantDetail premium console UI review".
+- Keine Code-Implementierung vorgenommen.
+- Review via n8n an Claude Code dispatcht; runId:
+  `5bc9c346-55bb-4349-a56f-ae3c65f8ac28`.
+- Queue bleibt `Status: open`, bis das Review-Ergebnis dokumentiert ist.
+
+Validation:
+- Pflichtdateien geprueft.
+- Keine Tests ausgefuehrt, da nur Review-Dispatch/Control-Dokumentation.
+
+Naechster kleinster Schritt:
+- Claude Code: Commit `df11d69`/aktuellen pushed SHA fuer das Premium-Console-
+  UI-Item reviewen, Ergebnis dokumentieren und bei Akzeptanz Queue leeren.
+
+---
+
 - Keine Code-Implementierung vorgenommen.
 - Management-Spiel-Richtung bestaetigt; keine Arcade-Cooking- oder
   Echtzeit-Serving-Systeme hinzugefuegt.
