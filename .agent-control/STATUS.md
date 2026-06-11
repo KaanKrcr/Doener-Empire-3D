@@ -1,16 +1,45 @@
 # STATUS
 
 ## Overall
-Unity-Port laeuft. Logik-Layer wird verifiziert (`dotnet test`) portiert; UX-Spec
-fuer den Vertical Slice ist geschrieben.
+Flutter ist die kanonische App. Der Unity-Port ist beendet und wird aus dem
+Repo entfernt, damit keine neuen Android-Pakete oder Review-Queues mehr ueber
+Unity laufen.
 
 ## Product Direction
-Unity Management-/Progression-Spiel mit Premium 2.5D/3D City Map.
-Arcade Cooking ist verworfen (`docs/UNITY_MVP_ARCADE_PLAN.md` = DEPRECATED).
+Flutter Management-/Progression-Spiel mit starker City Map, Premium-Shop-Detail
+und klarer Android-APK-Spur ueber `flutter build apk --release`.
+Arcade Cooking, Echtzeit-Kundenbedienung und parallele Unity-App sind verworfen.
 
 ## Claude Code (Planner/Reviewer)
-State: Claude review dispatched - RestaurantDetail premium console UI (2026-06-11 18:30)
+State: Flutter-only migration in progress (2026-06-11 19:40)
 Done:
+- Current run 2026-06-11 19:40: Kaan hat klargestellt, dass Doener Empire auf
+  Flutter weitergefuehrt werden soll und Unity nicht mehr verwendet werden darf.
+  Der Premium-Console-Look aus dem Unity-RestaurantDetail-Slice wurde in die
+  Flutter-Shop-Detail-Ansicht portiert. Unity-Projekt, Unity-Logic-Tests,
+  Unity-GitHub-Actions und Unity-Dokumente werden entfernt. Agent-Control wird
+  auf Flutter-only umgestellt. Review Queue ist wieder `Status: empty`.
+  Validation: `flutter analyze`, `flutter test` (98 bestanden) und
+  `flutter build apk --release` erfolgreich.
+- Current cron run 2026-06-11 19:30: Pflichtdateien gelesen. Queue ist
+  weiterhin `Status: open` mit Claude-Reviewer-Item "Unity RestaurantDetail
+  premium console UI review"; keine Codex-Implementierung gestartet. Blocker
+  besteht fort: Queue-Target `df11d69`, aktueller `HEAD == origin/main` ist
+  `737f04c` ("Add local Unity Android APK build path"). Worktree ist weiterhin
+  nicht sauber mit bestehenden Control-/Flutter-Aenderungen, Unity-generierten
+  `.meta`-/ProjectSettings-Aenderungen und untracked Unity-Dateien. Naechster
+  Schritt bleibt: Claude Code muss das UI-Review gegen den passenden Stand
+  abschliessen und Queue leeren oder das Review-Item explizit aktualisieren.
+- Current cron run 2026-06-11 19:00: Pflichtdateien gelesen. Queue ist
+  weiterhin `Status: open` mit Claude-Reviewer-Item "Unity RestaurantDetail
+  premium console UI review"; deshalb keine Codex-Implementierung gestartet.
+  Blocker/Inkonistenz: Queue-Target ist `df11d69`, waehrend aktueller
+  `HEAD == origin/main` inzwischen `737f04c` ("Add local Unity Android APK
+  build path") ist. Worktree enthaelt Unity-generierte `.meta`-/ProjectSettings-
+  Aenderungen und untracked Unity-Dateien (`unity/.utmp/`, `unity/unity.slnx`
+  u. a.). Naechster Schritt: Claude Code muss das offene Review entweder gegen
+  den passenden UI-Commit/aktuellen Stand abschliessen und die Queue leeren
+  oder das Review-Item explizit aktualisieren. Codex bleibt blockiert.
 - Current cron run 2026-06-11 18:30: Pflichtdateien gelesen; Worktree sauber
   und `HEAD == origin/main` (`bc34855`). Offenes Claude-Reviewer-Item
   "Unity RestaurantDetail premium console UI review" wurde gemaess Queue-Regel

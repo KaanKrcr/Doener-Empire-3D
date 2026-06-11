@@ -1,47 +1,37 @@
-﻿# README_STATUS - Doener Empire
+# README_STATUS - Doener Empire
 
 ## Aktueller Stand
-- Projektstatus: in aktiver Entwicklung, Working Tree sauber.
-- Fokus der letzten Iterationen: Flutter-CI/Smoke-Tests, 2.5D-City-Map-Richtung
-  und Unity-Vertical-Slice-Reviews ueber Agent-Control.
+- Projektstatus: Flutter-first, aktive Entwicklung.
+- Unity ist als Produkt- und Build-Spur beendet und aus dem Repo entfernt.
 - Aktueller Branch: `main`
-- Aktueller Commit: `e904f1e` (`Accept RestaurantDetail price controller review`)
-- Remote: `origin/main`, synchron zum lokalen `main`
+- Remote: `origin/main`
 - Review Queue: `Status: empty`
 
-## Letzte Änderungen
-- Flutter-Fokus bestaetigt: Unity-Voll-Port bleibt Referenz, Premium-Optik wird
-  als isometrische 2.5D-City-Map direkt in Flutter weiterverfolgt.
-- Flutter CI Gate auf `main`: `flutter analyze` + `flutter test`.
-- Smoke-Tests fuer Haupttabs und Detail-Screens ergaenzt.
-- Unity-Agent-Control weitergefuehrt: RestaurantDetail-Preisfluss fuer Commit
-  `f51589c` reviewed und akzeptiert.
-- n8n/OpenClaw-Dispatch wieder lauffaehig; Router-Fix fuer Review-vs-Codex-
-  Zuordnung im lokalen OpenClaw-Workspace dokumentiert.
+## Letzte Aenderungen
+- Premium-Console-Ansatz aus dem Unity-Slice in die Flutter-Shop-Detail-Ansicht portiert.
+- Flutter-Shop-Detail startet jetzt mit einem staerkeren Command-Header:
+  Cash, Tagesprofit, Kunden, aktive Kampagnen, Ruf und Team sind direkt sichtbar.
+- Unity-Projekt, Unity-Logic-Tests, Unity-GitHub-Actions und Unity-Dokumente entfernt,
+  damit Android-Pakete kuenftig ueber Flutter gebaut werden.
+- Agent-Control auf Flutter-only umgestellt.
 
 ## Offene Todos / Bugs
-- Release-Signing steht weiter auf Debug-Konfiguration (vor Public Release umstellen).
+- Release-Signing steht weiter auf Debug-/Standardkonfiguration und muss vor einem
+  oeffentlichen Release sauber eingerichtet werden.
 - Kotlin-Plugin-Migrationswarnung aktuell noch bei `audioplayers_android`
-  upstream-blockiert; `shared_preferences_android`/`url_launcher_android` sind
-  bereits migriert.
-- Längere manuelle Runs für Cash-/Tageslogik weiter nötig (insb. Delivery + Auto-Hire in großen Spielständen).
-- Save-Kompatibilität bleibt kritisch bei Legacy-Saves: Delivery-/History-Felder und alte Shop-/Upgrade-Pfade weiter gegentesten.
-- Naechstes konkretes Agent-Queue-Item muss durch Claude/Kaan definiert werden;
-  Codex soll bei leerer Queue nicht pauschal weiterarbeiten.
+  upstream-blockiert.
+- Laengere manuelle Runs fuer Cash-/Tageslogik weiter noetig, besonders Delivery,
+  Auto-Hire und grosse Spielstaende.
+- Save-Kompatibilitaet bleibt kritisch bei Legacy-Saves.
 
 ## Ergebnis Flutter Analyze / Test
-- Ausgeführt am: 2026-06-11 06:07 +02:00
-- `flutter analyze`: **erfolgreich**, keine Findings.
-- `flutter test`: **erfolgreich**, 97 Tests bestanden.
+- Ausgefuehrt am: 2026-06-11 +02:00
+- `flutter analyze`: erfolgreich, keine Findings.
+- `flutter test`: erfolgreich, 98 Tests bestanden.
+- `flutter build apk --release`: erfolgreich,
+  `build/app/outputs/flutter-apk/app-release.apk`.
 
-## Ergebnis Unity Logic Tests
-- Ausgefuehrt am: 2026-06-11 07:39 +02:00
-- `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`:
-  **erfolgreich**, 507 Tests bestanden, 0 Fehler.
-
-## Nächster sinnvoller Schritt
-1. Claude/Kaan definiert das naechste konkrete Review-/Implementierungsitem.
-2. Empfohlene Produktspur: Flutter City-Map als primaeren Ingame-Flow staerken
-   (Bottom-Sheet-Entscheidungen, Konkurrenzmarker, Profit-/Risiko-Prognose).
-3. Empfohlene Release-Spur: Signing klaeren und internen APK-Test mit
-   `docs/MANUAL_TESTPLAN_INTERNAL.md` fahren.
+## Naechster sinnvoller Schritt
+1. Flutter-APK an Tester geben.
+2. City Map weiter zur primaeren Spieloberflaeche ausbauen.
+3. Shop-Detail weiter visuell veredeln und mit echten Entscheidungshilfen staerken.

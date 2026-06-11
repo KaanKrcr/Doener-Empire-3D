@@ -1,5 +1,116 @@
 # HANDOFF_LOG
 
+## 2026-06-11 19:40 - Flutter-only correction
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Ausloeser:
+- Kaan hat klargestellt, dass Doener Empire auf Flutter weitergefuehrt werden
+  soll und nicht mehr auf Unity.
+
+Ergebnis:
+- Unity-Pfad beendet.
+- Premium-Console-UI-Idee aus dem Unity-RestaurantDetail-Slice in
+  `lib/ui/screens/shop_detail_screen.dart` portiert.
+- Flutter-Shop-Detail zeigt jetzt einen staerkeren Command-Header mit Cash,
+  Tagesprofit, Kunden, aktiven Kampagnen, Ruf und Team.
+- `REVIEW_QUEUE.md`, `CURRENT_DECISION.md`, `CLAUDE_TASK.md` und
+  `CODEX_TASK.md` auf Flutter-only umgestellt.
+- Unity-Projekt, Unity-Logic-Tests, Unity-GitHub-Actions und Unity-Dokumente
+  werden aus dem Repo entfernt.
+
+Validation:
+- `flutter analyze`: erfolgreich.
+- `flutter test`: erfolgreich, 98 Tests bestanden.
+- `flutter build apk --release`: erfolgreich,
+  `build/app/outputs/flutter-apk/app-release.apk`.
+
+Naechster kleinster Schritt:
+- Flutter-Release-APK an Kaan als ZIP fuer Telegram senden.
+
+---
+
+## 2026-06-11 19:30 - Cron (Queue blocker/status check)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/CURRENT_DECISION.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `docs/UNITY_PRODUCT_VISION.md`
+- `docs/UNITY_CITY_MAP_UX.md`
+- `git status -sb`
+- `git rev-parse HEAD`
+- `git rev-parse origin/main`
+- `git log -1 --oneline`
+
+Ergebnis:
+- `REVIEW_QUEUE.md` ist weiterhin `Status: open`.
+- Offenes Item: "Unity RestaurantDetail premium console UI review".
+- Owner laut Queue: Claude Code.
+- Target laut Queue: `df11d69` (`Improve RestaurantDetail premium console UI`).
+- Keine Codex-Implementierung gestartet, weil es ein Claude-Reviewer-Item ist.
+- Blocker/Inkonistenz besteht fort: aktueller `HEAD == origin/main` ist
+  `737f04c632caea2f4d4bfe1e8f4d31b809ba7a1b`
+  (`Add local Unity Android APK build path`), also nicht der Queue-Target-Commit.
+- Worktree ist nicht sauber: bestehende Control-/Flutter-Aenderungen,
+  Unity-generierte `.meta`-/ProjectSettings-Aenderungen und untracked
+  Unity-Dateien (`unity/.utmp/`, `unity/unity.slnx` u. a.) sind vorhanden.
+  Nichts davon wurde zurueckgesetzt.
+
+Validation:
+- Pflichtdateien geprueft.
+- Keine Tests ausgefuehrt, da nur Queue-/Blocker-Status geprueft wurde.
+
+Naechster kleinster Schritt:
+- Claude Code: Offenes UI-Review gegen den passenden Commit/aktuellen Stand
+  abschliessen und bei Akzeptanz Queue auf `Status: empty` setzen, oder das
+  Review-Item explizit auf den aktuellen Review-Zielstand aktualisieren.
+
+---
+
+## 2026-06-11 19:00 - Cron (Queue blocker/status check)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/CURRENT_DECISION.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `docs/UNITY_PRODUCT_VISION.md`
+- `docs/UNITY_CITY_MAP_UX.md`
+- `git status -sb`
+- `git rev-parse HEAD`
+- `git rev-parse origin/main`
+- `git log -1 --oneline`
+
+Ergebnis:
+- `REVIEW_QUEUE.md` ist weiterhin `Status: open`.
+- Offenes Item: "Unity RestaurantDetail premium console UI review".
+- Owner laut Queue: Claude Code.
+- Target laut Queue: `df11d69` (`Improve RestaurantDetail premium console UI`).
+- Keine Codex-Implementierung gestartet, weil es ein Claude-Reviewer-Item ist.
+- Blocker/Inkonistenz: aktueller `HEAD == origin/main` ist inzwischen
+  `737f04c632caea2f4d4bfe1e8f4d31b809ba7a1b`
+  (`Add local Unity Android APK build path`), also nicht der Queue-Target-Commit.
+- Worktree ist nicht sauber: Unity-generierte `.meta`-/ProjectSettings-
+  Aenderungen und untracked Unity-Dateien (`unity/.utmp/`, `unity/unity.slnx`
+  u. a.) sind vorhanden. Nichts davon wurde zurueckgesetzt.
+
+Validation:
+- Pflichtdateien geprueft.
+- Keine Tests ausgefuehrt, da nur Queue-/Blocker-Status geprueft wurde.
+
+Naechster kleinster Schritt:
+- Claude Code: Offenes UI-Review gegen den passenden Commit/aktuellen Stand
+  abschliessen und bei Akzeptanz Queue auf `Status: empty` setzen, oder das
+  Review-Item explizit auf den aktuellen Review-Zielstand aktualisieren.
+
+---
+
 ## 2026-06-11 17:48 - Codex (RestaurantDetail premium console UI)
 
 Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.

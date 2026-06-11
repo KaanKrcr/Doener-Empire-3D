@@ -79,6 +79,8 @@ class _ShopDetailScreenState extends ConsumerState<ShopDetailScreen>
         GameEngine.calculateDailyCosts(currentShop, day: today, state: game);
     final profit = revenue - costs;
     final customers = stats.actualCustomers;
+    final activeCampaigns =
+        currentShop.activeCampaigns.where((c) => c.isActive(today)).length;
 
     return Scaffold(
       backgroundColor: AppColors.bg,
@@ -127,76 +129,19 @@ class _ShopDetailScreenState extends ConsumerState<ShopDetailScreen>
                 ),
               ),
             ),
-          // ── Shop-Stats Header ─────────────────────────────────────────
-          Container(
-            margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.bgCard,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: _ShopStat(
-                        label: 'Umsatz/Tag',
-                        value: '+${_fmt.format(revenue)} €',
-                        color: AppColors.success,
-                      ),
-                    ),
-                    Expanded(
-                      child: _ShopStat(
-                        label: 'Kosten/Tag',
-                        value: '-${_fmt.format(costs)} €',
-                        color: AppColors.danger,
-                      ),
-                    ),
-                    Expanded(
-                      child: _ShopStat(
-                        label: 'Profit/Tag',
-                        value:
-                            '${profit >= 0 ? "+" : ""}${_fmt.format(profit)} €',
-                        color:
-                            profit >= 0 ? AppColors.success : AppColors.danger,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _ShopStat(
-                        label: 'Kunden/Tag',
-                        value: _fmtInt.format(customers),
-                        color: AppColors.accent,
-                      ),
-                    ),
-                    Expanded(
-                      child: _ShopStat(
-                        label: 'Reputation',
-                        value:
-                            '${currentShop.reputation.toStringAsFixed(1)} / 5',
-                        color: AppColors.gold,
-                      ),
-                    ),
-                    Expanded(
-                      child: _ShopStat(
-                        label: 'Wochentag',
-                        value: _weekdayLabel(today),
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+          // Premium command header
+          _RestaurantCommandHeader(
+            shop: currentShop,
+            cash: game.cash,
+            revenue: revenue,
+            costs: costs,
+            profit: profit,
+            customers: customers,
+            day: today,
+            activeCampaigns: activeCampaigns,
           ),
 
-          // ── Tabs ───────────────────────────────────────────────────────
+          // Tabs ───────────────────────────────────────────────────────
           Container(
             margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
             decoration: BoxDecoration(
@@ -1557,28 +1502,264 @@ class _HireCard extends StatelessWidget {
   }
 }
 
-class _ShopStat extends StatelessWidget {
-  final String label;
-  final String value;
-  final Color color;
+class _RestaurantCommandHeader extends StatelessWidget {
+  final Shop shop;
+  final double cash;
+  final double revenue;
+  final double costs;
+  final double profit;
+  final int customers;
+  final int day;
+  final int activeCampaigns;
 
-  const _ShopStat(
-      {required this.label, required this.value, required this.color});
+  const _RestaurantCommandHeader({
+    required this.shop,
+    required this.cash,
+    required this.revenue,
+    required this.costs,
+    required this.profit,
+    required this.customers,
+    required this.day,
+    required this.activeCampaigns,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(value, style: AppText.display(size: 16, weight: FontWeight.w800, color: color)),
-        const SizedBox(height: 2),
-        Text(label,
-            style: const TextStyle(fontSize: 10, color: AppColors.textMuted)),
-      ],
+    final profitColor = profit >= 0 ? AppColors.success : AppColors.danger;
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.borderLight),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF302016), AppColors.bgCard],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryGlow,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.primary.withAlpha(90)),
+                  ),
+                  child: const Icon(Icons.storefront_rounded,
+                      color: AppColors.primary),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        shop.displayName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppText.display(size: 20),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${shop.cityId} / ${shop.locationName}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                _StatusPill(
+                  icon: Icons.campaign_rounded,
+                  label: '$activeCampaigns aktiv',
+                  color: activeCampaigns > 0
+                      ? AppColors.accent
+                      : AppColors.textMuted,
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _ConsoleMetric(
+                        label: 'Cash',
+                        value: '${_fmtInt.format(cash)} EUR',
+                        color: AppColors.gold,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _ConsoleMetric(
+                        label: 'Profit/Tag',
+                        value:
+                            '${profit >= 0 ? "+" : ""}${_fmt.format(profit)} EUR',
+                        color: profitColor,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _ConsoleMetric(
+                        label: 'Kunden',
+                        value: _fmtInt.format(customers),
+                        color: AppColors.accent,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _ConsoleMetric(
+                        label: 'Umsatz',
+                        value: '+${_fmt.format(revenue)} EUR',
+                        color: AppColors.success,
+                        compact: true,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _ConsoleMetric(
+                        label: 'Kosten',
+                        value: '-${_fmt.format(costs)} EUR',
+                        color: AppColors.danger,
+                        compact: true,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _ConsoleMetric(
+                        label: 'Ruf / Tag',
+                        value:
+                            '${shop.reputation.toStringAsFixed(1)} / ${_weekdayLabel(day)}',
+                        color: AppColors.textSecondary,
+                        compact: true,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
 
-// ── Marketing-Tab ─────────────────────────────────────────────────────────
+class _ConsoleMetric extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color color;
+  final bool compact;
+
+  const _ConsoleMetric({
+    required this.label,
+    required this.value,
+    required this.color,
+    this.compact = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: compact ? 54 : 62,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.bgSurface,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            label.toUpperCase(),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 9,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.1,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppText.display(
+              size: compact ? 14 : 16,
+              weight: FontWeight.w800,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatusPill extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+
+  const _StatusPill({
+    required this.icon,
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: color.withAlpha(24),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withAlpha(80)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class _MarketingTab extends ConsumerWidget {
   final Shop shop;
