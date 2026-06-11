@@ -9,8 +9,53 @@ Unity Management-/Progression-Spiel mit Premium 2.5D/3D City Map.
 Arcade Cooking ist verworfen (`docs/UNITY_MVP_ARCADE_PLAN.md` = DEPRECATED).
 
 ## Claude Code (Planner/Reviewer)
-State: implementation complete - RestaurantDetail shop marketing controller flow pending review (2026-06-11 17:00)
+State: reviewed - RestaurantDetail shop marketing controller flow accepted (2026-06-11 17:39)
 Done:
+- Current run 2026-06-11 17:39: Offenes Queue-Item "Unity RestaurantDetail
+  shop marketing controller flow review" fuer Commit `7bbb7bf` geprueft.
+  Ergebnis: akzeptiert. `GameController.StartShopCampaign(shopId, campaignId)`
+  ist die zentrale Shop-Marketing-Mutationsgrenze; bei Fehlern wird nur ein
+  Toast publiziert, bei Erfolg Snapshot, RestaurantDetail-Refresh und Toast.
+  `RestaurantDetailView` ruft im Marketing-Tab ausschliesslich diesen
+  Controller-Intent fuer `MarketingCatalog.ShopCampaigns` auf und mutiert
+  `GameState`, `Shop`, Cash, ActiveCampaigns, Save-State, Dateien oder Hotspots
+  nicht direkt. `ShopCampaignService` bleibt UnityEngine-frei, validiert State,
+  Shop, CampaignId, Scope `Shop`, Duplicate/aktive Kampagne und Cash fuer die
+  Katalogkosten. Erfolg zieht genau die Katalogkosten ab und haengt genau eine
+  `ActiveCampaign` mit `StartDay = CurrentDay` und `EndDay = CurrentDay +
+  DurationDays` an `Shop.ActiveCampaigns`. Keine City-/Global-Kampagnen-
+  Mutation, keine Preis-/Equipment-/SizeTier-/Personal-/Day-Sim-Mutation,
+  keine Save-/PlayerPrefs-/Filesystem-Logik und keine Arcade-/Realtime-
+  Serving-/CustomerSpawner-/manuelle Koch-/First-/Third-Person-Systeme
+  eingefuehrt. Tests gruen; Queue auf `Status: empty` gesetzt.
+- Current cron run 2026-06-11 17:30: Pflichtdateien gelesen; Worktree enthaelt
+  nur erwartete Control-Datei-Aenderungen aus dem 17:03-Review-Queue-Setup.
+  `HEAD == origin/main` (`7bbb7bf`). Offenes Claude-Reviewer-Item
+  "Unity RestaurantDetail shop marketing controller flow review" wurde gemaess
+  Queue-Regel nicht durch Codex implementiert, sondern via n8n an Claude Code
+  dispatcht. Dispatch erfolgreich angenommen, runId:
+  `ff2b7219-142e-4b07-9b62-d8fb12a49ad0`. Queue bleibt `Status: open`, bis
+  das Review-Ergebnis dokumentiert ist.
+- Current cron run 2026-06-11 17:03: Pflichtdateien gelesen;
+  `REVIEW_QUEUE.md` war `Status: empty`. Letzter Commit ist `7bbb7bf`
+  ("Add restaurant detail shop marketing flow"). Entsprechend der
+  Agent-Control-Regel wurde kein pauschales Codex-"mach weiter" gestartet,
+  sondern ein konkretes Claude-Review-Item formuliert: "Unity RestaurantDetail
+  shop marketing controller flow review". Scope: Commit `7bbb7bf` gegen
+  Management-Spiel-Richtung pruefen: `GameController.StartShopCampaign(shopId,
+  campaignId)` ist die einzige Shop-Marketing-Mutationsgrenze,
+  `RestaurantDetailView` feuert im Marketing-Tab nur diesen Intent fuer
+  `MarketingCatalog.ShopCampaigns`, `ShopCampaignService` bleibt UnityEngine-
+  frei und validiert State, Shop, CampaignId, Scope `Shop`, Duplicate/aktive
+  Kampagne und Cash fuer die expliziten Katalogkosten. Erfolg muss genau diese
+  Kosten abziehen, genau eine `ActiveCampaign` mit `StartDay = CurrentDay` und
+  `EndDay = CurrentDay + DurationDays` an `Shop.ActiveCampaigns` anhaengen und
+  Snapshot, RestaurantDetail-Refresh und Toast publizieren. Fehler bleiben ohne
+  Mutation und publizieren nur Toasts. Keine City-/Global-Kampagnen-Mutation,
+  keine Preis-/Equipment-/SizeTier-/Personal-/Day-Sim-Mutation ausserhalb
+  bestehender Pfade, keine Save-/PlayerPrefs-/Filesystem-Logik und keine
+  Arcade-/Realtime-Serving-/CustomerSpawner-/manuelle Koch-/First-/Third-
+  Person-Systeme freigegeben.
 - Current cron run 2026-06-11 17:00: Offenes Codex-Item "Unity
   RestaurantDetail shop marketing controller mutation" umgesetzt.
   `ShopCampaignService` ist UnityEngine-frei und validiert State, Shop,

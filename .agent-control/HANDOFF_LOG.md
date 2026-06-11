@@ -1,5 +1,143 @@
 # HANDOFF_LOG
 
+## 2026-06-11 17:39 - Codex (RestaurantDetail shop marketing controller flow review)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `git show --stat --oneline 7bbb7bf`
+- `unity/Assets/Scripts/Simulation/ShopCampaignService.cs`
+- `unity/Assets/Scripts/App/GameController.cs`
+- `unity/Assets/Scripts/UI/RestaurantDetailView.cs`
+- `unity-logic-tests/DoenerEmpire.Logic.Tests/ShopCampaignServiceTests.cs`
+
+Ergebnis:
+- Offenes Queue-Item "Unity RestaurantDetail shop marketing controller flow
+  review" fuer Commit `7bbb7bf` geprueft und akzeptiert.
+- `GameController.StartShopCampaign(shopId, campaignId)` ist die zentrale
+  Shop-Marketing-Mutationsgrenze fuer RestaurantDetail.
+- `RestaurantDetailView` zeigt im Marketing-Tab nur
+  `MarketingCatalog.ShopCampaigns` und feuert nur
+  `controller.StartShopCampaign(shop.Id, campaign.Id)`.
+- Keine direkte Mutation von `GameState`, `Shop`, Cash, ActiveCampaigns,
+  Save-State, Dateien oder Hotspots in der View gefunden.
+- `ShopCampaignService` bleibt UnityEngine-frei und validiert State, Shop,
+  CampaignId, Scope `Shop`, Duplicate/aktive Kampagne und Cash fuer die
+  expliziten Katalogkosten.
+- Erfolg zieht genau die Katalogkosten ab, haengt genau eine `ActiveCampaign`
+  an `Shop.ActiveCampaigns` und setzt `StartDay = CurrentDay`,
+  `EndDay = CurrentDay + DurationDays`.
+- Fehlerpfade bleiben ohne State-Mutation und publizieren nur Failure-Toasts.
+- Keine City-/Global-Kampagnen-Mutation, keine Preis-/Equipment-/SizeTier-/
+  Personal-/Day-Sim-Mutation, keine Save-/PlayerPrefs-/Filesystem-Logik und
+  keine Arcade-/Realtime-Serving-/CustomerSpawner-/manuelle Koch-/First-/
+  Third-Person-Systeme eingefuehrt.
+- Queue auf `Status: empty` gesetzt.
+
+Validation:
+- `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+  -> 528 bestanden, 0 Fehler.
+- Scope-Scan fuer UnityEngine/PlayerPrefs/File/Directory/SaveService/Arcade/
+  CustomerSpawner/FirstPerson/ThirdPerson/ManualCooking/Serving in den
+  Review-Dateien -> nur erwartete UI-UnityEngine- und bestehende Controller-
+  Intent-Treffer; keine verbotene neue Logik.
+
+Naechster kleinster Schritt:
+- UI/UX-Slice vorbereiten: RestaurantDetail von technischer IMGUI-Liste zu
+  einer hochwertigeren Management-Konsole ausbauen, ohne neue Wirtschaftsmutation
+  ausserhalb bestehender Controller-Pfade.
+
+---
+
+## 2026-06-11 17:30 - Cron (Review dispatch)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `git status -sb`
+- `git rev-parse HEAD`
+- `git rev-parse origin/main`
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/HANDOFF_LOG.md` (Tail)
+
+Ergebnis:
+- `HEAD == origin/main`: `7bbb7bfd61003a07dda64f7a120da50676386629`.
+- Worktree enthaelt nur erwartete Control-Datei-Aenderungen
+  (`REVIEW_QUEUE.md`, `STATUS.md`, `HANDOFF_LOG.md`) aus dem 17:03 Review-
+  Queue-Setup.
+- Offenes Claude-Reviewer-Item:
+  "Unity RestaurantDetail shop marketing controller flow review".
+- Gemaess Queue-Regel keine Codex-Code-Aenderung vorgenommen.
+- Review via n8n an Claude Code dispatcht.
+- Dispatch erfolgreich angenommen, runId:
+  `ff2b7219-142e-4b07-9b62-d8fb12a49ad0`.
+- Queue bleibt `Status: open`, bis das Review-Ergebnis dokumentiert ist.
+
+Validation:
+- Pflichtdateien und Control-Diff geprueft.
+- Keine Tests ausgefuehrt, da nur Review-Dispatch/Control-Dokumentation.
+
+Naechster kleinster Schritt:
+- Claude Code: Review fuer Commit `7bbb7bf` ausfuehren, Ergebnis dokumentieren
+  und bei Akzeptanz Queue auf `Status: empty` setzen.
+
+---
+
+## 2026-06-11 17:03 - Cron (Status check / review item queued)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/CURRENT_DECISION.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `docs/UNITY_PRODUCT_VISION.md`
+- `docs/UNITY_CITY_MAP_UX.md`
+- `git status --short`
+- `git log -1 --oneline`
+- Scope-Suche nach Marketing-/RestaurantDetail-/Controller-Anbindungen
+
+Ergebnis:
+- `REVIEW_QUEUE.md` war `Status: empty`.
+- Worktree war vor diesem Lauf sauber.
+- Letzter Commit laut `git log -1 --oneline`:
+  `7bbb7bf Add restaurant detail shop marketing flow`.
+- Entsprechend der Agent-Control-Regel kein Codex-"mach weiter" gestartet,
+  sondern ein konkretes Claude-Review-Item formuliert und Queue auf
+  `Status: open` gesetzt.
+- Item: Unity RestaurantDetail shop marketing controller flow review.
+- Scope: Commit `7bbb7bf` pruefen: Shop-Marketing nur ueber
+  `GameController.StartShopCampaign(shopId, campaignId)`, `RestaurantDetailView`
+  nur als Intent-Ausloeser fuer `MarketingCatalog.ShopCampaigns`,
+  `ShopCampaignService` UnityEngine-frei mit Validierung fuer State, Shop,
+  CampaignId, Scope `Shop`, Duplicate/aktive Kampagne und Cash. Erfolg zieht
+  genau die Katalogkosten ab, fuegt genau eine `ActiveCampaign` mit
+  `StartDay = CurrentDay` und `EndDay = CurrentDay + DurationDays` an
+  `Shop.ActiveCampaigns` hinzu und publiziert Snapshot, Detail-Refresh und
+  Toast. Fehler bleiben ohne State-Mutation und publizieren nur Toasts.
+- Keine City-/Global-Kampagnen-Mutation, keine Preis-/Equipment-/SizeTier-/
+  Personal-/Day-Sim-Mutation ausserhalb bestehender Pfade, keine Save-/
+  PlayerPrefs-/Filesystem-Logik und keine Arcade-Cooking-, Echtzeit-Serving-,
+  CustomerSpawner-, manuelle Koch-, First-/Third-Person-Systeme freigegeben.
+
+Validation:
+- Pflichtdateien geprueft.
+- `git status --short` war vor den Control-File-Updates sauber.
+- Keine Tests ausgefuehrt, da nur Control-/Queue-Dokumentation geaendert wurde.
+
+Naechster kleinster Schritt:
+- Claude Code: Genau das offene Review-Item fuer Commit `7bbb7bf` reviewen,
+  `dotnet test` und Scope-Scan laufen lassen, Ergebnis in `STATUS.md`/
+  `HANDOFF_LOG.md` dokumentieren und Queue danach wieder auf `Status: empty`
+  setzen.
+
+---
+
 ## 2026-06-11 17:00 - Codex (RestaurantDetail shop marketing controller mutation)
 
 Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
