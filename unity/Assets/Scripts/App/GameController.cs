@@ -77,6 +77,7 @@ namespace DoenerEmpire.App
         private readonly ProductPricingService productPricingService = new();
         private readonly ShopExpansionService shopExpansionService = new();
         private readonly EquipmentPurchaseService equipmentPurchaseService = new();
+        private readonly EmployeeHiringService employeeHiringService = new();
 
         public GameController(GameState initialState, EventBus eventBus)
         {
@@ -217,6 +218,20 @@ namespace DoenerEmpire.App
             PublishSnapshot();
             Events.Publish(new RestaurantDetailRequestedEvent(shopId));
             Events.Publish(new ToastRequestedEvent("Equipment installiert."));
+        }
+
+        public void HireEmployee(string shopId, string employeeId)
+        {
+            EmployeeHiringResult result = employeeHiringService.HireEmployee(state, shopId, employeeId);
+            if (!result.Success)
+            {
+                Events.Publish(new ToastRequestedEvent(result.ErrorMessage));
+                return;
+            }
+
+            PublishSnapshot();
+            Events.Publish(new RestaurantDetailRequestedEvent(shopId));
+            Events.Publish(new ToastRequestedEvent("Mitarbeiter eingestellt."));
         }
 
         public void SimulateDay()

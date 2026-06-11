@@ -1,5 +1,6 @@
 using System.Linq;
 using DoenerEmpire.App;
+using DoenerEmpire.Core;
 using DoenerEmpire.Data;
 using DoenerEmpire.Models;
 using UnityEngine;
@@ -88,7 +89,7 @@ namespace DoenerEmpire.UI
                     DrawEquipment(content);
                     break;
                 case 3:
-                    DrawReadOnlyStub(content, "PERSONAL", "Personal einstellen/feuern bleibt in diesem Slice bewusst deaktiviert.");
+                    DrawPersonal(content);
                     break;
                 default:
                     DrawReadOnlyStub(content, "MARKETING", "Kampagnen werden erst nach der Controller-Anbindung aktiv.");
@@ -197,6 +198,41 @@ namespace DoenerEmpire.UI
             GUI.enabled = true;
         }
 
+        private void DrawPersonal(Rect content)
+        {
+            GUI.Label(new Rect(content.x + 18, content.y + 14, content.width - 36, 24), "PERSONAL", labelStyle);
+            DrawMetric(new Rect(content.x + 18, content.y + 48, content.width * 0.5f - 24, 58), "TEAM", $"{shop.Employees.Count}/{EmployeeCapFor(shop)}");
+            DrawMetric(new Rect(content.x + content.width * 0.5f + 6, content.y + 48, content.width * 0.5f - 24, 58), "BEWERBERPOOL", $"{gameState.EmployeePool.Count}");
+
+            if (gameState.EmployeePool.Count == 0)
+            {
+                GUI.Label(new Rect(content.x + 18, content.y + 126, content.width - 36, 48), "Aktuell keine Bewerber im Pool.", bodyStyle);
+                return;
+            }
+
+            float y = content.y + 126;
+            foreach (Employee candidate in gameState.EmployeePool.Take(5).ToList())
+            {
+                DrawCandidateRow(new Rect(content.x + 18, y, content.width - 36, 52), candidate);
+                y += 60;
+            }
+        }
+
+        private void DrawCandidateRow(Rect rect, Employee candidate)
+        {
+            DrawPanel(rect, Surface);
+            string name = string.IsNullOrWhiteSpace(candidate.Name) ? candidate.Id : candidate.Name;
+            double hiringCost = candidate.SalaryPerDay * 1.25;
+            GUI.Label(new Rect(rect.x + 10, rect.y + 7, rect.width * 0.42f, 18), name.ToUpperInvariant(), labelStyle);
+            GUI.Label(new Rect(rect.x + 10, rect.y + 28, rect.width * 0.42f, 20), $"{candidate.TypeId} - {candidate.SalaryPerDay:n0} EUR/Tag", bodyStyle);
+            GUI.Label(new Rect(rect.x + rect.width * 0.48f, rect.y + 9, rect.width * 0.24f, 34), $"Kosten {hiringCost:n0} EUR", bodyStyle);
+
+            if (GUI.Button(new Rect(rect.x + rect.width - 132, rect.y + 9, 112, 32), "EINSTELLEN", buttonStyle))
+            {
+                controller.HireEmployee(shop.Id, candidate.Id);
+            }
+        }
+
         private void DrawReadOnlyStub(Rect content, string title, string text)
         {
             GUI.Label(new Rect(content.x + 18, content.y + 14, content.width - 36, 24), title, labelStyle);
@@ -209,6 +245,13 @@ namespace DoenerEmpire.UI
             DrawPanel(rect, Surface);
             GUI.Label(new Rect(rect.x + 10, rect.y + 7, rect.width - 20, 18), label.ToUpperInvariant(), labelStyle);
             GUI.Label(new Rect(rect.x + 10, rect.y + 26, rect.width - 20, 20), value, bodyStyle);
+        }
+
+        private static int EmployeeCapFor(Shop shop)
+        {
+            CityData city = GameData.AllCities.FirstOrDefault(candidate => candidate.Id == shop.CityId);
+            CityTier cityTier = city?.Tier ?? CityTier.Klein;
+            return ShopSizing.EmployeeCap(cityTier, shop.SizeTier);
         }
 
         private void EnsureStyles()

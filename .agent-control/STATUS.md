@@ -9,8 +9,71 @@ Unity Management-/Progression-Spiel mit Premium 2.5D/3D City Map.
 Arcade Cooking ist verworfen (`docs/UNITY_MVP_ARCADE_PLAN.md` = DEPRECATED).
 
 ## Claude Code (Planner/Reviewer)
-State: review item queued - RestaurantDetail equipment purchase controller mutation (2026-06-11 13:00)
+State: implemented - RestaurantDetail staff hiring controller mutation (2026-06-11 15:30)
 Done:
+- Current cron run 2026-06-11 15:30: Offenes Codex-Item "Unity
+  RestaurantDetail staff hiring controller mutation" umgesetzt.
+  `EmployeeHiringService` ist UnityEngine-frei und validiert Shop,
+  Bewerber-ID, Rollen-Katalog, Duplicate, effektiven Stadt-/SizeTier-Personal-
+  Cap und Cash fuer die explizite Hiring Fee (`SalaryPerDay * 1.25`). Erfolg
+  entfernt genau einen Bewerber aus `EmployeePool`, fuegt genau einen
+  Mitarbeiter zur Ziel-Filiale hinzu und zieht nur diese Fee ab. Fehlerpfade
+  mutieren den State nicht. `GameController.HireEmployee(shopId, employeeId)`
+  publiziert bei Erfolg Snapshot, RestaurantDetail-Refresh und Toast; bei
+  Fehlern nur Toast. `RestaurantDetailView` zeigt im Personal-Tab Bewerber und
+  feuert nur diesen Controller-Intent. Tests gruen; Queue wieder `Status:
+  empty`.
+- Current cron run 2026-06-11 15:00: Pflichtdateien gelesen;
+  `REVIEW_QUEUE.md` war `Status: empty`. Letzter Commit ist `82cbe55`
+  ("Add restaurant detail equipment purchase flow"). Worktree enthielt bereits
+  Control-Datei-Aenderungen in `STATUS.md` und `HANDOFF_LOG.md`; diese wurden
+  nicht zurueckgesetzt. Entsprechend der Agent-Control-Regel wurde kein
+  pauschales Codex-"mach weiter" gestartet, sondern ein konkretes Codex-Item
+  formuliert: "Unity RestaurantDetail staff hiring controller mutation".
+  Scope: Personal-Einstellung fuer bestehende owned Shops nur ueber einen
+  `GameController`-Intent. `RestaurantDetailView` darf im Personal-Tab nur den
+  Intent ausloesen. Ein UnityEngine-freier Service validiert Shop, Employee/
+  CandidateId, Duplicate, Employee-Cap und ausreichend Cash, falls ein
+  Hiring-Cost-Modell existiert. Erfolg fuegt genau einen Mitarbeiter hinzu,
+  entfernt den Kandidaten aus dem Pool falls vorhanden, zieht nur explizite
+  Hiring Costs ab und publiziert Snapshot, Detail-Refresh und Toast. Fehler
+  bleiben ohne Mutation und publizieren nur Toasts. Keine Preis-/Equipment-/
+  SizeTier-/Marketing-/Day-Sim-Mutation ausserhalb bestehender Pfade, keine
+  Save-/PlayerPrefs-/Filesystem-Logik und keine Arcade-/Realtime-Serving-/
+  CustomerSpawner-/manuelle Koch-/First-/Third-Person-Systeme freigegeben.
+- Current cron run 2026-06-11 14:30: Pflichtdateien gelesen und offenes
+  Queue-Item "Unity RestaurantDetail equipment purchase controller flow review"
+  fuer Commit `82cbe55` geprueft. Ergebnis: akzeptiert.
+  `GameController.BuyEquipment(shopId, equipmentId)` ist die zentrale
+  Equipment-Kauf-Mutationsgrenze; bei Fehlern wird nur ein Toast publiziert,
+  bei Erfolg Snapshot, RestaurantDetail-Refresh und Toast. `RestaurantDetailView`
+  ruft im Equipment-Tab ausschliesslich diesen Controller-Intent auf und
+  mutiert `GameState`, `Shop`, Cash, Equipment-Liste, Save-State, Dateien oder
+  Hotspots nicht direkt. `EquipmentPurchaseService` bleibt UnityEngine-frei,
+  validiert Shop, EquipmentId, Duplicate und ausreichend Cash; ungueltige
+  Faelle bleiben ohne State-Mutation. Erfolg zieht genau die Katalogkosten ab
+  und fuegt genau ein `ShopEquipment` hinzu. Keine Personal-/Marketing-Mutation,
+  keine neue SizeTier-/Preis-Mutation, keine Save-/PlayerPrefs-/Filesystem-Logik
+  und keine Arcade-/Realtime-Serving-/CustomerSpawner-/manuelle Koch-/First-/
+  Third-Person-Systeme eingefuehrt. Tests gruen; Queue auf `Status: empty`
+  gesetzt.
+- Current cron run 2026-06-11 13:32: Pflichtdateien gelesen;
+  `REVIEW_QUEUE.md` war nach Codex' Equipment-Kauf-Umsetzung wieder
+  `Status: empty`. Letzter Commit ist `82cbe55` ("Add restaurant detail
+  equipment purchase flow"). Entsprechend der Agent-Control-Regel wurde kein
+  pauschales Codex-"mach weiter" gestartet, sondern ein konkretes Claude-
+  Review-Item formuliert: "Unity RestaurantDetail equipment purchase controller
+  flow review". Scope: Commit `82cbe55` gegen Management-Spiel-Richtung
+  pruefen: `GameController.BuyEquipment(shopId, equipmentId)` ist die einzige
+  Equipment-Kauf-Mutationsgrenze, `RestaurantDetailView` feuert im Equipment-
+  Tab nur den Intent, `EquipmentPurchaseService` bleibt UnityEngine-frei und
+  validiert Shop, EquipmentId, Duplicate und Cash ohne Mutation bei Fehlern.
+  Erfolg muss genau die Equipment-Kosten abziehen, genau ein `ShopEquipment`
+  anfuegen und Snapshot, RestaurantDetail-Refresh und Toast publizieren. Keine
+  Personal-/Marketing-Mutation, keine SizeTier-/Preis-Mutation ausserhalb
+  bestehender Pfade, keine Save-/PlayerPrefs-/Filesystem-Logik und keine
+  Arcade-/Realtime-Serving-/CustomerSpawner-/manuelle Koch-/First-/Third-
+  Person-Systeme freigegeben.
 - Current cron run 2026-06-11 13:00: Pflichtdateien gelesen;
   `REVIEW_QUEUE.md` war `Status: empty`. Letzter Commit ist `2ef9ca7`
   ("Add restaurant detail size upgrade flow"). Entsprechend der Agent-Control-
@@ -242,10 +305,8 @@ Done:
   fehlt, kein Fokus-Tween, IMGUI statt UI Toolkit (erwartet Schritt 7).
 - Bereit fuer Unity-Editor-Test: Bootstrap auto-fires, keine manuellen Scene-Objekte.
 Next:
-- Codex: Genau das offene Queue-Item "Unity RestaurantDetail equipment purchase
-  controller mutation" umsetzen, fokussierte Tests und Scope-Scan laufen
-  lassen, Ergebnis in `STATUS.md`/`HANDOFF_LOG.md` dokumentieren und Queue
-  danach wieder auf `Status: empty` setzen.
+- Claude Code: Pushed SHA reviewen und danach das naechste kleine kohaerente
+  Management-/Progression-Queue-Item waehlen.
 - Upgrades, Equipment-/Personal-/Marketing-Aktionen, Cash-Mutation ausserhalb
   eigener Items und Save-/Persistenzlogik bleiben gesperrt.
 - UI-Toolkit-Migration (IMGUI ersetzen) geplant fuer Schritt 7 (Premium-Polish).
