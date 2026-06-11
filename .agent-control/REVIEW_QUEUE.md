@@ -7,7 +7,7 @@ Status: open
 ### Unity RestaurantDetail premium console UI review
 
 Owner: Claude Code
-Target commit: pending (`Improve RestaurantDetail premium console UI`)
+Target commit: `df11d69` (`Improve RestaurantDetail premium console UI`)
 
 Scope:
 - Pruefen, dass `RestaurantDetailView` als hochwertigere Management-Konsole
