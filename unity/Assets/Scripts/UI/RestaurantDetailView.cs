@@ -150,13 +150,21 @@ namespace DoenerEmpire.UI
             string nextLabel = nextTier == null ? "MAX" : ShopSizing.Label(nextTier.Value);
             string cost = nextTier == null ? "-" : $"{ShopSizing.ExpansionCost(currentTier):n0} EUR";
             ShopSizeTierConfig config = ShopSizing.ConfigFor(currentTier);
+            bool canUpgrade = nextTier != null;
 
             GUI.Label(new Rect(content.x + 18, content.y + 14, content.width - 36, 24), "AUSBAU", labelStyle);
             DrawMetric(new Rect(content.x + 18, content.y + 48, content.width * 0.5f - 24, 58), "AKTUELLE STUFE", ShopSizing.Label(currentTier));
             DrawMetric(new Rect(content.x + content.width * 0.5f + 6, content.y + 48, content.width * 0.5f - 24, 58), "NAECHSTE STUFE", nextLabel);
             DrawMetric(new Rect(content.x + 18, content.y + 118, content.width * 0.5f - 24, 58), "AUSBAUKOSTEN", cost);
             DrawMetric(new Rect(content.x + content.width * 0.5f + 6, content.y + 118, content.width * 0.5f - 24, 58), "PERSONAL-CAP", $"{config.EmployeeCap}");
-            GUI.Label(new Rect(content.x + 18, content.y + 194, content.width - 36, 48), "Ausbau ist in dieser Shell nur lesbar. Keine SizeTier-, Miete- oder Cash-Mutation.", bodyStyle);
+            GUI.enabled = canUpgrade;
+            if (GUI.Button(new Rect(content.x + 18, content.y + 194, 220, 34), "AUSBAUEN", buttonStyle))
+            {
+                controller.UpgradeShopSizeTier(shop.Id);
+            }
+
+            GUI.enabled = true;
+            GUI.Label(new Rect(content.x + 252, content.y + 198, content.width - 270, 48), "Mutation laeuft ausschliesslich ueber den GameController.", bodyStyle);
         }
 
         private void DrawReadOnlyStub(Rect content, string title, string text)

@@ -75,6 +75,7 @@ namespace DoenerEmpire.App
         private readonly GameState state;
         private readonly ShopOpeningService shopOpeningService = new();
         private readonly ProductPricingService productPricingService = new();
+        private readonly ShopExpansionService shopExpansionService = new();
 
         public GameController(GameState initialState, EventBus eventBus)
         {
@@ -187,6 +188,20 @@ namespace DoenerEmpire.App
             PublishSnapshot();
             Events.Publish(new RestaurantDetailRequestedEvent(shopId));
             Events.Publish(new ToastRequestedEvent("Preis aktualisiert."));
+        }
+
+        public void UpgradeShopSizeTier(string shopId)
+        {
+            ShopExpansionResult result = shopExpansionService.ExpandToNextTier(state, shopId);
+            if (!result.Success)
+            {
+                Events.Publish(new ToastRequestedEvent(result.ErrorMessage));
+                return;
+            }
+
+            PublishSnapshot();
+            Events.Publish(new RestaurantDetailRequestedEvent(shopId));
+            Events.Publish(new ToastRequestedEvent($"Ausbau auf {ShopSizing.Label(result.NewTier)} abgeschlossen."));
         }
 
         public void SimulateDay()

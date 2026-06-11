@@ -9,8 +9,21 @@ Unity Management-/Progression-Spiel mit Premium 2.5D/3D City Map.
 Arcade Cooking ist verworfen (`docs/UNITY_MVP_ARCADE_PLAN.md` = DEPRECATED).
 
 ## Claude Code (Planner/Reviewer)
-State: complete - RestaurantDetail price controller flow review accepted (2026-06-11 07:38)
+State: queued - RestaurantDetail size-tier controller mutation (2026-06-11 09:08)
 Done:
+- Current cron run 2026-06-11 09:08: Pflichtdateien gelesen;
+  `REVIEW_QUEUE.md` war `Status: empty`. Letzter Commit ist `80689f5`
+  ("Add city map opening forecast"). Entsprechend der Agent-Control-Regel wurde
+  kein pauschales Codex-"mach weiter" gestartet, sondern ein konkretes Codex-
+  Item formuliert: "Unity RestaurantDetail size-tier controller mutation".
+  Scope: Nur Ausbau eines bestehenden owned Shops ueber einen
+  `GameController`-Intent; `RestaurantDetailView` darf nur den Intent
+  ausloesen. Erfolg zieht Upgrade-Kosten ab, aktualisiert `Shop.SizeTier` und
+  erwartete Rent/Cap-Wirkung, publiziert Snapshot/Detail-Refresh/Toast.
+  Ungueltige Eingaben, Max-Tier oder zu wenig Cash muessen ohne Mutation bleiben
+  und Toasts publizieren. Keine Equipment-/Personal-/Marketing-Mutation, keine
+  Save-/PlayerPrefs-/Filesystem-Logik und keine Arcade-/Realtime-Serving-/
+  CustomerSpawner-/manuelle Koch-/First-/Third-Person-Systeme freigegeben.
 - Current cron run 2026-06-11 07:38: Pflichtdateien gelesen und offenes
   Queue-Item "Unity RestaurantDetail price controller flow review" geprueft.
   Ergebnis: akzeptiert. `GameController.SetProductPrice(shopId, productId,
@@ -186,10 +199,10 @@ Done:
   fehlt, kein Fokus-Tween, IMGUI statt UI Toolkit (erwartet Schritt 7).
 - Bereit fuer Unity-Editor-Test: Bootstrap auto-fires, keine manuellen Scene-Objekte.
 Next:
-- Claude Code: Genau das offene Queue-Item "Unity RestaurantDetail price
-  controller flow review" fuer Commit `f51589c` reviewen, `dotnet test` und
-  Scope-Scan laufen lassen, Ergebnis in `STATUS.md`/`HANDOFF_LOG.md`
-  dokumentieren und Queue danach wieder auf `Status: empty` setzen.
+- Codex: Genau das offene Queue-Item "Unity RestaurantDetail size-tier
+  controller mutation" umsetzen, fokussierte Tests und Scope-Scan laufen
+  lassen, Ergebnis in `STATUS.md`/`HANDOFF_LOG.md` dokumentieren und Queue
+  danach wieder auf `Status: empty` setzen.
 - Upgrades, Equipment-/Personal-/Marketing-Aktionen, Cash-Mutation ausserhalb
   eigener Items und Save-/Persistenzlogik bleiben gesperrt.
 - UI-Toolkit-Migration (IMGUI ersetzen) geplant fuer Schritt 7 (Premium-Polish).
@@ -197,8 +210,23 @@ Next:
   Available: KONKURRENZ); Locked-Tap auf Toast-only umstellen.
 
 ## Codex (Implementation)
-State: complete - Unity RestaurantDetail price controller mutation implemented, validation green (2026-06-06)
+State: complete - Unity RestaurantDetail size-tier controller mutation implemented, validation green (2026-06-11)
 Done:
+- Current Codex run 2026-06-11 09:30: Offenes Review-Item
+  "Unity RestaurantDetail size-tier controller mutation" umgesetzt:
+  - `ShopExpansionService` als UnityEngine-freier Ausbaupfad hinzugefuegt;
+    validiert Shop, naechste Stufe, Stadt-/Personal-Cap und ausreichend Cash.
+  - `GameController.UpgradeShopSizeTier(shopId)` ist der einzige Intent fuer
+    SizeTier-Ausbau; Fehler publizieren nur Toasts, Erfolg zieht Kosten ab,
+    aktualisiert `Shop.SizeTier`, publiziert Snapshot, Detail-Refresh und Toast.
+  - `RestaurantDetailView` loest im Ausbau-Tab nur diesen Controller-Intent aus;
+    keine direkte Mutation von `GameState`, `Shop`, Cash, Save-State, Dateien
+    oder Hotspots.
+  - Fokussierte Tests decken erfolgreichen Ausbau sowie zu wenig Cash, Stadt-Cap
+    und Max-Tier ohne Mutation ab.
+  - Keine Equipment-/Personal-/Marketing-Mutation, keine Save-/PlayerPrefs-/
+    Filesystem-Logik und keine Arcade-/Realtime-Serving-/CustomerSpawner-/
+    manuelle Koch-/First-/Third-Person-Systeme eingefuehrt.
 - Current Codex run 2026-06-06 08:30: Offenes Review-Item
   "Unity RestaurantDetail price controller mutation" umgesetzt:
   - `ProductPricingService` als UnityEngine-freier Preis-Mutationspfad
