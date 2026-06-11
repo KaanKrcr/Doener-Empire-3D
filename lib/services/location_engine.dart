@@ -22,6 +22,20 @@ class CityMapSummary {
   bool get hasPresence => shopCount > 0;
 }
 
+class LocationOpeningForecast {
+  final int estimatedCustomersPerDay;
+  final double estimatedProfitPerDay;
+  final int? breakEvenDays;
+
+  const LocationOpeningForecast({
+    required this.estimatedCustomersPerDay,
+    required this.estimatedProfitPerDay,
+    required this.breakEvenDays,
+  });
+
+  bool get isProfitable => estimatedProfitPerDay > 0;
+}
+
 /// Adapter zwischen bestehenden Listen-Standorten und der neuen City-Map.
 /// Keine Seiteneffekte: sicher für Tests und UI-Prognosen.
 class LocationEngine {
@@ -65,9 +79,44 @@ class LocationEngine {
             shops.length;
     return CityMapSummary(
       shopCount: shops.length,
-      totalFootTraffic: shops.fold<int>(0, (sum, shop) => sum + shop.footTraffic),
+      totalFootTraffic:
+          shops.fold<int>(0, (sum, shop) => sum + shop.footTraffic),
       weeklyRent: shops.fold<double>(0, (sum, shop) => sum + shop.weeklyRent),
       avgReputation: reputation,
+    );
+  }
+
+  static LocationOpeningForecast forecastOpening(
+    CityData city,
+    CityMapLocation location,
+  ) {
+    final starterProduct = kAllProducts.firstWhere(
+      (product) => product.id == 'doener_fladen',
+      orElse: () => kAllProducts.first,
+    );
+    final timeProfile = kTimeProfiles[location.personality] ??
+        kTimeProfiles[LocationPersonality.touristic]!;
+    final weeklyTimeMultiplier = List.generate(
+          7,
+          (day) => timeProfile.dailyAverage(day),
+        ).fold<double>(0, (sum, value) => sum + value) /
+        7;
+    final customers =
+        (location.footTrafficFor(city) * 0.06 * weeklyTimeMultiplier)
+            .round()
+            .clamp(0, 999999);
+    final grossMargin =
+        starterProduct.basePrice - starterProduct.ingredientCostPerUnit;
+    final profitPerDay =
+        (customers * grossMargin) - (location.weeklyRentFor(city) / 7);
+    final breakEvenDays = profitPerDay <= 0
+        ? null
+        : (location.depositFor(city) / profitPerDay).ceil();
+
+    return LocationOpeningForecast(
+      estimatedCustomersPerDay: customers,
+      estimatedProfitPerDay: profitPerDay,
+      breakEvenDays: breakEvenDays,
     );
   }
 
@@ -79,7 +128,8 @@ class LocationEngine {
           icon: '🏢',
           audience: 'Büroarbeiter & Pendler',
           risk: 'Hohe Mittagsspitzen, Personalengpässe werden teuer.',
-          recommendation: 'Premium-Preis + schnelle Kasse funktionieren hier gut.',
+          recommendation:
+              'Premium-Preis + schnelle Kasse funktionieren hier gut.',
         );
       case LocationPersonality.transit:
         return (
@@ -93,14 +143,16 @@ class LocationEngine {
           icon: '🏘️',
           audience: 'Stammkunden & Familien',
           risk: 'Weniger Laufkundschaft, Wachstum braucht Reputation.',
-          recommendation: 'Qualität, faire Preise und lokale Flyer stärken Stammkunden.',
+          recommendation:
+              'Qualität, faire Preise und lokale Flyer stärken Stammkunden.',
         );
       case LocationPersonality.university:
         return (
           icon: '🎓',
           audience: 'Studierende',
           risk: 'Preissensibel, Rabatte drücken die Marge.',
-          recommendation: 'Combos, Social Media und günstige Dürüm-Angebote testen.',
+          recommendation:
+              'Combos, Social Media und günstige Dürüm-Angebote testen.',
         );
       case LocationPersonality.nightlife:
         return (
@@ -114,7 +166,8 @@ class LocationEngine {
           icon: name.toLowerCase().contains('shopping') ? '🛍️' : '📍',
           audience: 'Touristen & gemischte Laufkundschaft',
           risk: 'Teure Lage: Miete muss durch hohen Durchsatz getragen werden.',
-          recommendation: 'Sichtbares Marketing und solide Qualität zahlen sich aus.',
+          recommendation:
+              'Sichtbares Marketing und solide Qualität zahlen sich aus.',
         );
     }
   }

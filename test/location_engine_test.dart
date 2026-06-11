@@ -15,7 +15,8 @@ void main() {
     expect(mapLocations.first.label, templates.first.name);
     expect(mapLocations.first.footTrafficFor(city), greaterThan(0));
     expect(mapLocations.first.weeklyRentFor(city), greaterThan(0));
-    expect(mapLocations.first.attractivenessScore(city), inInclusiveRange(0, 100));
+    expect(
+        mapLocations.first.attractivenessScore(city), inInclusiveRange(0, 100));
   });
 
   test('City map summary aggregates only shops in selected city', () {
@@ -64,5 +65,19 @@ void main() {
     expect(summary.totalFootTraffic, 1200);
     expect(summary.weeklyRent, 900);
     expect(summary.avgReputation, 4.2);
+  });
+
+  test('Opening forecast provides decision metrics for a map location', () {
+    final city = kAllCities.firstWhere((c) => c.id == 'fulda');
+    final location = LocationEngine.locationsFor(city).first;
+
+    final forecast = LocationEngine.forecastOpening(city, location);
+
+    expect(forecast.estimatedCustomersPerDay, greaterThan(0));
+    expect(forecast.estimatedProfitPerDay.isFinite, isTrue);
+    if (forecast.isProfitable) {
+      expect(forecast.breakEvenDays, isNotNull);
+      expect(forecast.breakEvenDays!, greaterThan(0));
+    }
   });
 }
