@@ -9,8 +9,43 @@ Unity Management-/Progression-Spiel mit Premium 2.5D/3D City Map.
 Arcade Cooking ist verworfen (`docs/UNITY_MVP_ARCADE_PLAN.md` = DEPRECATED).
 
 ## Claude Code (Planner/Reviewer)
-State: reviewed - RestaurantDetail staff hiring controller flow accepted (2026-06-11 16:08)
+State: implementation complete - RestaurantDetail shop marketing controller flow pending review (2026-06-11 17:00)
 Done:
+- Current cron run 2026-06-11 17:00: Offenes Codex-Item "Unity
+  RestaurantDetail shop marketing controller mutation" umgesetzt.
+  `ShopCampaignService` ist UnityEngine-frei und validiert State, Shop,
+  CampaignId, Shop-Scope, Duplicate/aktuell aktive Kampagne und Cash fuer
+  die expliziten Katalogkosten. Erfolg zieht genau die Kosten der
+  Shop-Kampagne ab, haengt genau eine `ActiveCampaign` an
+  `Shop.ActiveCampaigns` und setzt `StartDay = CurrentDay`, `EndDay =
+  CurrentDay + DurationDays`. `GameController.StartShopCampaign(shopId,
+  campaignId)` publiziert bei Erfolg Snapshot, RestaurantDetail-Refresh und
+  Toast; Fehler publizieren nur Toasts. `RestaurantDetailView` zeigt
+  Shop-Kampagnen im Marketing-Tab und feuert nur diesen Controller-Intent.
+  Keine City-/Global-Kampagnen-Mutation, keine Preis-/Equipment-/SizeTier-/
+  Personal-/Day-Sim-Mutation, keine Save-/PlayerPrefs-/Filesystem-Logik und
+  keine Arcade-/Realtime-Serving-/CustomerSpawner-/manuelle Koch-/First-/
+  Third-Person-Systeme eingefuehrt. Tests gruen; Queue auf `Status: empty`
+  gesetzt.
+- Current cron run 2026-06-11 16:30: Pflichtdateien gelesen;
+  `REVIEW_QUEUE.md` war `Status: empty`. Letzter Commit ist `06e381d`
+  ("Accept RestaurantDetail staff hiring review"). Entsprechend der
+  Agent-Control-Regel wurde kein pauschales Codex-"mach weiter" gestartet,
+  sondern ein konkretes Codex-Item formuliert: "Unity RestaurantDetail shop
+  marketing controller mutation". Scope: Shop-Marketing fuer bestehende owned
+  Shops nur ueber einen `GameController`-Intent, z. B.
+  `StartShopCampaign(shopId, campaignId)`. `RestaurantDetailView` darf im
+  Marketing-Tab nur diesen Intent ausloesen. Ein UnityEngine-freier Service
+  validiert State, Shop, CampaignId, Scope `Shop`, Duplicate/aktive Kampagne
+  und ausreichend Cash fuer die expliziten Katalogkosten. Erfolg zieht genau
+  diese Kosten ab, fuegt genau eine `ActiveCampaign` mit `StartDay =
+  CurrentDay` und `EndDay = CurrentDay + DurationDays` an `Shop.ActiveCampaigns`
+  hinzu und publiziert Snapshot, RestaurantDetail-Refresh und Toast. Fehler
+  bleiben ohne Mutation und publizieren nur Toasts. Keine City-/Global-
+  Kampagnen-Mutation, keine Preis-/Equipment-/SizeTier-/Personal-/Day-Sim-
+  Mutation ausserhalb bestehender Pfade, keine Save-/PlayerPrefs-/Filesystem-
+  Logik und keine Arcade-/Realtime-Serving-/CustomerSpawner-/manuelle Koch-/
+  First-/Third-Person-Systeme freigegeben.
 - Current run 2026-06-11 16:08: Offenes Queue-Item "Unity RestaurantDetail
   staff hiring controller flow review" fuer Commit `cddadac` geprueft.
   Ergebnis: akzeptiert. `GameController.HireEmployee(shopId, employeeId)` ist

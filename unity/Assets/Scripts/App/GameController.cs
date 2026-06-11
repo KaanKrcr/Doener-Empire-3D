@@ -78,6 +78,7 @@ namespace DoenerEmpire.App
         private readonly ShopExpansionService shopExpansionService = new();
         private readonly EquipmentPurchaseService equipmentPurchaseService = new();
         private readonly EmployeeHiringService employeeHiringService = new();
+        private readonly ShopCampaignService shopCampaignService = new();
 
         public GameController(GameState initialState, EventBus eventBus)
         {
@@ -232,6 +233,20 @@ namespace DoenerEmpire.App
             PublishSnapshot();
             Events.Publish(new RestaurantDetailRequestedEvent(shopId));
             Events.Publish(new ToastRequestedEvent("Mitarbeiter eingestellt."));
+        }
+
+        public void StartShopCampaign(string shopId, string campaignId)
+        {
+            ShopCampaignResult result = shopCampaignService.StartShopCampaign(state, shopId, campaignId);
+            if (!result.Success)
+            {
+                Events.Publish(new ToastRequestedEvent(result.ErrorMessage));
+                return;
+            }
+
+            PublishSnapshot();
+            Events.Publish(new RestaurantDetailRequestedEvent(shopId));
+            Events.Publish(new ToastRequestedEvent("Kampagne gestartet."));
         }
 
         public void SimulateDay()

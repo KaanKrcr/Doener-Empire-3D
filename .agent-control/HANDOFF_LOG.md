@@ -1,5 +1,92 @@
 # HANDOFF_LOG
 
+## 2026-06-11 17:00 - Codex (RestaurantDetail shop marketing controller mutation)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `git status -sb`
+- `git rev-parse HEAD`
+- `git rev-parse origin/main`
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/HANDOFF_LOG.md` (Tail)
+
+Ergebnis:
+- Offenes Queue-Item "Unity RestaurantDetail shop marketing controller
+  mutation" umgesetzt.
+- `ShopCampaignService` als UnityEngine-freie Service-Grenze eingefuehrt.
+- `GameController.StartShopCampaign(shopId, campaignId)` publiziert bei Erfolg
+  Snapshot, RestaurantDetail-Refresh und Toast; Fehler nur Toast.
+- `RestaurantDetailView` zeigt im Marketing-Tab Shop-Kampagnen aus
+  `MarketingCatalog.ShopCampaigns` und feuert nur den Controller-Intent.
+- `REVIEW_QUEUE.md` wieder auf `Status: empty` gesetzt.
+- Keine City-/Global-Kampagnen-Mutation, keine Save-/PlayerPrefs-/
+  Filesystem-Logik und keine Arcade-/Realtime-Serving-/CustomerSpawner-/
+  manuelle Koch-/First-/Third-Person-Systeme eingefuehrt.
+
+Validation:
+- `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+  -> 528 bestanden, 0 Fehler.
+
+Naechster kleinster Schritt:
+- Claude Code: Pushed SHA reviewen und danach das naechste kleine kohaerente
+  Management-/Progression-Queue-Item waehlen.
+
+---
+
+## 2026-06-11 16:30 - Cron (Status check / review item queued)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/CURRENT_DECISION.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `docs/UNITY_PRODUCT_VISION.md`
+- `docs/UNITY_CITY_MAP_UX.md`
+- `git status --short`
+- `git log -1 --oneline`
+- Scope-Suche nach Marketing-/RestaurantDetail-/Controller-Anbindungen
+
+Ergebnis:
+- `REVIEW_QUEUE.md` war `Status: empty`.
+- Worktree war vor diesem Lauf sauber.
+- Letzter Commit laut `git log -1 --oneline`:
+  `06e381d Accept RestaurantDetail staff hiring review`.
+- Entsprechend der Agent-Control-Regel kein Codex-"mach weiter" gestartet,
+  sondern ein konkretes Codex-Item formuliert und Queue auf `Status: open`
+  gesetzt.
+- Item: Unity RestaurantDetail shop marketing controller mutation.
+- Scope: Shop-Marketing fuer bestehende owned Shops nur ueber einen
+  `GameController`-Intent, z. B. `StartShopCampaign(shopId, campaignId)`.
+  `RestaurantDetailView` darf im Marketing-Tab nur diesen Intent ausloesen.
+  Ein UnityEngine-freier Service validiert State, Shop, CampaignId, Scope
+  `Shop`, Duplicate/aktive Kampagne und ausreichend Cash fuer die expliziten
+  Katalogkosten. Erfolg zieht genau diese Kosten ab, fuegt genau eine
+  `ActiveCampaign` mit `StartDay = CurrentDay` und `EndDay = CurrentDay +
+  DurationDays` an `Shop.ActiveCampaigns` hinzu und publiziert Snapshot,
+  RestaurantDetail-Refresh und Toast. Fehler bleiben ohne Mutation und
+  publizieren nur Toasts.
+- Keine City-/Global-Kampagnen-Mutation, keine Preis-/Equipment-/SizeTier-/
+  Personal-/Day-Sim-Mutation ausserhalb bestehender Pfade, keine Save-/
+  PlayerPrefs-/Filesystem-Logik und keine Arcade-Cooking-, Echtzeit-Serving-,
+  CustomerSpawner-, manuelle Koch-, First-/Third-Person-Systeme freigegeben.
+
+Validation:
+- Pflichtdateien geprueft.
+- `git status --short` war vor den Control-File-Updates sauber.
+- Keine Tests ausgefuehrt, da nur Control-/Queue-Dokumentation geaendert wurde.
+
+Naechster kleinster Schritt:
+- Codex: Genau das offene Queue-Item "Unity RestaurantDetail shop marketing
+  controller mutation" umsetzen, fokussierte Tests/Scope-Scan laufen lassen,
+  Ergebnis in `STATUS.md`/`HANDOFF_LOG.md` dokumentieren und Queue danach
+  wieder auf `Status: empty` setzen.
+
+---
+
 ## 2026-06-11 16:08 - Codex (RestaurantDetail staff hiring controller flow review)
 
 Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.

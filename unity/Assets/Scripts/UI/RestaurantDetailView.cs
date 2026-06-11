@@ -92,7 +92,7 @@ namespace DoenerEmpire.UI
                     DrawPersonal(content);
                     break;
                 default:
-                    DrawReadOnlyStub(content, "MARKETING", "Kampagnen werden erst nach der Controller-Anbindung aktiv.");
+                    DrawMarketing(content);
                     break;
             }
         }
@@ -231,6 +231,36 @@ namespace DoenerEmpire.UI
             {
                 controller.HireEmployee(shop.Id, candidate.Id);
             }
+        }
+
+        private void DrawMarketing(Rect content)
+        {
+            GUI.Label(new Rect(content.x + 18, content.y + 14, content.width - 36, 24), "MARKETING", labelStyle);
+
+            float y = content.y + 48;
+            foreach (MarketingCampaign campaign in MarketingCatalog.ShopCampaigns.Take(6))
+            {
+                bool active = shop.ActiveCampaigns.Any(current =>
+                    current.CampaignId == campaign.Id && current.IsActive(gameState.CurrentDay));
+                DrawCampaignRow(new Rect(content.x + 18, y, content.width - 36, 52), campaign, active);
+                y += 60;
+            }
+        }
+
+        private void DrawCampaignRow(Rect rect, MarketingCampaign campaign, bool active)
+        {
+            DrawPanel(rect, Surface);
+            GUI.Label(new Rect(rect.x + 10, rect.y + 7, rect.width * 0.42f, 18), campaign.Name.ToUpperInvariant(), labelStyle);
+            GUI.Label(new Rect(rect.x + 10, rect.y + 28, rect.width * 0.42f, 20), $"{campaign.Cost:n0} EUR - {campaign.DurationDays} Tage", bodyStyle);
+            GUI.Label(new Rect(rect.x + rect.width * 0.48f, rect.y + 9, rect.width * 0.24f, 34), active ? "AKTIV" : $"+{campaign.CustomerBoost:P0} Kunden", bodyStyle);
+
+            GUI.enabled = !active;
+            if (GUI.Button(new Rect(rect.x + rect.width - 132, rect.y + 9, 112, 32), "STARTEN", buttonStyle))
+            {
+                controller.StartShopCampaign(shop.Id, campaign.Id);
+            }
+
+            GUI.enabled = true;
         }
 
         private void DrawReadOnlyStub(Rect content, string title, string text)
