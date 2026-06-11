@@ -3742,6 +3742,24 @@ Ergebnis:
   - Owned/Available KPI-Labels an `UNITY_CITY_MAP_UX.md` angleichen.
   - Locked-Hotspots nur Toast, kein LocationSheet-Wechsel.
   - `GameController`/`EventBus`-Grenze beibehalten.
+## 2026-06-11 07:06 - Cron (Claude review dispatch blocked)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Ergebnis:
+- Worktree clean; `HEAD == origin/main` (`bb9e7fa`).
+- `REVIEW_QUEUE.md` ist offen mit Claude-Reviewer-Item
+  "Unity RestaurantDetail price controller flow review" fuer Commit `f51589c`.
+- n8n-Dispatch an `http://127.0.0.1:5678/webhook/doener-unity-dispatch`
+  fehlgeschlagen: lokale Verbindung konnte nicht hergestellt werden.
+- Keine Code-Aenderung gestartet; Queue bleibt offen.
+
+Naechster Schritt:
+- Naechster Tick erneut n8n-Dispatch fuer das offene Claude-Review-Item
+  versuchen, sobald n8n erreichbar ist.
+
+---
+
 - Keine Code-Implementierung vorgenommen.
 - Management-Spiel-Richtung bestaetigt; keine Arcade-Cooking- oder
   Echtzeit-Serving-Systeme hinzugefuegt.

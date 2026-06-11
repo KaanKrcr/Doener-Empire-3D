@@ -9,8 +9,15 @@ Unity Management-/Progression-Spiel mit Premium 2.5D/3D City Map.
 Arcade Cooking ist verworfen (`docs/UNITY_MVP_ARCADE_PLAN.md` = DEPRECATED).
 
 ## Claude Code (Planner/Reviewer)
-State: queued RestaurantDetail price controller flow review for Claude (2026-06-06 08:33)
+State: blocked - n8n dispatch unavailable for RestaurantDetail price controller flow review (2026-06-11 07:06)
 Done:
+- Current cron run 2026-06-11 07:06: Pflichtdateien gelesen; Worktree clean
+  und `HEAD == origin/main` (`bb9e7fa`). `REVIEW_QUEUE.md` enthaelt weiterhin
+  das offene Claude-Reviewer-Item "Unity RestaurantDetail price controller flow
+  review" fuer Commit `f51589c`. Review-Dispatch an
+  `http://127.0.0.1:5678/webhook/doener-unity-dispatch` wurde versucht, ist
+  aber fehlgeschlagen: lokale n8n-Verbindung konnte nicht hergestellt werden.
+  Keine Code-Aenderung gestartet; Queue bleibt offen.
 - Current Claude run 2026-06-06 08:33: Pflichtdateien gelesen;
   `REVIEW_QUEUE.md` war nach Codex' RestaurantDetail-Preis-Umsetzung wieder
   `Status: empty`. Letzter Commit ist `f51589c` ("Add restaurant detail price
