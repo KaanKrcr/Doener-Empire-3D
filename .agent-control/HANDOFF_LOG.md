@@ -1,5 +1,193 @@
 # HANDOFF_LOG
 
+## 2026-06-11 13:30 - Codex (RestaurantDetail equipment purchase controller mutation)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `git status -sb`
+- `git rev-parse HEAD`
+- `git rev-parse origin/main`
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/HANDOFF_LOG.md` (Tail)
+
+Ergebnis:
+- Offenes Queue-Item "Unity RestaurantDetail equipment purchase controller
+  mutation" umgesetzt.
+- `EquipmentPurchaseService` als UnityEngine-freier Kaufpfad hinzugefuegt:
+  validiert Shop, EquipmentId, Duplicate und Cash.
+- `GameController.BuyEquipment(shopId, equipmentId)` publiziert bei Fehlern nur
+  Toasts; bei Erfolg Snapshot, RestaurantDetail-Refresh und Toast.
+- `RestaurantDetailView` nutzt im Equipment-Tab nur den Controller-Intent und
+  mutiert keinen State direkt.
+- `REVIEW_QUEUE.md` wieder auf `Status: empty` gesetzt.
+
+Validation:
+- `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+  -> 516 bestanden, 0 Fehler.
+- `git diff --check`
+  -> clean, nur Git-LF/CRLF-Warnungen fuer Control-Dateien.
+- Scope-Scan fuer CustomerSpawner/Arcade/Serving/manual/PlayerPrefs/System.IO/
+  File/Directory/first-person/third-person in App, RestaurantDetail,
+  EquipmentPurchaseService und fokussierten Tests -> keine Treffer.
+
+Naechster kleinster Schritt:
+- Claude Code: Pushed SHA reviewen und danach das naechste kleine kohaerente
+  Management-/Progression-Queue-Item waehlen.
+
+---
+
+## 2026-06-11 13:00 - Cron (Status check / review item queued)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/CURRENT_DECISION.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `docs/UNITY_PRODUCT_VISION.md`
+- `docs/UNITY_CITY_MAP_UX.md`
+- `git status --short`
+- `git log -1 --oneline`
+
+Ergebnis:
+- `REVIEW_QUEUE.md` war `Status: empty`.
+- Letzter Commit laut `git log -1 --oneline`:
+  `2ef9ca7 Add restaurant detail size upgrade flow`.
+- Worktree enthielt bereits Control-Datei-Aenderungen in `STATUS.md` und
+  `HANDOFF_LOG.md`; diese wurden nicht zurueckgesetzt.
+- Entsprechend der Agent-Control-Regel kein Codex-"mach weiter" gestartet,
+  sondern ein konkretes Codex-Item formuliert und Queue auf `Status: open`
+  gesetzt.
+- Item: Unity RestaurantDetail equipment purchase controller mutation.
+- Scope: Equipment-Kauf fuer bestehende owned Shops nur ueber einen
+  `GameController`-Intent. `RestaurantDetailView` darf im Equipment-Tab nur den
+  Intent ausloesen. Ein UnityEngine-freier Service validiert Shop, EquipmentId,
+  bereits-besessenes Equipment und Cash. Erfolg zieht genau die Equipment-Kosten
+  ab, fuegt genau ein `ShopEquipment` hinzu und publiziert Snapshot, Detail-
+  Refresh und Toast. Fehler bleiben ohne State-Mutation und publizieren nur
+  Toasts.
+- Keine Personal-/Marketing-Mutation, keine SizeTier-/Preis-Mutation ausserhalb
+  bestehender Pfade, keine Save-/PlayerPrefs-/Filesystem-Logik und keine
+  Arcade-Cooking-, Echtzeit-Serving-, CustomerSpawner-, manuelle Koch-,
+  First-/Third-Person-Systeme freigegeben.
+
+Validation:
+- Pflichtdateien geprueft.
+- Keine Tests ausgefuehrt, da nur Control-/Queue-Dokumentation geaendert wurde.
+
+Naechster kleinster Schritt:
+- Codex: Genau das offene Queue-Item "Unity RestaurantDetail equipment purchase
+  controller mutation" umsetzen, fokussierte Tests/Scope-Scan laufen lassen,
+  Ergebnis in `STATUS.md`/`HANDOFF_LOG.md` dokumentieren und Queue danach wieder
+  auf `Status: empty` setzen.
+
+---
+
+## 2026-06-11 12:30 - Cron (Claude review accepted)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/CURRENT_DECISION.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `docs/UNITY_PRODUCT_VISION.md`
+- `docs/UNITY_CITY_MAP_UX.md`
+- `unity/Assets/Scripts/App/GameController.cs`
+- `unity/Assets/Scripts/UI/RestaurantDetailView.cs`
+- `unity/Assets/Scripts/Simulation/ShopExpansionService.cs`
+- `unity-logic-tests/DoenerEmpire.Logic.Tests/ShopExpansionServiceTests.cs`
+
+Review:
+- Offenes Queue-Item "Unity RestaurantDetail size-tier controller flow review"
+  fuer Commit `2ef9ca7` geprueft.
+- Ergebnis: akzeptiert.
+- `GameController.UpgradeShopSizeTier(shopId)` ist die zentrale SizeTier-
+  Mutationsgrenze; bei Fehlern wird nur ein Toast publiziert, bei Erfolg
+  Snapshot, RestaurantDetail-Refresh und Toast.
+- `RestaurantDetailView` ruft im Ausbau-Tab ausschliesslich den Controller-
+  Intent auf und mutiert `GameState`, `Shop`, Cash, Save-State, Dateien oder
+  Hotspots nicht direkt.
+- `ShopExpansionService` bleibt UnityEngine-frei, validiert Shop, naechste
+  Stufe, Stadt-/Personal-Cap, Max-Tier und ausreichend Cash; ungueltige
+  Eingaben, City-Cap/Max-Tier und zu wenig Cash bleiben ohne State-Mutation.
+- Equipment, Personal und Marketing bleiben read-only/stubbed; keine
+  zusaetzlichen Management-Aktionen wurden eingefuehrt.
+- Management-/Progression-Richtung bleibt intakt; keine Arcade-Cooking-,
+  Echtzeit-Serving-, CustomerSpawner-, manuelle Koch-, First-/Third-Person-
+  Systeme.
+- `REVIEW_QUEUE.md` auf `Status: empty` gesetzt.
+
+Validation:
+- `git status --short`
+  -> Control-Dateien waren bereits durch den 09:33-Queue-Lauf modified.
+- `git log -1 --oneline`
+  -> `2ef9ca7 Add restaurant detail size upgrade flow`.
+- `dotnet test unity-logic-tests\DoenerEmpire.Logic.Tests\DoenerEmpire.Logic.Tests.csproj`
+  -> 511 bestanden, 0 Fehler.
+- Scope-Scan fuer CustomerSpawner/Arcade/Serving/manual/PlayerPrefs/System.IO/
+  File/Directory/first-person/third-person/Equipment/Personal/Marketing/
+  Cash/SizeTier/Upgrade:
+  -> nur erwartete SizeTier/Cash-Mutation in `ShopExpansionService`, Controller-
+     Intent/View-Trigger sowie bestehende Management-, Katalog- und Test-Treffer.
+- UnityEngine-Scan in Simulation/Models/Core plus `ShopExpansionServiceTests`:
+  -> keine UnityEngine-Abhaengigkeit im neuen Service; nur bestehende Kommentare
+     in Modelldateien.
+
+Naechster kleinster Schritt:
+- Claude/Kaan muss bei Bedarf das naechste konkrete Review-Item definieren.
+  Codex soll bei leerer Queue nicht pauschal weitermachen.
+
+---
+
+## 2026-06-11 09:33 - Cron (Status check / review item queued)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/CURRENT_DECISION.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `docs/UNITY_PRODUCT_VISION.md`
+- `docs/UNITY_CITY_MAP_UX.md`
+- `git status --short`
+- `git log -1 --oneline`
+
+Ergebnis:
+- `REVIEW_QUEUE.md` war `Status: empty`.
+- Worktree sauber; `HEAD == origin/main`.
+- Letzter Commit laut `git log -1 --oneline`:
+  `2ef9ca7 Add restaurant detail size upgrade flow`.
+- Entsprechend der Agent-Control-Regel kein Codex-"mach weiter" gestartet,
+  sondern ein konkretes Review-Item formuliert und Queue auf `Status: open`
+  gesetzt.
+- Item: Unity RestaurantDetail size-tier controller flow review.
+- Scope: Commit `2ef9ca7` pruefen: SizeTier-Ausbau nur ueber
+  `GameController.UpgradeShopSizeTier(shopId)`, `RestaurantDetailView` nur als
+  Intent-Ausloeser, `ShopExpansionService` UnityEngine-frei mit Validierung fuer
+  Shop, naechste Stufe, Stadt-/Personal-Cap, Max-Tier und Cash.
+- Keine Equipment-/Personal-/Marketing-Mutation, keine Save-/PlayerPrefs-/
+  Filesystem-Logik und keine Arcade-Cooking-, Echtzeit-Serving-,
+  CustomerSpawner-, manuelle Koch-, First-/Third-Person-Systeme freigegeben.
+
+Validation:
+- Pflichtdateien geprueft.
+- `git status --short` war vor den Control-File-Updates sauber.
+- Keine Tests ausgefuehrt, da nur Control-/Queue-Dokumentation geaendert wurde.
+
+Naechster kleinster Schritt:
+- Claude Code: Genau das offene Review-Item fuer Commit `2ef9ca7` reviewen,
+  `dotnet test` und Scope-Scan laufen lassen, Ergebnis in `STATUS.md`/
+  `HANDOFF_LOG.md` dokumentieren und Queue danach wieder auf `Status: empty`
+  setzen.
+
+---
+
 ## 2026-06-11 09:30 - Codex (RestaurantDetail size-tier controller mutation)
 
 Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.

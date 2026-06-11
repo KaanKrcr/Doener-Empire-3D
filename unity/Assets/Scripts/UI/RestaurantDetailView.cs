@@ -1,5 +1,6 @@
 using System.Linq;
 using DoenerEmpire.App;
+using DoenerEmpire.Data;
 using DoenerEmpire.Models;
 using UnityEngine;
 
@@ -84,7 +85,7 @@ namespace DoenerEmpire.UI
                     DrawAusbau(content);
                     break;
                 case 2:
-                    DrawReadOnlyStub(content, "EQUIPMENT", "Equipment-Kauf folgt spaeter ueber GameController-Intents.");
+                    DrawEquipment(content);
                     break;
                 case 3:
                     DrawReadOnlyStub(content, "PERSONAL", "Personal einstellen/feuern bleibt in diesem Slice bewusst deaktiviert.");
@@ -165,6 +166,35 @@ namespace DoenerEmpire.UI
 
             GUI.enabled = true;
             GUI.Label(new Rect(content.x + 252, content.y + 198, content.width - 270, 48), "Mutation laeuft ausschliesslich ueber den GameController.", bodyStyle);
+        }
+
+        private void DrawEquipment(Rect content)
+        {
+            GUI.Label(new Rect(content.x + 18, content.y + 14, content.width - 36, 24), "EQUIPMENT", labelStyle);
+
+            float y = content.y + 48;
+            foreach (EquipmentData equipment in GameCatalog.AllEquipment.Take(6))
+            {
+                bool owned = shop.HasEquipment(equipment.Id);
+                DrawEquipmentRow(new Rect(content.x + 18, y, content.width - 36, 52), equipment, owned);
+                y += 60;
+            }
+        }
+
+        private void DrawEquipmentRow(Rect rect, EquipmentData equipment, bool owned)
+        {
+            DrawPanel(rect, Surface);
+            GUI.Label(new Rect(rect.x + 10, rect.y + 7, rect.width * 0.46f, 18), equipment.Name.ToUpperInvariant(), labelStyle);
+            GUI.Label(new Rect(rect.x + 10, rect.y + 28, rect.width * 0.46f, 20), $"{equipment.Price:n0} EUR", bodyStyle);
+            GUI.Label(new Rect(rect.x + rect.width * 0.5f, rect.y + 9, rect.width * 0.22f, 34), owned ? "INSTALLIERT" : equipment.Category.ToString().ToUpperInvariant(), bodyStyle);
+
+            GUI.enabled = !owned;
+            if (GUI.Button(new Rect(rect.x + rect.width - 132, rect.y + 9, 112, 32), "KAUFEN", buttonStyle))
+            {
+                controller.BuyEquipment(shop.Id, equipment.Id);
+            }
+
+            GUI.enabled = true;
         }
 
         private void DrawReadOnlyStub(Rect content, string title, string text)

@@ -9,8 +9,51 @@ Unity Management-/Progression-Spiel mit Premium 2.5D/3D City Map.
 Arcade Cooking ist verworfen (`docs/UNITY_MVP_ARCADE_PLAN.md` = DEPRECATED).
 
 ## Claude Code (Planner/Reviewer)
-State: queued - RestaurantDetail size-tier controller mutation (2026-06-11 09:08)
+State: review item queued - RestaurantDetail equipment purchase controller mutation (2026-06-11 13:00)
 Done:
+- Current cron run 2026-06-11 13:00: Pflichtdateien gelesen;
+  `REVIEW_QUEUE.md` war `Status: empty`. Letzter Commit ist `2ef9ca7`
+  ("Add restaurant detail size upgrade flow"). Entsprechend der Agent-Control-
+  Regel wurde kein pauschales Codex-"mach weiter" gestartet, sondern ein
+  konkretes Codex-Item formuliert: "Unity RestaurantDetail equipment purchase
+  controller mutation". Scope: Equipment-Kauf fuer bestehende owned Shops nur
+  ueber einen `GameController`-Intent; `RestaurantDetailView` darf im
+  Equipment-Tab nur diesen Intent ausloesen. Service bleibt UnityEngine-frei
+  und validiert Shop, EquipmentId, Duplicate und Cash; Erfolg zieht Kosten ab,
+  fuegt genau ein `ShopEquipment` hinzu und publiziert Snapshot, Detail-Refresh
+  und Toast. Fehler bleiben ohne Mutation und publizieren nur Toasts. Keine
+  Personal-/Marketing-Mutation, keine SizeTier-/Preis-Mutation ausserhalb
+  bestehender Pfade, keine Save-/PlayerPrefs-/Filesystem-Logik und keine
+  Arcade-/Realtime-Serving-/CustomerSpawner-/manuelle Koch-/First-/Third-
+  Person-Systeme freigegeben.
+- Current cron run 2026-06-11 12:30: Pflichtdateien gelesen und offenes
+  Queue-Item "Unity RestaurantDetail size-tier controller flow review" fuer
+  Commit `2ef9ca7` geprueft. Ergebnis: akzeptiert.
+  `GameController.UpgradeShopSizeTier(shopId)` ist die zentrale SizeTier-
+  Mutationsgrenze; Erfolg publiziert Snapshot, RestaurantDetail-Refresh und
+  Toast, Fehler publizieren nur Toast. `RestaurantDetailView` ruft im Ausbau-
+  Tab ausschliesslich diesen Controller-Intent auf und mutiert `GameState`,
+  `Shop`, Cash, Save-State, Dateien oder Hotspots nicht direkt.
+  `ShopExpansionService` bleibt UnityEngine-frei, validiert Shop, naechste
+  Stufe, Stadt-/Personal-Cap, Max-Tier und ausreichend Cash; ungueltige Faelle
+  bleiben ohne State-Mutation. Keine Equipment-/Personal-/Marketing-Mutation,
+  keine Save-/PlayerPrefs-/Filesystem-Logik und keine Arcade-/Realtime-Serving-/
+  CustomerSpawner-/manuelle Koch-/First-/Third-Person-Systeme eingefuehrt.
+  Tests gruen; Queue auf `Status: empty` gesetzt.
+- Current cron run 2026-06-11 09:33: Pflichtdateien gelesen;
+  `REVIEW_QUEUE.md` war nach Codex' Size-Tier-Umsetzung wieder `Status:
+  empty`. Worktree sauber; `HEAD == origin/main` (`2ef9ca7`, "Add restaurant
+  detail size upgrade flow"). Entsprechend der Agent-Control-Regel wurde kein
+  pauschales Codex-"mach weiter" gestartet, sondern ein konkretes Review-Item
+  formuliert: "Unity RestaurantDetail size-tier controller flow review".
+  Scope: Commit `2ef9ca7` gegen Management-Spiel-Richtung pruefen:
+  `GameController.UpgradeShopSizeTier(shopId)` ist die einzige
+  SizeTier-Mutationsgrenze, `RestaurantDetailView` feuert nur den Intent,
+  `ShopExpansionService` bleibt UnityEngine-frei und validiert Shop, naechste
+  Stufe, Stadt-/Personal-Cap, Max-Tier und Cash ohne Mutation bei Fehlern.
+  Keine Equipment-/Personal-/Marketing-Mutation, keine Save-/PlayerPrefs-/
+  Filesystem-Logik und keine Arcade-/Realtime-Serving-/CustomerSpawner-/
+  manuelle Koch-/First-/Third-Person-Systeme freigegeben.
 - Current cron run 2026-06-11 09:08: Pflichtdateien gelesen;
   `REVIEW_QUEUE.md` war `Status: empty`. Letzter Commit ist `80689f5`
   ("Add city map opening forecast"). Entsprechend der Agent-Control-Regel wurde
@@ -199,7 +242,7 @@ Done:
   fehlt, kein Fokus-Tween, IMGUI statt UI Toolkit (erwartet Schritt 7).
 - Bereit fuer Unity-Editor-Test: Bootstrap auto-fires, keine manuellen Scene-Objekte.
 Next:
-- Codex: Genau das offene Queue-Item "Unity RestaurantDetail size-tier
+- Codex: Genau das offene Queue-Item "Unity RestaurantDetail equipment purchase
   controller mutation" umsetzen, fokussierte Tests und Scope-Scan laufen
   lassen, Ergebnis in `STATUS.md`/`HANDOFF_LOG.md` dokumentieren und Queue
   danach wieder auf `Status: empty` setzen.
@@ -210,8 +253,22 @@ Next:
   Available: KONKURRENZ); Locked-Tap auf Toast-only umstellen.
 
 ## Codex (Implementation)
-State: complete - Unity RestaurantDetail size-tier controller mutation implemented, validation green (2026-06-11)
+State: complete - Unity RestaurantDetail equipment purchase controller mutation implemented, validation green (2026-06-11)
 Done:
+- Current Codex run 2026-06-11 13:30: Offenes Review-Item
+  "Unity RestaurantDetail equipment purchase controller mutation" umgesetzt:
+  - `EquipmentPurchaseService` als UnityEngine-freier Kaufpfad hinzugefuegt;
+    validiert Shop, EquipmentId, Duplicate und ausreichend Cash.
+  - `GameController.BuyEquipment(shopId, equipmentId)` ist der einzige Intent
+    fuer Equipment-Kauf; Fehler publizieren nur Toasts, Erfolg zieht Kosten ab,
+    fuegt genau ein `ShopEquipment` hinzu, publiziert Snapshot, Detail-Refresh
+    und Toast.
+  - `RestaurantDetailView` loest im Equipment-Tab nur diesen Controller-Intent
+    aus; keine direkte Mutation von `GameState`, `Shop`, Cash, Equipment-Liste,
+    Save-State, Dateien oder Hotspots.
+  - Fokussierte Tests decken erfolgreichen Kauf sowie ungueltigen Shop,
+    ungueltiges Equipment, Duplicate und zu wenig Cash ohne Mutation ab.
+  - `REVIEW_QUEUE.md` wieder auf `Status: empty` gesetzt.
 - Current Codex run 2026-06-11 09:30: Offenes Review-Item
   "Unity RestaurantDetail size-tier controller mutation" umgesetzt:
   - `ShopExpansionService` als UnityEngine-freier Ausbaupfad hinzugefuegt;

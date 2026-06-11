@@ -76,6 +76,7 @@ namespace DoenerEmpire.App
         private readonly ShopOpeningService shopOpeningService = new();
         private readonly ProductPricingService productPricingService = new();
         private readonly ShopExpansionService shopExpansionService = new();
+        private readonly EquipmentPurchaseService equipmentPurchaseService = new();
 
         public GameController(GameState initialState, EventBus eventBus)
         {
@@ -202,6 +203,20 @@ namespace DoenerEmpire.App
             PublishSnapshot();
             Events.Publish(new RestaurantDetailRequestedEvent(shopId));
             Events.Publish(new ToastRequestedEvent($"Ausbau auf {ShopSizing.Label(result.NewTier)} abgeschlossen."));
+        }
+
+        public void BuyEquipment(string shopId, string equipmentId)
+        {
+            EquipmentPurchaseResult result = equipmentPurchaseService.BuyEquipment(state, shopId, equipmentId);
+            if (!result.Success)
+            {
+                Events.Publish(new ToastRequestedEvent(result.ErrorMessage));
+                return;
+            }
+
+            PublishSnapshot();
+            Events.Publish(new RestaurantDetailRequestedEvent(shopId));
+            Events.Publish(new ToastRequestedEvent("Equipment installiert."));
         }
 
         public void SimulateDay()
