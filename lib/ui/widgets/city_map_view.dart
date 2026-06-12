@@ -99,9 +99,13 @@ class _CityMapViewState extends State<CityMapView> {
     for (final loc in widget.locations) {
       var t = CityMapView._tileFor(loc);
       var guard = 0;
-      while (placed.containsKey(t) && guard < CityMapView._gridN * CityMapView._gridN) {
-        t = _Tile((t.col + 1) % CityMapView._gridN,
-            t.col + 1 >= CityMapView._gridN ? (t.row + 1) % CityMapView._gridN : t.row);
+      while (placed.containsKey(t) &&
+          guard < CityMapView._gridN * CityMapView._gridN) {
+        t = _Tile(
+            (t.col + 1) % CityMapView._gridN,
+            t.col + 1 >= CityMapView._gridN
+                ? (t.row + 1) % CityMapView._gridN
+                : t.row);
         guard++;
       }
       placed[t] = loc;
@@ -109,7 +113,8 @@ class _CityMapViewState extends State<CityMapView> {
 
     // Tiefensortierung: hintere Tiles (kleines col+row) zuerst → vorne oben.
     final ordered = placed.entries.toList()
-      ..sort((a, b) => (a.key.col + a.key.row).compareTo(b.key.col + b.key.row));
+      ..sort(
+          (a, b) => (a.key.col + a.key.row).compareTo(b.key.col + b.key.row));
 
     return AspectRatio(
       aspectRatio: 1.15,
@@ -145,7 +150,8 @@ class _CityMapViewState extends State<CityMapView> {
                   ),
                 ),
               ),
-              Positioned(left: 16, top: 16, child: _CityBadge(city: widget.city)),
+              Positioned(
+                  left: 16, top: 16, child: _CityBadge(city: widget.city)),
               const Positioned(
                 right: 14,
                 bottom: 12,
@@ -161,7 +167,9 @@ class _CityMapViewState extends State<CityMapView> {
   Widget _buildHotspot(_Tile tile, CityMapLocation location) {
     final base = CityMapView._iso(tile.col.toDouble(), tile.row.toDouble());
     final owned = widget.shops
-        .where((s) => s.cityId == widget.city.id && s.locationName == location.template.name)
+        .where((s) =>
+            s.cityId == widget.city.id &&
+            s.locationName == location.template.name)
         .length;
     final isSelected = widget.selected?.id == location.id;
     final score = location.attractivenessScore(widget.city).round();
@@ -181,7 +189,8 @@ class _CityMapViewState extends State<CityMapView> {
     final top = base.dy - height - footprint * 0.30;
 
     // Sprite-Slot (falls echtes Asset geladen) → sonst Vektor-Fallback.
-    final sprite = _sprites[IsoArt.slotFor(owned: owned > 0, ownedCount: owned)];
+    final sprite =
+        _sprites[IsoArt.slotFor(owned: owned > 0, ownedCount: owned)];
 
     return Positioned(
       left: left,
@@ -209,7 +218,8 @@ class _CityMapViewState extends State<CityMapView> {
                 CustomPaint(
                   size: Size(footprint, height + footprint * 0.5),
                   painter: sprite != null
-                      ? _SpriteBuildingPainter(image: sprite, lit: isSelected, glow: color)
+                      ? _SpriteBuildingPainter(
+                          image: sprite, lit: isSelected, glow: color)
                       : _IsoBuildingPainter(
                           color: color,
                           height: height,
@@ -275,7 +285,8 @@ class _Label extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             text,
-            style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w800),
+            style: TextStyle(
+                color: color, fontSize: 11, fontWeight: FontWeight.w800),
           ),
         ],
       ),
@@ -324,10 +335,12 @@ class _CityBadge extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(city.name, style: AppText.display(size: 16, weight: FontWeight.w800)),
+              Text(city.name,
+                  style: AppText.display(size: 16, weight: FontWeight.w800)),
               Text(
                 city.tier.label,
-                style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
+                style: const TextStyle(
+                    color: AppColors.textSecondary, fontSize: 11),
               ),
             ],
           ),
@@ -377,7 +390,8 @@ class _IsoBuildingPainter extends CustomPainter {
 
     // Bodenschatten
     canvas.drawOval(
-      Rect.fromCenter(center: Offset(cx + 7, baseY + 4), width: w * 0.92, height: th * 0.7),
+      Rect.fromCenter(
+          center: Offset(cx + 7, baseY + 4), width: w * 0.92, height: th * 0.7),
       Paint()
         ..color = Colors.black.withAlpha(105)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 7),
@@ -388,7 +402,8 @@ class _IsoBuildingPainter extends CustomPainter {
 
     // Wandfarben (Licht von rechts oben)
     final hsl = HSLColor.fromColor(color);
-    Color shade(double f) => hsl.withLightness((hsl.lightness * f).clamp(0.0, 1.0)).toColor();
+    Color shade(double f) =>
+        hsl.withLightness((hsl.lightness * f).clamp(0.0, 1.0)).toColor();
     final roofPaint = Paint()..color = shade(1.15);
     final leftWall = Paint()..color = shade(0.55);
     final rightWall = Paint()..color = shade(0.80);
@@ -428,8 +443,14 @@ class _IsoBuildingPainter extends CustomPainter {
     // Dach-Aufbauten (AC-Units)
     final acPaint = Paint()..color = shade(0.7);
     final roofC = Offset(cx, up(top).dy + (up(bottom).dy - up(top).dy) * 0.5);
-    canvas.drawRect(Rect.fromCenter(center: roofC.translate(-w * 0.12, -2), width: 12, height: 8), acPaint);
-    canvas.drawRect(Rect.fromCenter(center: roofC.translate(w * 0.14, 3), width: 9, height: 6), acPaint);
+    canvas.drawRect(
+        Rect.fromCenter(
+            center: roofC.translate(-w * 0.12, -2), width: 12, height: 8),
+        acPaint);
+    canvas.drawRect(
+        Rect.fromCenter(
+            center: roofC.translate(w * 0.14, 3), width: 9, height: 6),
+        acPaint);
 
     if (owned) {
       // Schildband oben auf der Frontwand (rechts)
@@ -437,7 +458,8 @@ class _IsoBuildingPainter extends CustomPainter {
       // Döner-Leuchtschild auf dem Dach
       _roofSign(canvas, roofC);
       // Neon-Umrandung der Silhouette
-      _neonRim(canvas, [up(left), up(top), up(right), right, bottom, left], up(bottom), bottom);
+      _neonRim(canvas, [up(left), up(top), up(right), right, bottom, left],
+          up(bottom), bottom);
     }
 
     // Auswahl-Glow
@@ -457,7 +479,8 @@ class _IsoBuildingPainter extends CustomPainter {
     return Offset(base.dx, base.dy - h * t);
   }
 
-  void _windows(Canvas canvas, Offset p0, Offset p1, double h, int cols, int rows,
+  void _windows(
+      Canvas canvas, Offset p0, Offset p1, double h, int cols, int rows,
       {required bool warm, required bool dim}) {
     final dark = Paint()..color = Colors.black.withAlpha(dim ? 70 : 55);
     var s = seed == 0 ? 11 : seed;
@@ -470,10 +493,14 @@ class _IsoBuildingPainter extends CustomPainter {
         final ws = (0.76 / cols) * wsf;
         final wt = (0.74 / rows) * 0.55;
         final quad = Path()
-          ..moveTo(_wp(p0, p1, h, sx - ws / 2, ty - wt / 2).dx, _wp(p0, p1, h, sx - ws / 2, ty - wt / 2).dy)
-          ..lineTo(_wp(p0, p1, h, sx + ws / 2, ty - wt / 2).dx, _wp(p0, p1, h, sx + ws / 2, ty - wt / 2).dy)
-          ..lineTo(_wp(p0, p1, h, sx + ws / 2, ty + wt / 2).dx, _wp(p0, p1, h, sx + ws / 2, ty + wt / 2).dy)
-          ..lineTo(_wp(p0, p1, h, sx - ws / 2, ty + wt / 2).dx, _wp(p0, p1, h, sx - ws / 2, ty + wt / 2).dy)
+          ..moveTo(_wp(p0, p1, h, sx - ws / 2, ty - wt / 2).dx,
+              _wp(p0, p1, h, sx - ws / 2, ty - wt / 2).dy)
+          ..lineTo(_wp(p0, p1, h, sx + ws / 2, ty - wt / 2).dx,
+              _wp(p0, p1, h, sx + ws / 2, ty - wt / 2).dy)
+          ..lineTo(_wp(p0, p1, h, sx + ws / 2, ty + wt / 2).dx,
+              _wp(p0, p1, h, sx + ws / 2, ty + wt / 2).dy)
+          ..lineTo(_wp(p0, p1, h, sx - ws / 2, ty + wt / 2).dx,
+              _wp(p0, p1, h, sx - ws / 2, ty + wt / 2).dy)
           ..close();
         final isLit = (s % 100) < (warm ? 70 : 38);
         if (isLit) {
@@ -504,13 +531,17 @@ class _IsoBuildingPainter extends CustomPainter {
 
   void _roofSign(Canvas canvas, Offset roofC) {
     final p = roofC.translate(0, -10);
-    canvas.drawCircle(p, 7, Paint()
-      ..color = AppColors.primary.withAlpha(160)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8));
+    canvas.drawCircle(
+        p,
+        7,
+        Paint()
+          ..color = AppColors.primary.withAlpha(160)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8));
     canvas.drawCircle(p, 4, Paint()..color = AppColors.gold);
   }
 
-  void _neonRim(Canvas canvas, List<Offset> roofAndBase, Offset upBottom, Offset bottom) {
+  void _neonRim(
+      Canvas canvas, List<Offset> roofAndBase, Offset upBottom, Offset bottom) {
     final outline = Path()..moveTo(roofAndBase.first.dx, roofAndBase.first.dy);
     for (final pt in roofAndBase.skip(1)) {
       outline.lineTo(pt.dx, pt.dy);
@@ -554,7 +585,11 @@ class _IsoBuildingPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _IsoBuildingPainter old) =>
-      old.color != color || old.height != height || old.lit != lit || old.owned != owned || old.seed != seed;
+      old.color != color ||
+      old.height != height ||
+      old.lit != lit ||
+      old.owned != owned ||
+      old.seed != seed;
 }
 
 /// Zeichnet ein geladenes Iso-Sprite (PNG) als Gebäude: Bodenschatten,
@@ -563,7 +598,8 @@ class _SpriteBuildingPainter extends CustomPainter {
   final ui.Image image;
   final bool lit;
   final Color glow;
-  _SpriteBuildingPainter({required this.image, required this.lit, required this.glow});
+  _SpriteBuildingPainter(
+      {required this.image, required this.lit, required this.glow});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -572,7 +608,10 @@ class _SpriteBuildingPainter extends CustomPainter {
 
     // Bodenschatten unter dem Sprite
     canvas.drawOval(
-      Rect.fromCenter(center: Offset(size.width / 2 + 6, baseY + 2), width: size.width * 0.8, height: th * 0.6),
+      Rect.fromCenter(
+          center: Offset(size.width / 2 + 6, baseY + 2),
+          width: size.width * 0.8,
+          height: th * 0.6),
       Paint()
         ..color = Colors.black.withAlpha(100)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 7),
@@ -621,7 +660,8 @@ class IsoArt {
   const IsoArt._();
 
   static const Map<String, String> manifest = {
-    'owned': 'assets/iso/building_owned.png', // eigene Filiale (Hero-Restaurant)
+    'owned':
+        'assets/iso/building_owned.png', // eigene Filiale (Hero-Restaurant)
     'empty': 'assets/iso/building_empty.png', // freier/baubarer Standort
   };
 
@@ -681,7 +721,8 @@ class _IsoGroundPainter extends CustomPainter {
         if (seed % 100 < 42) continue; // ~42% Tiles bleiben leer
         final center = _iso(c.toDouble(), r.toDouble());
         final h = 18.0 + (seed % 30);
-        _decoBuilding(canvas, center, CityMapView._tileW * 0.62, h, deco, decoRoof);
+        _decoBuilding(
+            canvas, center, CityMapView._tileW * 0.62, h, deco, decoRoof);
       }
     }
 
@@ -712,7 +753,8 @@ class _IsoGroundPainter extends CustomPainter {
     canvas.drawLine(a, b, line);
   }
 
-  void _decoBuilding(Canvas canvas, Offset center, double w, double h, Paint wall, Paint roof) {
+  void _decoBuilding(Canvas canvas, Offset center, double w, double h,
+      Paint wall, Paint roof) {
     final th = w * 0.5;
     final top = Offset(center.dx, center.dy - th / 2);
     final right = Offset(center.dx + w / 2, center.dy);
@@ -750,5 +792,6 @@ class _IsoGroundPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _IsoGroundPainter old) => old.occupied != occupied;
+  bool shouldRepaint(covariant _IsoGroundPainter old) =>
+      old.occupied != occupied;
 }

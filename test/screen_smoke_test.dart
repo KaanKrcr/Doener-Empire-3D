@@ -7,6 +7,7 @@ import 'package:doener_empire/ui/main_scaffold.dart';
 import 'package:doener_empire/ui/screens/achievements_screen.dart';
 import 'package:doener_empire/ui/screens/branding_screen.dart';
 import 'package:doener_empire/ui/screens/campaign_screen.dart';
+import 'package:doener_empire/ui/screens/city_map_screen.dart';
 import 'package:doener_empire/ui/screens/empire_card_screen.dart';
 import 'package:doener_empire/ui/screens/settings_screen.dart';
 import 'package:doener_empire/ui/screens/shop_detail_screen.dart';
@@ -104,6 +105,11 @@ void main() {
 
   testWidgets('Städte-Tab rendert ohne Exception', (tester) async {
     await _pumpTab(tester, 1); // CitiesScreen
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('City-Map rendert ohne Exception', (tester) async {
+    await _pumpScreen(tester, const CityMapScreen(cityId: 'berlin'));
     expect(tester.takeException(), isNull);
   });
 
