@@ -11,8 +11,36 @@ und klarer Android-APK-Spur ueber `flutter build apk --release`.
 Arcade Cooking, Echtzeit-Kundenbedienung und parallele Unity-App sind verworfen.
 
 ## Claude Code (Planner/Reviewer)
-State: Flutter-only migration in progress (2026-06-11 19:40)
+State: Flutter-only City Map competition slice complete (2026-06-12 06:04)
 Done:
+- Current Codex run 2026-06-12 06:04: Kaan hat direkt beauftragt, am Spiel
+  weiterzuarbeiten, ausdruecklich Flutter statt Unity. Kleiner Flutter-Slice
+  umgesetzt: City Map zeigt jetzt Konkurrenzdruck als Entscheidungshilfe.
+  `LocationEngine.competitionBrief(...)` fasst Rivalen je Stadt zusammen
+  (Anzahl, Rivalen-Filialen, Marktanteil, staerkster Rivale, Drucklabel und
+  operative Empfehlung). `CityMapScreen` zeigt das Drucklabel im Summary-Strip
+  und eine konkrete Konkurrenz-Empfehlung im Standortpanel. Testabdeckung in
+  `test/location_engine_test.dart` ergaenzt. Keine Unity-Dateien angefasst,
+  kein APK-/Dateiversand an Kaan. Validation: `flutter analyze` gruen,
+  `flutter test` gruen mit 99 bestandenen Tests, `git diff --check` clean
+  (nur bekannte LF/CRLF-Warnungen).
+- Current cron run 2026-06-12 05:41: Pflichtdateien gelesen. `REVIEW_QUEUE.md`
+  ist `Status: empty`, `HEAD == origin/main` bei `6586275`. Worktree enthaelt
+  nur erwartete Control-Datei-Aenderungen aus dem 2026-06-11-20:30-Statuscheck.
+  Gemaess Queue-Regel sollte n8n/Claude das naechste kleine Flutter-
+  Management-/Progression-Item waehlen; Dispatch an
+  `http://127.0.0.1:5678/webhook/doener-unity-dispatch` ist jedoch fehlgeschlagen
+  (Remoteverbindung nicht herstellbar). Keine Codex-Implementierung aus leerer
+  Queue gestartet.
+- Current cron run 2026-06-11 20:30: Pflichtdateien gelesen. `CURRENT_DECISION.md`
+  bindet Doener Empire auf Flutter-only; Unity ist beendet. `REVIEW_QUEUE.md`
+  ist `Status: empty` und verlangt inzwischen explizit: Review-Items muessen
+  Flutter betreffen, keine Unity-Review- oder Implementation-Items erzeugen,
+  bei leerer Queue `Status: empty` behalten. Deshalb wurde kein veraltetes
+  Unity-Review-Item neu formuliert und keine Codex-Implementierung gestartet.
+  `docs/UNITY_PRODUCT_VISION.md` und `docs/UNITY_CITY_MAP_UX.md` existieren
+  nach dem Unity-Retirement nicht mehr. Worktree sauber; letzter Commit:
+  `6586275` ("Retire Unity and port shop console to Flutter").
 - Current run 2026-06-11 19:40: Kaan hat klargestellt, dass Doener Empire auf
   Flutter weitergefuehrt werden soll und Unity nicht mehr verwendet werden darf.
   Der Premium-Console-Look aus dem Unity-RestaurantDetail-Slice wurde in die

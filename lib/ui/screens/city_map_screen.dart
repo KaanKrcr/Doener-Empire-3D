@@ -37,6 +37,7 @@ class _CityMapScreenState extends ConsumerState<CityMapScreen> {
     final cityShops =
         game.shops.where((shop) => shop.cityId == city.id).toList();
     final summary = LocationEngine.summarize(city, game.shops);
+    final competition = LocationEngine.competitionBrief(game, city.id);
 
     return Scaffold(
       backgroundColor: AppColors.bg,
@@ -46,7 +47,7 @@ class _CityMapScreenState extends ConsumerState<CityMapScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
         children: [
-          _SummaryStrip(summary: summary),
+          _SummaryStrip(summary: summary, competition: competition),
           const SizedBox(height: 14),
           CityMapView(
             city: city,
@@ -64,6 +65,7 @@ class _CityMapScreenState extends ConsumerState<CityMapScreen> {
                   .where((shop) => shop.locationName == selected.template.name)
                   .length,
               cash: game.cash,
+              competition: competition,
               onOpenShop: () => context.push(
                 '/open-shop/${city.id}?location=${Uri.encodeComponent(selected.template.name)}',
               ),
@@ -94,7 +96,12 @@ class _CityMapScreenState extends ConsumerState<CityMapScreen> {
 
 class _SummaryStrip extends StatelessWidget {
   final CityMapSummary summary;
-  const _SummaryStrip({required this.summary});
+  final CityCompetitionBrief competition;
+
+  const _SummaryStrip({
+    required this.summary,
+    required this.competition,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -120,11 +127,10 @@ class _SummaryStrip extends StatelessWidget {
               value: '${_fmt.format(summary.weeklyRent)} €',
               color: AppColors.warning),
           _Metric(
-              label: 'Ruf',
-              value: summary.hasPresence
-                  ? summary.avgReputation.toStringAsFixed(1)
-                  : '—',
-              color: AppColors.gold),
+            label: 'Konkurrenz',
+            value: competition.pressureLabel,
+            color: competition.hasRivals ? AppColors.danger : AppColors.gold,
+          ),
         ],
       ),
     );
@@ -159,6 +165,7 @@ class _LocationPanel extends StatelessWidget {
   final CityMapLocation location;
   final int shopCount;
   final double cash;
+  final CityCompetitionBrief competition;
   final VoidCallback onOpenShop;
 
   const _LocationPanel({
@@ -166,6 +173,7 @@ class _LocationPanel extends StatelessWidget {
     required this.location,
     required this.shopCount,
     required this.cash,
+    required this.competition,
     required this.onOpenShop,
   });
 
@@ -250,6 +258,12 @@ class _LocationPanel extends StatelessWidget {
               icon: Icons.lightbulb_outline_rounded,
               text: location.recommendation,
               color: AppColors.accent),
+          const SizedBox(height: 8),
+          _Insight(
+            icon: Icons.shield_outlined,
+            text: competition.recommendation,
+            color: competition.hasRivals ? AppColors.danger : AppColors.gold,
+          ),
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,

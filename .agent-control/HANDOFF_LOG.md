@@ -1,5 +1,104 @@
 # HANDOFF_LOG
 
+## 2026-06-12 06:04 - Codex (Flutter City Map competition pressure)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Ausloeser:
+- Kaan: "Fuehre mit den Arbeit rund um das Spiel weiter - kein Unity sondern
+  weiter an flutter"
+
+Ergebnis:
+- Nur Flutter-Spur bearbeitet.
+- `LocationEngine.competitionBrief(...)` ergaenzt. Die City Map kann jetzt je
+  Stadt Rivalen-Anzahl, Rivalen-Filialen, kumulierten Konkurrenz-Marktanteil,
+  staerksten Rivalen, Drucklabel und operative Empfehlung liefern.
+- `CityMapScreen` zeigt das Konkurrenz-Drucklabel im Summary-Strip und im
+  Standortpanel eine konkrete Rivalen-Empfehlung.
+- `location_engine_test` deckt den Konkurrenzbrief fuer die ausgewaehlte Stadt
+  ab und stellt sicher, dass Rivalen anderer Staedte nicht einfließen.
+- Keine Unity-Dateien, keine Unity-Tests, kein APK-Build und kein Dateiversand.
+
+Validation:
+- `flutter analyze` -> No issues found.
+- `flutter test` -> 99 Tests bestanden.
+- `git diff --check` -> clean, nur bekannte LF/CRLF-Warnungen.
+
+Naechster kleinster Schritt:
+- City Map weiter als Primaeroberflaeche ausbauen: Rivalen sichtbar auf der
+  Karte markieren oder Standortpanel um konkrete Cash-/Personal-Risikoampel
+  erweitern.
+
+---
+
+## 2026-06-12 05:41 - Cron (n8n dispatch blocked)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `git status -sb`
+- `git rev-parse HEAD`
+- `git rev-parse origin/main`
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/HANDOFF_LOG.md` (Tail)
+
+Ergebnis:
+- `REVIEW_QUEUE.md` ist `Status: empty`.
+- `HEAD == origin/main` bei `6586275fdd63c5d6c802ff3d9424c735ad4d9cc9`.
+- Worktree enthaelt nur erwartete Control-Datei-Aenderungen aus dem
+  2026-06-11-20:30-Statuscheck.
+- Gemaess Regel sollte Claude/n8n das naechste kleine Flutter-
+  Management-/Progression-Queue-Item waehlen.
+- Dispatch an `http://127.0.0.1:5678/webhook/doener-unity-dispatch` ist
+  fehlgeschlagen: Remoteverbindung nicht herstellbar.
+- Keine Codex-Implementierung aus leerer Queue gestartet.
+
+Validation:
+- Pflichtdateien und Git-Stand geprueft.
+- Keine Tests ausgefuehrt, da kein Code geaendert wurde.
+
+Naechster kleinster Schritt:
+- Naechster Cron-Tick erneut n8n/Claude-Dispatch versuchen oder n8n-Dienst
+  verfuegbar machen.
+
+---
+
+## 2026-06-11 20:30 - Cron (Flutter-only status check)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Gelesen:
+- `.agent-control/CURRENT_DECISION.md`
+- `.agent-control/STATUS.md`
+- `.agent-control/REVIEW_QUEUE.md`
+- `.agent-control/HANDOFF_LOG.md`
+- `git status -sb`
+- `git log -1 --oneline`
+- `docs/`-Listing und `git ls-files docs`
+
+Ergebnis:
+- `CURRENT_DECISION.md` ist verbindlich Flutter-only: Unity-Port ist beendet.
+- `REVIEW_QUEUE.md` ist `Status: empty`.
+- Aktuelle Queue-Regeln: Review-Items muessen Flutter betreffen, keine Unity-
+  Review- oder Implementation-Items erzeugen, bei leerer Queue leer lassen.
+- Kein neues Unity-Review-Item formuliert und keine Codex-Implementierung
+  gestartet.
+- `docs/UNITY_PRODUCT_VISION.md` und `docs/UNITY_CITY_MAP_UX.md` existieren
+  nach dem Unity-Retirement nicht mehr.
+- Worktree sauber; `main...origin/main`.
+- Letzter Commit: `6586275 Retire Unity and port shop console to Flutter`.
+
+Validation:
+- Pflichtdateien und aktueller Git-/Dokumentstand geprueft.
+- Keine Tests ausgefuehrt, da nur Status-/Queue-Pruefung.
+
+Naechster kleinster Schritt:
+- Bei leerer Queue kein Unity-Fallback mehr. Naechste Arbeit nur als konkretes
+  Flutter-Review- oder Flutter-Implementation-Item eintragen.
+
+---
+
 ## 2026-06-11 19:40 - Flutter-only correction
 
 Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.

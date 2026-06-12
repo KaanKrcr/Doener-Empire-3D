@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:doener_empire/core/constants.dart';
+import 'package:doener_empire/models/competitor_model.dart';
 import 'package:doener_empire/models/game_state.dart';
 import 'package:doener_empire/models/shop_model.dart';
 import 'package:doener_empire/models/time_profile_model.dart';
@@ -65,6 +66,44 @@ void main() {
     expect(summary.totalFootTraffic, 1200);
     expect(summary.weeklyRent, 900);
     expect(summary.avgReputation, 4.2);
+  });
+
+  test('Competition brief exposes rival pressure for selected city', () {
+    final city = kAllCities.firstWhere((c) => c.id == 'fulda');
+    final otherCity = kAllCities.firstWhere((c) => c.id == 'berlin');
+    final state = GameState.initial(
+      companyName: 'Test Doener',
+      founderName: 'Kaan',
+      startCash: 50000,
+    ).copyWith(
+      competitors: [
+        Competitor(
+          id: 'c1',
+          name: 'Rival Grill',
+          cityId: city.id,
+          personality: CompetitorPersonality.aggressive,
+          shopCount: 3,
+          marketShare: 0.35,
+        ),
+        Competitor(
+          id: 'c2',
+          name: 'Other City Grill',
+          cityId: otherCity.id,
+          personality: CompetitorPersonality.balanced,
+          shopCount: 5,
+          marketShare: 0.80,
+        ),
+      ],
+    );
+
+    final brief = LocationEngine.competitionBrief(state, city.id);
+
+    expect(brief.rivalCount, 1);
+    expect(brief.rivalShopCount, 3);
+    expect(brief.rivalMarketShare, 0.35);
+    expect(brief.strongestRival?.name, 'Rival Grill');
+    expect(brief.pressureLabel, 'Spuerbar');
+    expect(brief.recommendation, contains('Cash-Reserve'));
   });
 
   test('Opening forecast provides decision metrics for a map location', () {
