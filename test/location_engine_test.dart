@@ -119,4 +119,57 @@ void main() {
       expect(forecast.breakEvenDays!, greaterThan(0));
     }
   });
+
+  test('Decision brief blocks openings without enough capital', () {
+    final city = kAllCities.firstWhere((c) => c.id == 'fulda');
+    final location = LocationEngine.locationsFor(city).first;
+    const competition = CityCompetitionBrief(
+      rivalCount: 0,
+      rivalShopCount: 0,
+      rivalMarketShare: 0,
+      strongestRival: null,
+    );
+
+    final decision = LocationEngine.decisionBrief(
+      city: city,
+      location: location,
+      cash: 0,
+      competition: competition,
+    );
+
+    expect(decision.recommended, isFalse);
+    expect(decision.label, 'Warten');
+    expect(decision.nextStep, contains('Cash'));
+  });
+
+  test('Decision brief warns when hard rivals leave too little reserve', () {
+    final city = kAllCities.firstWhere((c) => c.id == 'fulda');
+    final location = LocationEngine.locationsFor(city).first;
+    final deposit = location.depositFor(city);
+    final rival = Competitor(
+      id: 'rival',
+      name: 'Rival Grill',
+      cityId: city.id,
+      personality: CompetitorPersonality.aggressive,
+      shopCount: 5,
+      marketShare: 0.70,
+    );
+    final competition = CityCompetitionBrief(
+      rivalCount: 1,
+      rivalShopCount: 5,
+      rivalMarketShare: 0.70,
+      strongestRival: rival,
+    );
+
+    final decision = LocationEngine.decisionBrief(
+      city: city,
+      location: location,
+      cash: deposit * 1.2,
+      competition: competition,
+    );
+
+    expect(decision.recommended, isFalse);
+    expect(decision.label, 'Nur mit Reserve');
+    expect(decision.reason, contains('Rival Grill'));
+  });
 }

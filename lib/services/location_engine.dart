@@ -38,6 +38,22 @@ class LocationOpeningForecast {
   bool get isProfitable => estimatedProfitPerDay > 0;
 }
 
+class LocationDecisionBrief {
+  final String label;
+  final String headline;
+  final String reason;
+  final String nextStep;
+  final bool recommended;
+
+  const LocationDecisionBrief({
+    required this.label,
+    required this.headline,
+    required this.reason,
+    required this.nextStep,
+    required this.recommended,
+  });
+}
+
 class CityCompetitionBrief {
   final int rivalCount;
   final int rivalShopCount;
@@ -191,6 +207,72 @@ class LocationEngine {
       estimatedCustomersPerDay: customers,
       estimatedProfitPerDay: profitPerDay,
       breakEvenDays: breakEvenDays,
+    );
+  }
+
+  static LocationDecisionBrief decisionBrief({
+    required CityData city,
+    required CityMapLocation location,
+    required double cash,
+    required CityCompetitionBrief competition,
+  }) {
+    final forecast = forecastOpening(city, location);
+    final deposit = location.depositFor(city);
+    final cashAfterDeposit = cash - deposit;
+    final breakEven = forecast.breakEvenDays;
+
+    if (cash < deposit) {
+      final missing = deposit - cash;
+      return LocationDecisionBrief(
+        label: 'Warten',
+        headline: 'Kapital reicht noch nicht',
+        reason:
+            'Es fehlen ${missing.round()} EUR fuer die Kaution. Ohne Reserve startet die Filiale zu fragil.',
+        nextStep: 'Erst Cash aufbauen oder guenstigeren Standort waehlen.',
+        recommended: false,
+      );
+    }
+
+    if (!forecast.isProfitable || breakEven == null) {
+      return const LocationDecisionBrief(
+        label: 'Riskant',
+        headline: 'Miete frisst den Startvorteil',
+        reason:
+            'Die Prognose liegt unter der Gewinnschwelle. Traffic und Marge tragen die Lage noch nicht.',
+        nextStep: 'Preisstrategie oder anderen Standort pruefen.',
+        recommended: false,
+      );
+    }
+
+    if (competition.rivalMarketShare >= 0.55 && cashAfterDeposit < deposit) {
+      return LocationDecisionBrief(
+        label: 'Nur mit Reserve',
+        headline: 'Harter Konkurrenzdruck',
+        reason:
+            '${competition.strongestRival?.name ?? 'Ein Rivale'} bindet viel Marktanteil. Nach Kaution bleibt wenig Puffer.',
+        nextStep: 'Erst Reserve sichern oder Marketing direkt einplanen.',
+        recommended: false,
+      );
+    }
+
+    if (breakEven <= 21 && competition.rivalMarketShare < 0.55) {
+      return LocationDecisionBrief(
+        label: 'Stark',
+        headline: 'Guter Einstiegspunkt',
+        reason:
+            'Break-even in $breakEven Tagen bei tragbarer Konkurrenz. Der Standort kann schnell Momentum liefern.',
+        nextStep: 'Eroeffnen, Tempo absichern und Ruf frueh pushen.',
+        recommended: true,
+      );
+    }
+
+    return LocationDecisionBrief(
+      label: 'Solide',
+      headline: 'Machbar, aber nicht blind',
+      reason:
+          'Break-even in $breakEven Tagen. Der Standort passt, braucht aber saubere Kostenkontrolle.',
+      nextStep: 'Mit Reserve starten und Personal/Preise eng beobachten.',
+      recommended: true,
     );
   }
 
