@@ -212,6 +212,12 @@ class _LocationPanel extends StatelessWidget {
     final deposit = location.depositFor(city);
     final canAfford = cash >= deposit;
     final forecast = LocationEngine.forecastOpening(city, location);
+    final decision = LocationEngine.decisionBrief(
+      city: city,
+      location: location,
+      cash: cash,
+      competition: competition,
+    );
     final breakEven = forecast.breakEvenDays == null
         ? 'kritisch'
         : '${forecast.breakEvenDays} Tage';
@@ -285,6 +291,8 @@ class _LocationPanel extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 10),
+          _DecisionCallout(decision: decision),
           if (_actionAppliesToLocation) ...[
             const SizedBox(height: 8),
             _Insight(
@@ -347,6 +355,83 @@ class _LocationPanel extends StatelessWidget {
       case CompetitorActionType.localMarketing:
         return 'Lokales Marketing läuft: Stammkundenbindung wird wichtiger.';
     }
+  }
+}
+
+class _DecisionCallout extends StatelessWidget {
+  final LocationDecisionBrief decision;
+
+  const _DecisionCallout({required this.decision});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = decision.recommended ? AppColors.accent : AppColors.warning;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withAlpha(24),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.withAlpha(130)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                decision.recommended
+                    ? Icons.check_circle_outline_rounded
+                    : Icons.report_gmailerrorred_outlined,
+                color: color,
+                size: 18,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                decision.label,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  decision.headline,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            decision.reason,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 12,
+              height: 1.3,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            decision.nextStep,
+            style: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 11,
+              height: 1.25,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
