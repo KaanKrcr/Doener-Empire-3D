@@ -27,6 +27,81 @@ enum CompetitorPersonality {
   traditional,
 }
 
+enum CompetitorActionType {
+  expansion,
+  priceWar,
+  qualityPush,
+  localMarketing,
+}
+
+extension CompetitorActionTypeLabel on CompetitorActionType {
+  String get label {
+    switch (this) {
+      case CompetitorActionType.expansion:
+        return 'Expansion';
+      case CompetitorActionType.priceWar:
+        return 'Preiskampf';
+      case CompetitorActionType.qualityPush:
+        return 'Qualitaetsoffensive';
+      case CompetitorActionType.localMarketing:
+        return 'Lokales Marketing';
+    }
+  }
+}
+
+class CompetitorActionEvent {
+  final String id;
+  final int day;
+  final String competitorId;
+  final String competitorName;
+  final String cityId;
+  final String? locationName;
+  final CompetitorActionType type;
+  final double severity;
+  final String message;
+
+  const CompetitorActionEvent({
+    required this.id,
+    required this.day,
+    required this.competitorId,
+    required this.competitorName,
+    required this.cityId,
+    required this.type,
+    required this.severity,
+    required this.message,
+    this.locationName,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'day': day,
+        'competitorId': competitorId,
+        'competitorName': competitorName,
+        'cityId': cityId,
+        'locationName': locationName,
+        'type': type.name,
+        'severity': severity,
+        'message': message,
+      };
+
+  factory CompetitorActionEvent.fromJson(Map<String, dynamic> j) {
+    return CompetitorActionEvent(
+      id: (j['id'] as String?) ?? '',
+      day: (j['day'] as num?)?.toInt() ?? 0,
+      competitorId: (j['competitorId'] as String?) ?? '',
+      competitorName: (j['competitorName'] as String?) ?? 'Konkurrent',
+      cityId: (j['cityId'] as String?) ?? '',
+      locationName: j['locationName'] as String?,
+      type: CompetitorActionType.values.firstWhere(
+        (type) => type.name == (j['type'] as String?),
+        orElse: () => CompetitorActionType.localMarketing,
+      ),
+      severity: (j['severity'] as num?)?.toDouble().clamp(0.0, 1.0) ?? 0.3,
+      message: (j['message'] as String?) ?? 'Konkurrenz wird aktiver.',
+    );
+  }
+}
+
 extension CompetitorPersonalityLabel on CompetitorPersonality {
   String get tagline {
     switch (this) {

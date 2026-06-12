@@ -85,7 +85,8 @@ class GameEngine {
     final upgradeAOV = _upgradeAvgOrderBoost(shop, state);
 
     // Dauerhafte Story-Kampagnen-Perks (konzernweit)
-    final perks = aggregateCampaignPerks(state?.completedChapterIds ?? const []);
+    final perks =
+        aggregateCampaignPerks(state?.completedChapterIds ?? const []);
 
     // Menü-Angebote/Kombos (nur wenn die Filiale die Produkte führt)
     final comboBoost = _comboCustomerBoost(shop, state);
@@ -351,7 +352,9 @@ class GameEngine {
     final h = state.history;
     if (h.length < 7) return null;
     final last7 = h.sublist(h.length - 7);
-    final prev7 = h.length >= 14 ? h.sublist(h.length - 14, h.length - 7) : const <DailyRecord>[];
+    final prev7 = h.length >= 14
+        ? h.sublist(h.length - 14, h.length - 7)
+        : const <DailyRecord>[];
 
     final revenue = last7.fold<double>(0, (s, r) => s + r.revenue);
     final profit = last7.fold<double>(0, (s, r) => s + r.operatingProfit);
@@ -377,8 +380,7 @@ class GameEngine {
   /// Filialen nach geschätztem Tagesgewinn (Umsatz − Kosten), absteigend.
   static List<({Shop shop, double profit})> shopsByProfit(GameState state) {
     final list = state.shops.map((s) {
-      final rev =
-          calculateDailyRevenue(s, day: state.currentDay, state: state);
+      final rev = calculateDailyRevenue(s, day: state.currentDay, state: state);
       final cost = calculateDailyCosts(s, day: state.currentDay, state: state);
       return (shop: s, profit: rev - cost);
     }).toList();
@@ -474,7 +476,9 @@ class GameEngine {
         ));
       }
     }
-    if (state.cash >= 0 && dailyCostTotal > 0 && state.cash < dailyCostTotal * 2) {
+    if (state.cash >= 0 &&
+        dailyCostTotal > 0 &&
+        state.cash < dailyCostTotal * 2) {
       alerts.add(const ShopAlert(
         level: AlertLevel.warn,
         message: 'Liquidität niedrig — die Kasse reicht nur wenige Tage.',
@@ -541,7 +545,8 @@ class GameEngine {
       {int? day, GameState? state}) {
     final pressure =
         state?.difficulty.modifiers.economicPressureMultiplier ?? 1.0;
-    final perks = aggregateCampaignPerks(state?.completedChapterIds ?? const []);
+    final perks =
+        aggregateCampaignPerks(state?.completedChapterIds ?? const []);
     final rent = shop.dailyRent * pressure * (1 - perks.rentSaving);
     final salaries =
         shop.employees.fold(0.0, (s, e) => s + e.salaryPerDay) * pressure;
@@ -597,8 +602,21 @@ class GameEngine {
     int totalCustomers = 0;
 
     // Konkurrenz updaten
-    final updatedCompetitors = CompetitorEngine.processDay(state);
-    final stateWithComp = state.copyWith(competitors: updatedCompetitors);
+    final competitorDay = CompetitorEngine.processDayWithActions(state);
+    final recentCompetitorActions = [
+      ...state.recentCompetitorActions,
+      ...competitorDay.actions,
+    ];
+    final trimmedCompetitorActions = recentCompetitorActions.length >
+            CompetitorEngine.maxRecentActions
+        ? recentCompetitorActions.sublist(
+            recentCompetitorActions.length - CompetitorEngine.maxRecentActions,
+          )
+        : recentCompetitorActions;
+    final stateWithComp = state.copyWith(
+      competitors: competitorDay.competitors,
+      recentCompetitorActions: trimmedCompetitorActions,
+    );
 
     // Mitarbeiter altern + Erfahrung wachsen
     final trainingGrowth = HrEngine.trainingGrowthMultiplier(stateWithComp);
@@ -1471,7 +1489,8 @@ class GameEngine {
 
   // ── Zutaten-Qualität ──────────────────────────────────────────────────────
 
-  static IngredientQuality productQualityOf(GameState? state, String productId) {
+  static IngredientQuality productQualityOf(
+      GameState? state, String productId) {
     if (state == null) return IngredientQuality.standard;
     return ingredientQualityFromName(state.productQuality[productId]);
   }
