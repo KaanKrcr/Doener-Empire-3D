@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../core/theme.dart';
 import '../../core/constants.dart';
+import '../../models/game_state.dart';
 import '../../models/shop_model.dart';
 import '../../models/product_model.dart';
 import '../../models/equipment_model.dart';
@@ -81,6 +82,11 @@ class _ShopDetailScreenState extends ConsumerState<ShopDetailScreen>
     final customers = stats.actualCustomers;
     final activeCampaigns =
         currentShop.activeCampaigns.where((c) => c.isActive(today)).length;
+    final decisionAids = _ShopDecisionAids.from(
+      shop: currentShop,
+      game: game,
+      stats: stats,
+    );
 
     return Scaffold(
       backgroundColor: AppColors.bg,
@@ -140,6 +146,7 @@ class _ShopDetailScreenState extends ConsumerState<ShopDetailScreen>
             day: today,
             activeCampaigns: activeCampaigns,
           ),
+          _ShopDecisionAidPanel(aids: decisionAids),
 
           // Tabs ───────────────────────────────────────────────────────
           Container(
@@ -186,6 +193,273 @@ class _ShopDetailScreenState extends ConsumerState<ShopDetailScreen>
 }
 
 // ── Sortiment-Tab ──────────────────────────────────────────────────────────
+
+class _ShopDecisionAids {
+  final _ShopDecisionAid price;
+  final _ShopDecisionAid staff;
+  final _ShopDecisionAid equipment;
+
+  const _ShopDecisionAids({
+    required this.price,
+    required this.staff,
+    required this.equipment,
+  });
+
+  factory _ShopDecisionAids.from({
+    required Shop shop,
+    required GameState game,
+    required ShopDayStats stats,
+  }) {
+    return _ShopDecisionAids(
+      price: _priceAid(shop, game),
+      staff: _staffAid(shop, game, stats),
+      equipment: _equipmentAid(shop, game, stats),
+    );
+  }
+
+  static _ShopDecisionAid _priceAid(Shop shop, GameState game) {
+    final activeMenu = shop.menu.where((item) => item.isActive).toList();
+    if (activeMenu.isEmpty) {
+      return const _ShopDecisionAid(
+        icon: Icons.restaurant_menu_rounded,
+        title: 'Preis',
+        text:
+            'Erst Sortiment aktivieren, dann Preise nach Nachfrage feinjustieren.',
+        color: AppColors.warning,
+      );
+    }
+
+    final avgRatio = activeMenu.fold<double>(0, (sum, item) {
+          final product =
+              kAllProducts.firstWhere((p) => p.id == item.productId);
+          return sum + item.price / product.basePrice;
+        }) /
+        activeMenu.length;
+    final lead = activeMenu.first;
+    final leadProduct = kAllProducts.firstWhere((p) => p.id == lead.productId);
+    final optimal = GameEngine.revenueOptimalPrice(
+      leadProduct.basePrice,
+      game.difficulty,
+    );
+
+    if (avgRatio > 1.25) {
+      return _ShopDecisionAid(
+        icon: Icons.sell_outlined,
+        title: 'Preis',
+        text:
+            'Preise sind eher hoch. Teste ${leadProduct.name} näher an ${_fmt.format(optimal)} EUR, wenn Kunden fehlen.',
+        color: AppColors.warning,
+      );
+    }
+    if (avgRatio < 0.85) {
+      return _ShopDecisionAid(
+        icon: Icons.sell_outlined,
+        title: 'Preis',
+        text:
+            'Sehr günstig positioniert. Erhöhe langsam Richtung ${_fmt.format(optimal)} EUR, solange Nachfrage stabil bleibt.',
+        color: AppColors.accent,
+      );
+    }
+    return _ShopDecisionAid(
+      icon: Icons.sell_outlined,
+      title: 'Preis',
+      text:
+          'Preisniveau ist gesund. Nächster Feinschliff: ${leadProduct.name} um ${_fmt.format(optimal)} EUR testen.',
+      color: AppColors.success,
+    );
+  }
+
+  static _ShopDecisionAid _staffAid(
+    Shop shop,
+    GameState game,
+    ShopDayStats stats,
+  ) {
+    final extra = GameEngine.recommendedExtraEmployees(
+      shop,
+      day: game.currentDay,
+      state: game,
+    );
+    final maxEmployees = GameEngine.maxEmployeesForShop(shop);
+    if (extra > 0) {
+      return _ShopDecisionAid(
+        icon: Icons.groups_2_outlined,
+        title: 'Personal',
+        text:
+            '$extra weitere Kraft${extra > 1 ? 'e' : ''} einstellen: aktuell bleiben Kunden in Spitzenzeiten liegen.',
+        color: AppColors.danger,
+      );
+    }
+    if (shop.employees.length >= maxEmployees) {
+      return const _ShopDecisionAid(
+        icon: Icons.groups_2_outlined,
+        title: 'Personal',
+        text:
+            'Team ist am Standort-Cap. Wachstum kommt jetzt eher über Equipment oder neue Filiale.',
+        color: AppColors.warning,
+      );
+    }
+    final utilization = (stats.utilization * 100).round();
+    return _ShopDecisionAid(
+      icon: Icons.groups_2_outlined,
+      title: 'Personal',
+      text:
+          'Team reicht aktuell. Auslastung liegt bei $utilization%, nächste Einstellung erst bei Engpass.',
+      color: AppColors.success,
+    );
+  }
+
+  static _ShopDecisionAid _equipmentAid(
+    Shop shop,
+    GameState game,
+    ShopDayStats stats,
+  ) {
+    final candidates = kAllEquipment
+        .where((eq) =>
+            eq.category != EquipmentCategory.spiess &&
+            !shop.hasEquipment(eq.id) &&
+            game.cash >= eq.price)
+        .toList()
+      ..sort((a, b) {
+        final aScore = _equipmentScore(a, stats);
+        final bScore = _equipmentScore(b, stats);
+        return bScore.compareTo(aScore);
+      });
+
+    if (candidates.isEmpty) {
+      return const _ShopDecisionAid(
+        icon: Icons.blender_outlined,
+        title: 'Equipment',
+        text:
+            'Kein sinnvoll bezahlbares Upgrade offen. Kapital für den nächsten Standort halten.',
+        color: AppColors.textMuted,
+      );
+    }
+
+    final pick = candidates.first;
+    final why = pick.allUnlockedProducts.isNotEmpty
+        ? 'schaltet neues Sortiment frei'
+        : pick.capacityBonus > 0 || pick.speedBonus > 0
+            ? 'erhöht Durchsatz und reduziert Warteschlangen'
+            : pick.ingredientSavingBonus > 0
+                ? 'senkt Zutatenkosten'
+                : 'verbessert Qualität und Ruf';
+    return _ShopDecisionAid(
+      icon: Icons.blender_outlined,
+      title: 'Equipment',
+      text: '${pick.name} priorisieren: $why.',
+      color: AppColors.accent,
+    );
+  }
+
+  static double _equipmentScore(EquipmentData eq, ShopDayStats stats) {
+    var score = 0.0;
+    if (eq.allUnlockedProducts.isNotEmpty) score += 4;
+    score += eq.qualityBonus * 2;
+    score += eq.ingredientSavingBonus * 10;
+    score += eq.speedBonus * 8;
+    score += eq.capacityBonus / 30;
+    if (stats.isCapacityLimited) score += eq.capacityBonus / 15;
+    return score;
+  }
+}
+
+class _ShopDecisionAid {
+  final IconData icon;
+  final String title;
+  final String text;
+  final Color color;
+
+  const _ShopDecisionAid({
+    required this.icon,
+    required this.title,
+    required this.text,
+    required this.color,
+  });
+}
+
+class _ShopDecisionAidPanel extends StatelessWidget {
+  final _ShopDecisionAids aids;
+
+  const _ShopDecisionAidPanel({required this.aids});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Entscheidungshilfe',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 8),
+          _DecisionAidRow(aid: aids.price),
+          const SizedBox(height: 6),
+          _DecisionAidRow(aid: aids.staff),
+          const SizedBox(height: 6),
+          _DecisionAidRow(aid: aids.equipment),
+        ],
+      ),
+    );
+  }
+}
+
+class _DecisionAidRow extends StatelessWidget {
+  final _ShopDecisionAid aid;
+
+  const _DecisionAidRow({required this.aid});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 24,
+          height: 24,
+          decoration: BoxDecoration(
+            color: aid.color.withAlpha(28),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(aid.icon, color: aid.color, size: 15),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: RichText(
+            text: TextSpan(
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 11,
+                height: 1.25,
+              ),
+              children: [
+                TextSpan(
+                  text: '${aid.title}: ',
+                  style: TextStyle(
+                    color: aid.color,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                TextSpan(text: aid.text),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
 
 class _ProductsTab extends ConsumerWidget {
   final Shop shop;

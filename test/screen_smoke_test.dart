@@ -161,6 +161,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    expect(find.text('Entscheidungshilfe'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
