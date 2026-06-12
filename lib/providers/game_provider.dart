@@ -38,6 +38,7 @@ class DayEndResult {
   final double costs;
   final double profit;
   final int customers;
+  final DayEndCauseBrief causeBrief;
   final GameEvent? event;
   final Mission? missionCompleted;
   final List<Achievement> newAchievements;
@@ -54,6 +55,7 @@ class DayEndResult {
     required this.costs,
     required this.profit,
     required this.customers,
+    required this.causeBrief,
     this.event,
     this.missionCompleted,
     this.newAchievements = const [],
@@ -63,6 +65,22 @@ class DayEndResult {
     this.taxPaid = 0,
     this.challengeMet = false,
     this.challengeReward = 0,
+  });
+}
+
+enum DayEndCauseTone { positive, warning, danger }
+
+class DayEndCauseBrief {
+  final String headline;
+  final String reason;
+  final String nextAction;
+  final DayEndCauseTone tone;
+
+  const DayEndCauseBrief({
+    required this.headline,
+    required this.reason,
+    required this.nextAction,
+    required this.tone,
   });
 }
 
@@ -273,8 +291,8 @@ class GameNotifier extends Notifier<GameState?> {
       final yesterday =
           oldState.history.isNotEmpty ? oldState.history.last : null;
       final anyLoss = oldState.shops.any((s) {
-        final r = GameEngine.calculateDailyRevenue(s,
-            day: today, state: oldState);
+        final r =
+            GameEngine.calculateDailyRevenue(s, day: today, state: oldState);
         final c =
             GameEngine.calculateDailyCosts(s, day: today, state: oldState);
         return r - c < 0;
@@ -300,6 +318,13 @@ class GameNotifier extends Notifier<GameState?> {
       costs: preview.costs,
       profit: preview.revenue - preview.costs - preview.loanPayments,
       customers: preview.customers,
+      causeBrief: GameNotifier.buildDayEndCauseBrief(
+        state: oldState,
+        revenue: preview.revenue,
+        costs: preview.costs,
+        loanPayments: preview.loanPayments,
+        customers: preview.customers,
+      ),
       event: rolledEvent,
       missionCompleted: missionResult.justCompleted,
       newAchievements: newAchievs,
@@ -361,6 +386,119 @@ class GameNotifier extends Notifier<GameState?> {
       costs: costs,
       loanPayments: loanPayments,
       customers: customers,
+    );
+  }
+
+  static DayEndCauseBrief buildDayEndCauseBrief({
+    required GameState state,
+    required double revenue,
+    required double costs,
+    required double loanPayments,
+    required int customers,
+  }) {
+    if (state.shops.isEmpty) {
+      return const DayEndCauseBrief(
+        headline: 'Noch kein Verkauf',
+        reason: 'Ohne Filiale entstehen keine Kunden und kein Umsatz.',
+        nextAction:
+            'Eröffne zuerst einen günstigen Standort mit solider Laufkundschaft.',
+        tone: DayEndCauseTone.warning,
+      );
+    }
+
+    double rent = 0;
+    double salaries = 0;
+    double ingredients = 0;
+    double delivery = 0;
+    double lostRevenue = 0;
+    int lostCustomers = 0;
+
+    for (final shop in state.shops) {
+      final breakdown = GameEngine.calculateDailyCostsBreakdown(
+        shop,
+        day: state.currentDay,
+        state: state,
+      );
+      final stats = GameEngine.calculateShopStats(
+        shop,
+        day: state.currentDay,
+        state: state,
+      );
+      rent += breakdown.rent;
+      salaries += breakdown.salaries;
+      ingredients += breakdown.ingredients;
+      delivery += breakdown.deliveryCommission;
+      lostRevenue += stats.lostRevenue.clamp(0, double.infinity);
+      lostCustomers +=
+          (stats.potentialCustomers - stats.actualCustomers).clamp(0, 1 << 30);
+    }
+
+    final profit = revenue - costs - loanPayments;
+    final topCosts = <String, double>{
+      'Miete': rent,
+      'Personal': salaries,
+      'Zutaten': ingredients,
+      'Lieferprovision': delivery,
+      'Kreditrate': loanPayments,
+    }.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final biggestCost = topCosts.first;
+    final yesterday = state.history.isNotEmpty ? state.history.last : null;
+    final revenueDelta = yesterday == null ? 0.0 : revenue - yesterday.revenue;
+
+    if (profit < 0 && loanPayments > revenue * 0.18) {
+      return DayEndCauseBrief(
+        headline: 'Kreditraten drücken den Tag',
+        reason:
+            'Heute gingen ${loanPayments.round()} EUR in Tilgung, bevor Gewinn übrig blieb.',
+        nextAction:
+            'Halte Cash-Reserve, verschiebe neue Kautionen und zahle teure Kredite früh ab.',
+        tone: DayEndCauseTone.danger,
+      );
+    }
+
+    if (lostRevenue > revenue * 0.18 && lostCustomers > 0) {
+      return DayEndCauseBrief(
+        headline: profit >= 0
+            ? 'Guter Tag, aber Nachfrage bleibt liegen'
+            : 'Zu viel Nachfrage bleibt liegen',
+        reason:
+            'Rund ${lostCustomers.round()} Kunden konnten nicht optimal bedient werden.',
+        nextAction:
+            'Prüfe Personal, Equipment und Öffnungs-Tempo in der stärksten Filiale.',
+        tone: profit >= 0 ? DayEndCauseTone.warning : DayEndCauseTone.danger,
+      );
+    }
+
+    if (profit < 0) {
+      return DayEndCauseBrief(
+        headline: '${biggestCost.key} frisst die Marge',
+        reason:
+            '${biggestCost.key} war heute der größte Kostenblock mit etwa ${biggestCost.value.round()} EUR.',
+        nextAction:
+            'Senke den größten Kostenblock oder erhöhe Preise nur dort, wo Nachfrage stabil bleibt.',
+        tone: DayEndCauseTone.danger,
+      );
+    }
+
+    if (yesterday != null && revenueDelta > revenue * 0.08) {
+      return DayEndCauseBrief(
+        headline: 'Wachstum zieht an',
+        reason:
+            'Der Umsatz liegt etwa ${revenueDelta.round()} EUR über dem Vortag.',
+        nextAction:
+            'Reinvestiere vorsichtig in den besten Standort, solange die Cash-Reserve stabil bleibt.',
+        tone: DayEndCauseTone.positive,
+      );
+    }
+
+    return DayEndCauseBrief(
+      headline: 'Stabiler Tag',
+      reason:
+          '$customers Kunden wurden profitabel bedient; der größte Kostenblock ist ${biggestCost.key}.',
+      nextAction:
+          'Baue den profitabelsten Standort aus oder prüfe die nächste City-Map-Chance.',
+      tone: DayEndCauseTone.positive,
     );
   }
 
