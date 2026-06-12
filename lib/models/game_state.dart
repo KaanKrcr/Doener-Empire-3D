@@ -1,4 +1,4 @@
-﻿import 'shop_model.dart';
+import 'shop_model.dart';
 import 'product_model.dart';
 import 'mission_model.dart';
 import 'brand_model.dart';
@@ -163,6 +163,7 @@ class GameState {
   final int tutorialStep;
   final BrandStats brand; // Markenbekanntheit + City-Rep
   final List<Competitor> competitors; // KI-Konkurrenz
+  final List<CompetitorActionEvent> recentCompetitorActions;
   final List<String> achievementIds; // freigeschaltete Achievements
   final List<Employee> employeePool; // Bewerber-Pool (rotiert wöchentlich)
   final int lastEmployeePoolDay; // wann wurde Pool zuletzt rotiert?
@@ -225,6 +226,7 @@ class GameState {
     this.tutorialStep = 0,
     this.brand = const BrandStats(),
     this.competitors = const [],
+    this.recentCompetitorActions = const [],
     this.achievementIds = const [],
     this.employeePool = const [],
     this.lastEmployeePoolDay = 0,
@@ -273,6 +275,7 @@ class GameState {
       tutorialStep: 0,
       brand: const BrandStats(brandAwareness: 5.0, cityReputation: {}),
       competitors: const [],
+      recentCompetitorActions: const [],
       achievementIds: const [],
       employeePool: const [],
       lastEmployeePoolDay: 0,
@@ -306,6 +309,15 @@ class GameState {
   List<Competitor> competitorsIn(String cityId) =>
       competitors.where((c) => c.cityId == cityId).toList();
 
+  List<CompetitorActionEvent> competitorActionsIn(String cityId) =>
+      recentCompetitorActions.where((a) => a.cityId == cityId).toList();
+
+  CompetitorActionEvent? latestCompetitorActionIn(String cityId) {
+    final actions = competitorActionsIn(cityId).toList()
+      ..sort((a, b) => b.day.compareTo(a.day));
+    return actions.isEmpty ? null : actions.first;
+  }
+
   /// Markttreiber: hat der Spieler in dieser Stadt eine Filiale?
   bool hasShopIn(String cityId) => shops.any((s) => s.cityId == cityId);
 
@@ -327,6 +339,7 @@ class GameState {
     int? tutorialStep,
     BrandStats? brand,
     List<Competitor>? competitors,
+    List<CompetitorActionEvent>? recentCompetitorActions,
     List<String>? achievementIds,
     List<Employee>? employeePool,
     int? lastEmployeePoolDay,
@@ -368,6 +381,8 @@ class GameState {
       tutorialStep: tutorialStep ?? this.tutorialStep,
       brand: brand ?? this.brand,
       competitors: competitors ?? this.competitors,
+      recentCompetitorActions:
+          recentCompetitorActions ?? this.recentCompetitorActions,
       achievementIds: achievementIds ?? this.achievementIds,
       employeePool: employeePool ?? this.employeePool,
       lastEmployeePoolDay: lastEmployeePoolDay ?? this.lastEmployeePoolDay,
@@ -411,6 +426,8 @@ class GameState {
         'tutorialStep': tutorialStep,
         'brand': brand.toJson(),
         'competitors': competitors.map((c) => c.toJson()).toList(),
+        'recentCompetitorActions':
+            recentCompetitorActions.map((a) => a.toJson()).toList(),
         'achievementIds': achievementIds,
         'employeePool': employeePool.map((e) => e.toJson()).toList(),
         'lastEmployeePoolDay': lastEmployeePoolDay,
@@ -602,9 +619,8 @@ class GameState {
     }).toList();
 
     final unlockedCityIds = List<String>.from(asList(j['unlockedCityIds']));
-    final freeCityIds = kAllCities
-        .where((city) => city.unlockCost <= 0)
-        .map((city) => city.id);
+    final freeCityIds =
+        kAllCities.where((city) => city.unlockCost <= 0).map((city) => city.id);
     for (final freeCityId in freeCityIds) {
       if (!unlockedCityIds.contains(freeCityId)) {
         unlockedCityIds.add(freeCityId);
@@ -640,6 +656,14 @@ class GameState {
       competitors: asList(j['competitors'])
           .whereType<Map>()
           .map((e) => Competitor.fromJson(Map<String, dynamic>.from(e)))
+          .toList(),
+      recentCompetitorActions: asList(j['recentCompetitorActions'])
+          .whereType<Map>()
+          .map(
+            (e) => CompetitorActionEvent.fromJson(
+              Map<String, dynamic>.from(e),
+            ),
+          )
           .toList(),
       achievementIds: List<String>.from(asList(j['achievementIds'])),
       employeePool: asList(j['employeePool'])
@@ -679,12 +703,11 @@ class GameState {
           .whereType<Map>()
           .map((e) => ActiveCampaign.fromJson(Map<String, dynamic>.from(e)))
           .toList(),
-      completedChapterIds:
-          List<String>.from(asList(j['completedChapterIds'])),
+      completedChapterIds: List<String>.from(asList(j['completedChapterIds'])),
       activeComboIds: List<String>.from(asList(j['activeComboIds'])),
       activeThemeId: (j['activeThemeId'] as String?) ?? 'klassik',
-      productQuality: asMap(j['productQuality'])
-          .map((k, v) => MapEntry(k, v.toString())),
+      productQuality:
+          asMap(j['productQuality']).map((k, v) => MapEntry(k, v.toString())),
     );
   }
 }

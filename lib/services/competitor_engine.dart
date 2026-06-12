@@ -16,6 +16,7 @@ import '../models/city_model.dart';
 /// - Marktanteile werden täglich auf Basis von Reputation + Preisniveau neu verteilt.
 class CompetitorEngine {
   static final _rng = Random();
+  static const int maxRecentActions = 20;
 
   /// Liefert Konkurrenten für eine Stadt — spawnt sie wenn noch keine da sind.
   /// Sollte beim ersten Eröffnen einer Filiale in der Stadt aufgerufen werden.
@@ -66,11 +67,18 @@ class CompetitorEngine {
   /// Tägliches Update aller Konkurrenten + Marktanteils-Berechnung.
   /// Wird in [GameEngine.processDay] aufgerufen.
   static List<Competitor> processDay(GameState state) {
+    return processDayWithActions(state).competitors;
+  }
+
+  /// Tagesupdate inklusive sichtbarer Rivalen-Aktionen.
+  static CompetitorDayResult processDayWithActions(GameState state) {
     final aggressiveness =
         state.difficulty.modifiers.competitorAggressivenessMultiplier;
+    final actions = <CompetitorActionEvent>[];
     final updated = state.competitors.map((c) {
       c.daysSinceLastAction += 1;
-      _maybeAct(c, state, aggressiveness);
+      final action = _maybeAct(c, state, aggressiveness);
+      if (action != null) actions.add(action);
       return c;
     }).toList();
 
@@ -83,7 +91,7 @@ class CompetitorEngine {
       _recomputeMarketShares(list, state, cityId);
     });
 
-    return updated;
+    return CompetitorDayResult(competitors: updated, actions: actions);
   }
 
   /// Wie stark drückt die Konkurrenz auf eine Spieler-Filiale in dieser Stadt?
@@ -115,13 +123,13 @@ class CompetitorEngine {
   // ── Private ──────────────────────────────────────────────────────────────
 
   /// Konkurrent macht ggf. eine Aktion (Preiskampf, Expansion, Rep-Update).
-  static void _maybeAct(
+  static CompetitorActionEvent? _maybeAct(
     Competitor c,
     GameState state,
     double aggressiveness,
   ) {
     final minDays = (5 / aggressiveness).round().clamp(2, 9);
-    if (c.daysSinceLastAction < minDays) return;
+    if (c.daysSinceLastAction < minDays) return null;
 
     final baseActionChance = switch (c.personality) {
       CompetitorPersonality.aggressive => 0.40,
@@ -131,9 +139,11 @@ class CompetitorEngine {
       CompetitorPersonality.traditional => 0.10,
     };
     final actionChance = (baseActionChance * aggressiveness).clamp(0.05, 0.90);
-    if (_rng.nextDouble() > actionChance) return;
+    if (_rng.nextDouble() > actionChance) return null;
 
     c.daysSinceLastAction = 0;
+    final targetLocationName = _targetLocationName(c, state);
+    late final CompetitorActionType actionType;
 
     // Welche Aktion?
     final r = _rng.nextDouble();
@@ -144,24 +154,70 @@ class CompetitorEngine {
       // Expansion
       c.shopCount = (c.shopCount + 1).clamp(1, 5);
       c.reputation = (c.reputation - 0.05).clamp(1.0, 5.0); // dilution
+      actionType = CompetitorActionType.expansion;
     } else if (r < expansionChance + priceChance) {
       // Preis-Anpassung
       final hasPlayer = state.hasShopIn(c.cityId);
       if (c.personality == CompetitorPersonality.aggressive && hasPlayer) {
         c.priceLevel = (c.priceLevel - 0.05).clamp(0.65, 1.4);
+        actionType = CompetitorActionType.priceWar;
       } else if (c.personality == CompetitorPersonality.premium) {
         c.priceLevel = (c.priceLevel + 0.04).clamp(0.65, 1.4);
+        actionType = CompetitorActionType.qualityPush;
       } else if (c.personality == CompetitorPersonality.cheapMass) {
         c.priceLevel = (c.priceLevel - 0.02).clamp(0.65, 1.4);
+        actionType = CompetitorActionType.priceWar;
       } else {
         // balanced/traditional: minimal jiggle
         c.priceLevel =
             (c.priceLevel + (_rng.nextDouble() - 0.5) * 0.04).clamp(0.65, 1.4);
+        actionType = CompetitorActionType.localMarketing;
       }
     } else {
       // Reputations-Pflege oder -Schwächung
       final delta = (_rng.nextDouble() - 0.45) * 0.20;
       c.reputation = (c.reputation + delta).clamp(1.0, 5.0);
+      actionType = c.personality == CompetitorPersonality.premium
+          ? CompetitorActionType.qualityPush
+          : CompetitorActionType.localMarketing;
+    }
+
+    final severity = (actionChance * aggressiveness).clamp(0.10, 1.0);
+    return CompetitorActionEvent(
+      id: 'comp_action_${state.currentDay}_${c.id}_${actionType.name}',
+      day: state.currentDay,
+      competitorId: c.id,
+      competitorName: c.name,
+      cityId: c.cityId,
+      locationName: targetLocationName,
+      type: actionType,
+      severity: severity,
+      message: _actionMessage(c, actionType, targetLocationName),
+    );
+  }
+
+  static String? _targetLocationName(Competitor c, GameState state) {
+    final cityShops = state.shops.where((s) => s.cityId == c.cityId).toList();
+    if (cityShops.isEmpty) return null;
+    cityShops.sort((a, b) => a.reputation.compareTo(b.reputation));
+    return cityShops.first.locationName;
+  }
+
+  static String _actionMessage(
+    Competitor competitor,
+    CompetitorActionType type,
+    String? locationName,
+  ) {
+    final target = locationName == null ? '' : ' bei $locationName';
+    switch (type) {
+      case CompetitorActionType.expansion:
+        return '${competitor.name} expandiert$target: Standortdruck steigt.';
+      case CompetitorActionType.priceWar:
+        return '${competitor.name} startet Preiskampf$target: Preis und Tempo pruefen.';
+      case CompetitorActionType.qualityPush:
+        return '${competitor.name} setzt auf Qualitaet$target: Reputation wird wichtiger.';
+      case CompetitorActionType.localMarketing:
+        return '${competitor.name} wirbt lokal$target: Stammkunden verteidigen.';
     }
   }
 
@@ -203,4 +259,14 @@ class CompetitorEngine {
       c.marketShare = (p / totalPower).clamp(0.0, 1.0);
     }
   }
+}
+
+class CompetitorDayResult {
+  final List<Competitor> competitors;
+  final List<CompetitorActionEvent> actions;
+
+  const CompetitorDayResult({
+    required this.competitors,
+    required this.actions,
+  });
 }

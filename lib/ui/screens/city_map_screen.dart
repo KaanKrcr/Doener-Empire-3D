@@ -8,6 +8,7 @@ import '../../core/constants.dart';
 import '../../core/theme.dart';
 import '../../models/city_map_model.dart';
 import '../../models/city_model.dart';
+import '../../models/competitor_model.dart';
 import '../../providers/game_provider.dart';
 import '../../services/game_engine.dart';
 import '../../services/location_engine.dart';
@@ -38,6 +39,7 @@ class _CityMapScreenState extends ConsumerState<CityMapScreen> {
         game.shops.where((shop) => shop.cityId == city.id).toList();
     final summary = LocationEngine.summarize(city, game.shops);
     final competition = LocationEngine.competitionBrief(game, city.id);
+    final latestCompetitorAction = game.latestCompetitorActionIn(city.id);
 
     return Scaffold(
       backgroundColor: AppColors.bg,
@@ -47,7 +49,11 @@ class _CityMapScreenState extends ConsumerState<CityMapScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
         children: [
-          _SummaryStrip(summary: summary, competition: competition),
+          _SummaryStrip(
+            summary: summary,
+            competition: competition,
+            latestCompetitorAction: latestCompetitorAction,
+          ),
           const SizedBox(height: 14),
           CityMapView(
             city: city,
@@ -66,14 +72,17 @@ class _CityMapScreenState extends ConsumerState<CityMapScreen> {
                   .length,
               cash: game.cash,
               competition: competition,
+              latestCompetitorAction: latestCompetitorAction,
               onOpenShop: () => context.push(
                 '/open-shop/${city.id}?location=${Uri.encodeComponent(selected.template.name)}',
               ),
             ),
           const SizedBox(height: 14),
           if (cityShops.isNotEmpty) ...[
-            Text('Deine Filialen',
-                style: AppText.label(color: AppColors.secondary)),
+            Text(
+              'Deine Filialen',
+              style: AppText.label(color: AppColors.secondary),
+            ),
             const SizedBox(height: 8),
             for (final shop in cityShops)
               _ShopMapCard(
@@ -97,10 +106,12 @@ class _CityMapScreenState extends ConsumerState<CityMapScreen> {
 class _SummaryStrip extends StatelessWidget {
   final CityMapSummary summary;
   final CityCompetitionBrief competition;
+  final CompetitorActionEvent? latestCompetitorAction;
 
   const _SummaryStrip({
     required this.summary,
     required this.competition,
+    required this.latestCompetitorAction,
   });
 
   @override
@@ -112,25 +123,37 @@ class _SummaryStrip extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: AppColors.border),
       ),
-      child: Row(
+      child: Column(
         children: [
-          _Metric(
-              label: 'Filialen',
-              value: '${summary.shopCount}',
-              color: AppColors.primary),
-          _Metric(
-              label: 'Laufkundschaft',
-              value: _fmt.format(summary.totalFootTraffic),
-              color: AppColors.accent),
-          _Metric(
-              label: 'Miete/Woche',
-              value: '${_fmt.format(summary.weeklyRent)} €',
-              color: AppColors.warning),
-          _Metric(
-            label: 'Konkurrenz',
-            value: competition.pressureLabel,
-            color: competition.hasRivals ? AppColors.danger : AppColors.gold,
+          Row(
+            children: [
+              _Metric(
+                label: 'Filialen',
+                value: '${summary.shopCount}',
+                color: AppColors.primary,
+              ),
+              _Metric(
+                label: 'Laufkundschaft',
+                value: _fmt.format(summary.totalFootTraffic),
+                color: AppColors.accent,
+              ),
+              _Metric(
+                label: 'Miete/Woche',
+                value: '${_fmt.format(summary.weeklyRent)} €',
+                color: AppColors.warning,
+              ),
+              _Metric(
+                label: 'Konkurrenz',
+                value: competition.pressureLabel,
+                color:
+                    competition.hasRivals ? AppColors.danger : AppColors.gold,
+              ),
+            ],
           ),
+          if (latestCompetitorAction != null) ...[
+            const SizedBox(height: 10),
+            _CompetitorActionAlert(action: latestCompetitorAction!),
+          ],
         ],
       ),
     );
@@ -141,8 +164,11 @@ class _Metric extends StatelessWidget {
   final String label;
   final String value;
   final Color color;
-  const _Metric(
-      {required this.label, required this.value, required this.color});
+  const _Metric({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -152,8 +178,10 @@ class _Metric extends StatelessWidget {
         children: [
           Text(value, style: AppText.display(size: 15, color: color)),
           const SizedBox(height: 2),
-          Text(label,
-              style: const TextStyle(fontSize: 10, color: AppColors.textMuted)),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
+          ),
         ],
       ),
     );
@@ -166,6 +194,7 @@ class _LocationPanel extends StatelessWidget {
   final int shopCount;
   final double cash;
   final CityCompetitionBrief competition;
+  final CompetitorActionEvent? latestCompetitorAction;
   final VoidCallback onOpenShop;
 
   const _LocationPanel({
@@ -174,6 +203,7 @@ class _LocationPanel extends StatelessWidget {
     required this.shopCount,
     required this.cash,
     required this.competition,
+    required this.latestCompetitorAction,
     required this.onOpenShop,
   });
 
@@ -205,9 +235,13 @@ class _LocationPanel extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(location.label, style: AppText.display(size: 20)),
-                    Text(location.audience,
-                        style: const TextStyle(
-                            color: AppColors.textSecondary, fontSize: 12)),
+                    Text(
+                      location.audience,
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -223,14 +257,17 @@ class _LocationPanel extends StatelessWidget {
           Row(
             children: [
               _PanelStat(
-                  label: 'Score',
-                  value: '${location.attractivenessScore(city).round()}/100'),
+                label: 'Score',
+                value: '${location.attractivenessScore(city).round()}/100',
+              ),
               _PanelStat(
-                  label: 'Traffic',
-                  value: _fmt.format(location.footTrafficFor(city))),
+                label: 'Traffic',
+                value: _fmt.format(location.footTrafficFor(city)),
+              ),
               _PanelStat(
-                  label: 'Miete',
-                  value: '${_fmt.format(location.weeklyRentFor(city))} €'),
+                label: 'Miete',
+                value: '${_fmt.format(location.weeklyRentFor(city))} €',
+              ),
             ],
           ),
           const SizedBox(height: 8),
@@ -248,16 +285,26 @@ class _LocationPanel extends StatelessWidget {
               ),
             ],
           ),
+          if (_actionAppliesToLocation) ...[
+            const SizedBox(height: 8),
+            _Insight(
+              icon: Icons.local_fire_department_outlined,
+              text: _locationActionText(latestCompetitorAction!),
+              color: AppColors.danger,
+            ),
+          ],
           const SizedBox(height: 14),
           _Insight(
-              icon: Icons.warning_amber_rounded,
-              text: location.risk,
-              color: AppColors.warning),
+            icon: Icons.warning_amber_rounded,
+            text: location.risk,
+            color: AppColors.warning,
+          ),
           const SizedBox(height: 8),
           _Insight(
-              icon: Icons.lightbulb_outline_rounded,
-              text: location.recommendation,
-              color: AppColors.accent),
+            icon: Icons.lightbulb_outline_rounded,
+            text: location.recommendation,
+            color: AppColors.accent,
+          ),
           const SizedBox(height: 8),
           _Insight(
             icon: Icons.shield_outlined,
@@ -274,6 +321,67 @@ class _LocationPanel extends StatelessWidget {
                 canAfford
                     ? 'Filiale hier eröffnen · Kaution ${_fmt.format(deposit)} €'
                     : 'Zu wenig Kapital · ${_fmt.format(deposit)} € Kaution',
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  bool get _actionAppliesToLocation {
+    final action = latestCompetitorAction;
+    return action != null &&
+        (action.locationName == null ||
+            action.locationName == location.template.name);
+  }
+
+  String _locationActionText(CompetitorActionEvent action) {
+    switch (action.type) {
+      case CompetitorActionType.priceWar:
+        return 'Preiskampf aktiv: Marge schützen und Tempo hochhalten.';
+      case CompetitorActionType.expansion:
+        return 'Rivale expandiert: Standortdruck steigt hier spürbar.';
+      case CompetitorActionType.qualityPush:
+        return 'Rivale setzt auf Qualität: Reputation absichern.';
+      case CompetitorActionType.localMarketing:
+        return 'Lokales Marketing läuft: Stammkundenbindung wird wichtiger.';
+    }
+  }
+}
+
+class _CompetitorActionAlert extends StatelessWidget {
+  final CompetitorActionEvent action;
+
+  const _CompetitorActionAlert({required this.action});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.danger.withAlpha(24),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.danger.withAlpha(110)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            Icons.radar_rounded,
+            color: AppColors.danger,
+            size: 17,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              action.message,
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 12,
+                height: 1.3,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
@@ -302,15 +410,20 @@ class _PanelStat extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(value,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                    color: AppColors.textPrimary, fontWeight: FontWeight.w800)),
+            Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
             const SizedBox(height: 2),
-            Text(label,
-                style:
-                    const TextStyle(color: AppColors.textMuted, fontSize: 10)),
+            Text(
+              label,
+              style: const TextStyle(color: AppColors.textMuted, fontSize: 10),
+            ),
           ],
         ),
       ),
@@ -332,9 +445,14 @@ class _Insight extends StatelessWidget {
         Icon(icon, color: color, size: 18),
         const SizedBox(width: 8),
         Expanded(
-          child: Text(text,
-              style: const TextStyle(
-                  color: AppColors.textSecondary, fontSize: 12, height: 1.35)),
+          child: Text(
+            text,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 12,
+              height: 1.35,
+            ),
+          ),
         ),
       ],
     );
@@ -364,14 +482,24 @@ class _ShopMapCard extends StatelessWidget {
           backgroundColor: AppColors.primary,
           child: Text('🥙'),
         ),
-        title: Text(title,
-            style: const TextStyle(
-                color: AppColors.textPrimary, fontWeight: FontWeight.w700)),
-        subtitle:
-            Text(subtitle, style: const TextStyle(color: AppColors.textMuted)),
-        trailing: Text('${_fmt.format(revenue)} €',
-            style: const TextStyle(
-                color: AppColors.accent, fontWeight: FontWeight.w800)),
+        title: Text(
+          title,
+          style: const TextStyle(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: const TextStyle(color: AppColors.textMuted),
+        ),
+        trailing: Text(
+          '${_fmt.format(revenue)} €',
+          style: const TextStyle(
+            color: AppColors.accent,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
       ),
     );
   }
