@@ -51,6 +51,7 @@ flutter:
 
   assets:
     - assets/sfx/
+    - assets/iso/
 
   fonts:
     - family: Baloo2
