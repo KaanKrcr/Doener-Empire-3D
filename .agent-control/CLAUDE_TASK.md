@@ -1,4 +1,4 @@
-﻿# CLAUDE_TASK
+# CLAUDE_TASK
 
 ## Rolle
 Senior Engineering Planner und Reviewer.
@@ -6,20 +6,27 @@ Senior Engineering Planner und Reviewer.
 ## Lies zuerst
 - .agent-control/CURRENT_DECISION.md
 - .agent-control/MASTER_PLAN.md
-- docs/UNITY_PRODUCT_VISION.md
-- docs/UNITY_REWRITE_PLAN.md
+- .agent-control/REVIEW_QUEUE.md
 - docs/UI_STYLE_GUIDE.md
 - AGENTS.md
 
 ## Aufgabe
 Halte das Projekt auf Kurs:
-Unity Management-Spiel mit Premium City Map, nicht Arcade Cooking.
+Flutter-first Management-/Progression-Spiel mit starker City Map, gutem Shop-Detail und klaren Mobile-Flows.
 
 Arbeite bevorzugt an:
-1. Scope Review
-2. UNITY_CITY_MAP_UX.md
-3. UNITY_SAVE_COMPAT.md falls nötig
-4. Review von Codex-Arbeit
+1. Flutter-Scope-Review
+2. konkrete Queue-Items mit Akzeptanzkriterien
+3. Review von Codex-Arbeit
+4. Produktentscheidungen fuer City Map, Shop-Detail und Tagesloop
+
+## Nicht planen
+- Unity-Port
+- Unity Android Build
+- Unity Logic Tests
+- Arcade Cooking
+- Echtzeit-Kundenbedienung
+- manuelle Food-Station
 
 ## Vor dem Stoppen
-STATUS.md aktualisieren und HANDOFF_LOG.md ergänzen.
+STATUS.md aktualisieren und HANDOFF_LOG.md ergaenzen.

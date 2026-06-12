@@ -32,9 +32,12 @@ class _CityMapScreenState extends ConsumerState<CityMapScreen> {
   Widget build(BuildContext context) {
     final game = ref.watch(gameProvider)!;
     final locations = LocationEngine.locationsFor(city);
-    final selected = _selected ?? (locations.isNotEmpty ? locations.first : null);
-    final cityShops = game.shops.where((shop) => shop.cityId == city.id).toList();
+    final selected =
+        _selected ?? (locations.isNotEmpty ? locations.first : null);
+    final cityShops =
+        game.shops.where((shop) => shop.cityId == city.id).toList();
     final summary = LocationEngine.summarize(city, game.shops);
+    final competition = LocationEngine.competitionBrief(game, city.id);
 
     return Scaffold(
       backgroundColor: AppColors.bg,
@@ -44,7 +47,7 @@ class _CityMapScreenState extends ConsumerState<CityMapScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
         children: [
-          _SummaryStrip(summary: summary),
+          _SummaryStrip(summary: summary, competition: competition),
           const SizedBox(height: 14),
           CityMapView(
             city: city,
@@ -62,18 +65,21 @@ class _CityMapScreenState extends ConsumerState<CityMapScreen> {
                   .where((shop) => shop.locationName == selected.template.name)
                   .length,
               cash: game.cash,
+              competition: competition,
               onOpenShop: () => context.push(
                 '/open-shop/${city.id}?location=${Uri.encodeComponent(selected.template.name)}',
               ),
             ),
           const SizedBox(height: 14),
           if (cityShops.isNotEmpty) ...[
-            Text('Deine Filialen', style: AppText.label(color: AppColors.secondary)),
+            Text('Deine Filialen',
+                style: AppText.label(color: AppColors.secondary)),
             const SizedBox(height: 8),
             for (final shop in cityShops)
               _ShopMapCard(
                 title: shop.displayName,
-                subtitle: '${shop.locationName} · ${shop.reputation.toStringAsFixed(1)} ★',
+                subtitle:
+                    '${shop.locationName} · ${shop.reputation.toStringAsFixed(1)} ★',
                 revenue: GameEngine.calculateDailyRevenue(
                   shop,
                   day: game.currentDay,
@@ -90,7 +96,12 @@ class _CityMapScreenState extends ConsumerState<CityMapScreen> {
 
 class _SummaryStrip extends StatelessWidget {
   final CityMapSummary summary;
-  const _SummaryStrip({required this.summary});
+  final CityCompetitionBrief competition;
+
+  const _SummaryStrip({
+    required this.summary,
+    required this.competition,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -103,10 +114,23 @@ class _SummaryStrip extends StatelessWidget {
       ),
       child: Row(
         children: [
-          _Metric(label: 'Filialen', value: '${summary.shopCount}', color: AppColors.primary),
-          _Metric(label: 'Laufkundschaft', value: _fmt.format(summary.totalFootTraffic), color: AppColors.accent),
-          _Metric(label: 'Miete/Woche', value: '${_fmt.format(summary.weeklyRent)} €', color: AppColors.warning),
-          _Metric(label: 'Ruf', value: summary.hasPresence ? summary.avgReputation.toStringAsFixed(1) : '—', color: AppColors.gold),
+          _Metric(
+              label: 'Filialen',
+              value: '${summary.shopCount}',
+              color: AppColors.primary),
+          _Metric(
+              label: 'Laufkundschaft',
+              value: _fmt.format(summary.totalFootTraffic),
+              color: AppColors.accent),
+          _Metric(
+              label: 'Miete/Woche',
+              value: '${_fmt.format(summary.weeklyRent)} €',
+              color: AppColors.warning),
+          _Metric(
+            label: 'Konkurrenz',
+            value: competition.pressureLabel,
+            color: competition.hasRivals ? AppColors.danger : AppColors.gold,
+          ),
         ],
       ),
     );
@@ -117,7 +141,8 @@ class _Metric extends StatelessWidget {
   final String label;
   final String value;
   final Color color;
-  const _Metric({required this.label, required this.value, required this.color});
+  const _Metric(
+      {required this.label, required this.value, required this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -127,7 +152,8 @@ class _Metric extends StatelessWidget {
         children: [
           Text(value, style: AppText.display(size: 15, color: color)),
           const SizedBox(height: 2),
-          Text(label, style: const TextStyle(fontSize: 10, color: AppColors.textMuted)),
+          Text(label,
+              style: const TextStyle(fontSize: 10, color: AppColors.textMuted)),
         ],
       ),
     );
@@ -139,6 +165,7 @@ class _LocationPanel extends StatelessWidget {
   final CityMapLocation location;
   final int shopCount;
   final double cash;
+  final CityCompetitionBrief competition;
   final VoidCallback onOpenShop;
 
   const _LocationPanel({
@@ -146,6 +173,7 @@ class _LocationPanel extends StatelessWidget {
     required this.location,
     required this.shopCount,
     required this.cash,
+    required this.competition,
     required this.onOpenShop,
   });
 
@@ -153,6 +181,11 @@ class _LocationPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final deposit = location.depositFor(city);
     final canAfford = cash >= deposit;
+    final forecast = LocationEngine.forecastOpening(city, location);
+    final breakEven = forecast.breakEvenDays == null
+        ? 'kritisch'
+        : '${forecast.breakEvenDays} Tage';
+    final cashAfterDeposit = cash - deposit;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -172,7 +205,9 @@ class _LocationPanel extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(location.label, style: AppText.display(size: 20)),
-                    Text(location.audience, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                    Text(location.audience,
+                        style: const TextStyle(
+                            color: AppColors.textSecondary, fontSize: 12)),
                   ],
                 ),
               ),
@@ -187,15 +222,48 @@ class _LocationPanel extends StatelessWidget {
           const SizedBox(height: 14),
           Row(
             children: [
-              _PanelStat(label: 'Score', value: '${location.attractivenessScore(city).round()}/100'),
-              _PanelStat(label: 'Traffic', value: _fmt.format(location.footTrafficFor(city))),
-              _PanelStat(label: 'Miete', value: '${_fmt.format(location.weeklyRentFor(city))} €'),
+              _PanelStat(
+                  label: 'Score',
+                  value: '${location.attractivenessScore(city).round()}/100'),
+              _PanelStat(
+                  label: 'Traffic',
+                  value: _fmt.format(location.footTrafficFor(city))),
+              _PanelStat(
+                  label: 'Miete',
+                  value: '${_fmt.format(location.weeklyRentFor(city))} €'),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              _PanelStat(
+                label: 'Prognose',
+                value:
+                    '${_fmt.format(forecast.estimatedProfitPerDay.round())} EUR/Tag',
+              ),
+              _PanelStat(label: 'Break-even', value: breakEven),
+              _PanelStat(
+                label: 'Cash danach',
+                value: '${_fmt.format(cashAfterDeposit.round())} EUR',
+              ),
             ],
           ),
           const SizedBox(height: 14),
-          _Insight(icon: Icons.warning_amber_rounded, text: location.risk, color: AppColors.warning),
+          _Insight(
+              icon: Icons.warning_amber_rounded,
+              text: location.risk,
+              color: AppColors.warning),
           const SizedBox(height: 8),
-          _Insight(icon: Icons.lightbulb_outline_rounded, text: location.recommendation, color: AppColors.accent),
+          _Insight(
+              icon: Icons.lightbulb_outline_rounded,
+              text: location.recommendation,
+              color: AppColors.accent),
+          const SizedBox(height: 8),
+          _Insight(
+            icon: Icons.shield_outlined,
+            text: competition.recommendation,
+            color: competition.hasRivals ? AppColors.danger : AppColors.gold,
+          ),
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
@@ -234,9 +302,15 @@ class _PanelStat extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(value, style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w800)),
+            Text(value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                    color: AppColors.textPrimary, fontWeight: FontWeight.w800)),
             const SizedBox(height: 2),
-            Text(label, style: const TextStyle(color: AppColors.textMuted, fontSize: 10)),
+            Text(label,
+                style:
+                    const TextStyle(color: AppColors.textMuted, fontSize: 10)),
           ],
         ),
       ),
@@ -258,7 +332,9 @@ class _Insight extends StatelessWidget {
         Icon(icon, color: color, size: 18),
         const SizedBox(width: 8),
         Expanded(
-          child: Text(text, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, height: 1.35)),
+          child: Text(text,
+              style: const TextStyle(
+                  color: AppColors.textSecondary, fontSize: 12, height: 1.35)),
         ),
       ],
     );
@@ -288,9 +364,14 @@ class _ShopMapCard extends StatelessWidget {
           backgroundColor: AppColors.primary,
           child: Text('🥙'),
         ),
-        title: Text(title, style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w700)),
-        subtitle: Text(subtitle, style: const TextStyle(color: AppColors.textMuted)),
-        trailing: Text('${_fmt.format(revenue)} €', style: const TextStyle(color: AppColors.accent, fontWeight: FontWeight.w800)),
+        title: Text(title,
+            style: const TextStyle(
+                color: AppColors.textPrimary, fontWeight: FontWeight.w700)),
+        subtitle:
+            Text(subtitle, style: const TextStyle(color: AppColors.textMuted)),
+        trailing: Text('${_fmt.format(revenue)} €',
+            style: const TextStyle(
+                color: AppColors.accent, fontWeight: FontWeight.w800)),
       ),
     );
   }

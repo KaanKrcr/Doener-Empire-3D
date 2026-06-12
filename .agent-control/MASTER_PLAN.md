@@ -1,22 +1,25 @@
-﻿# MASTER_PLAN
+# MASTER_PLAN
 
 Kaan plant mit Clemens/OpenClaw.
-Clemens erstellt Aufgaben für Claude Code und Codex.
+Clemens erstellt Aufgaben fuer Claude Code und Codex.
 Claude Code plant/reviewt.
 Codex implementiert.
 
 ## Source Priority
 1. .agent-control/CURRENT_DECISION.md
-2. docs/UNITY_PRODUCT_VISION.md
-3. docs/UNITY_REWRITE_PLAN.md
-4. docs/UI_STYLE_GUIDE.md
-5. AGENTS.md
+2. docs/UI_STYLE_GUIDE.md
+3. README_STATUS.md
+4. AGENTS.md
+
+## Product Rule
+Doener Empire ist Flutter-first. Keine Unity-Spur neu starten, keine Unity-Tasks
+erzeugen und keine Android-APK ueber Unity bauen.
 
 ## Limit-Regel
 Wenn Claude Code oder Codex ein Nutzungslimit erreicht:
 1. STATUS.md aktualisieren
-2. HANDOFF_LOG.md ergänzen
-3. exakten nächsten Schritt notieren
+2. HANDOFF_LOG.md ergaenzen
+3. exakten naechsten Schritt notieren
 4. sauber stoppen
 
 Beim Resume:

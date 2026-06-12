@@ -1,5 +1,33 @@
 # Changelog
 
+## Unreleased - Flutter-Fokus, Deps & CI-Härtung (2026-06-10)
+
+### Strategie
+
+- Entscheidung: Unity-Voll-Port pausiert (bleibt als Referenz im Repo),
+  Premium-Optik stattdessen als **isometrische 2.5D-City-Map direkt in Flutter**
+  (Render-Schicht; Spiellogik unverändert). Sprite-Pipeline mit Vektor-Fallback.
+
+### Dependencies (Major-Updates, je einzeln CI-verifiziert)
+
+- `intl` 0.19 → 0.20.2, `flutter_lints` 3 → 6
+- `fl_chart` 0.68 → 1.2.0 (genutzte Chart-APIs unverändert)
+- `go_router` 13 → 17.3.0 (Config nutzte bereits moderne API)
+- `flutter_riverpod` 2 → 3.3.2 (Kern auf `Notifier`; `StateProvider` via
+  `legacy.dart`)
+- Patch-Bumps: `shared_preferences_android`/`url_launcher_android` auf
+  Built-in Kotlin migriert (KGP-Warnung nur noch `audioplayers`, upstream)
+- `cupertino_icons` ergänzt → Font-Manifest-Build-Warnung behoben
+
+### CI / Qualitätssicherung
+
+- **Flutter-CI-Gate** (`flutter analyze` + `flutter test`) auf jedem PR
+- **Branch-Protection** auf `main`: grüner Check Pflicht, keine Force-Pushes
+- GitHub-Actions auf Node-24-Majors (checkout v6, setup-dotnet v5, cache v5,
+  upload-artifact v7)
+- Render-Smoke-Tests für alle 6 Haupt-Tabs (Dashboard/Cities/Stats/Corporate/
+  Finance/Bank) + Finanz-Chart (fl_chart 1)
+
 ## Unreleased - Unity-Port (2026-06-09)
 
 ### Engine-Port (Flutter → Unity C#)

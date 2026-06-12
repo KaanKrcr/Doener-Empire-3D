@@ -3,6 +3,8 @@ import 'package:flutter/widgets.dart';
 import '../core/constants.dart';
 import '../models/city_map_model.dart';
 import '../models/city_model.dart';
+import '../models/competitor_model.dart';
+import '../models/game_state.dart';
 import '../models/shop_model.dart';
 import '../models/time_profile_model.dart';
 
@@ -20,6 +22,62 @@ class CityMapSummary {
   });
 
   bool get hasPresence => shopCount > 0;
+}
+
+class LocationOpeningForecast {
+  final int estimatedCustomersPerDay;
+  final double estimatedProfitPerDay;
+  final int? breakEvenDays;
+
+  const LocationOpeningForecast({
+    required this.estimatedCustomersPerDay,
+    required this.estimatedProfitPerDay,
+    required this.breakEvenDays,
+  });
+
+  bool get isProfitable => estimatedProfitPerDay > 0;
+}
+
+class CityCompetitionBrief {
+  final int rivalCount;
+  final int rivalShopCount;
+  final double rivalMarketShare;
+  final Competitor? strongestRival;
+
+  const CityCompetitionBrief({
+    required this.rivalCount,
+    required this.rivalShopCount,
+    required this.rivalMarketShare,
+    required this.strongestRival,
+  });
+
+  bool get hasRivals => rivalCount > 0;
+
+  String get pressureLabel {
+    if (!hasRivals) return 'Noch offen';
+    if (rivalMarketShare >= 0.55) return 'Hart';
+    if (rivalMarketShare >= 0.32) return 'Spuerbar';
+    return 'Leicht';
+  }
+
+  String get recommendation {
+    if (!hasRivals) {
+      return 'Noch keine direkte KI-Konkurrenz sichtbar. Standort nach Traffic und Kaution waehlen.';
+    }
+    final rival = strongestRival!;
+    switch (rival.personality) {
+      case CompetitorPersonality.cheapMass:
+        return '${rival.name} drueckt ueber Preis. Nicht blind unterbieten: Tempo und Kombis absichern.';
+      case CompetitorPersonality.balanced:
+        return '${rival.name} ist solide. Gleichmaessige Qualitaet und Ruf schlagen reine Rabatte.';
+      case CompetitorPersonality.premium:
+        return '${rival.name} verkauft Premium. Klassiker guenstig halten, Top-Produkte gezielt verteuern.';
+      case CompetitorPersonality.aggressive:
+        return '${rival.name} expandiert aggressiv. Cash-Reserve halten und Personalengpaesse vermeiden.';
+      case CompetitorPersonality.traditional:
+        return '${rival.name} lebt vom Ruf. Lokales Marketing und Bewertung zuerst staerken.';
+    }
+  }
 }
 
 /// Adapter zwischen bestehenden Listen-Standorten und der neuen City-Map.
@@ -65,9 +123,74 @@ class LocationEngine {
             shops.length;
     return CityMapSummary(
       shopCount: shops.length,
-      totalFootTraffic: shops.fold<int>(0, (sum, shop) => sum + shop.footTraffic),
+      totalFootTraffic:
+          shops.fold<int>(0, (sum, shop) => sum + shop.footTraffic),
       weeklyRent: shops.fold<double>(0, (sum, shop) => sum + shop.weeklyRent),
       avgReputation: reputation,
+    );
+  }
+
+  static CityCompetitionBrief competitionBrief(
+    GameState state,
+    String cityId,
+  ) {
+    final rivals = state.competitorsIn(cityId);
+    if (rivals.isEmpty) {
+      return const CityCompetitionBrief(
+        rivalCount: 0,
+        rivalShopCount: 0,
+        rivalMarketShare: 0,
+        strongestRival: null,
+      );
+    }
+
+    final strongest = rivals.reduce(
+      (best, next) => next.marketShare > best.marketShare ? next : best,
+    );
+    final marketShare = rivals
+        .fold<double>(0, (sum, rival) => sum + rival.marketShare)
+        .clamp(0.0, 0.95);
+
+    return CityCompetitionBrief(
+      rivalCount: rivals.length,
+      rivalShopCount:
+          rivals.fold<int>(0, (sum, rival) => sum + rival.shopCount),
+      rivalMarketShare: marketShare,
+      strongestRival: strongest,
+    );
+  }
+
+  static LocationOpeningForecast forecastOpening(
+    CityData city,
+    CityMapLocation location,
+  ) {
+    final starterProduct = kAllProducts.firstWhere(
+      (product) => product.id == 'doener_fladen',
+      orElse: () => kAllProducts.first,
+    );
+    final timeProfile = kTimeProfiles[location.personality] ??
+        kTimeProfiles[LocationPersonality.touristic]!;
+    final weeklyTimeMultiplier = List.generate(
+          7,
+          (day) => timeProfile.dailyAverage(day),
+        ).fold<double>(0, (sum, value) => sum + value) /
+        7;
+    final customers =
+        (location.footTrafficFor(city) * 0.06 * weeklyTimeMultiplier)
+            .round()
+            .clamp(0, 999999);
+    final grossMargin =
+        starterProduct.basePrice - starterProduct.ingredientCostPerUnit;
+    final profitPerDay =
+        (customers * grossMargin) - (location.weeklyRentFor(city) / 7);
+    final breakEvenDays = profitPerDay <= 0
+        ? null
+        : (location.depositFor(city) / profitPerDay).ceil();
+
+    return LocationOpeningForecast(
+      estimatedCustomersPerDay: customers,
+      estimatedProfitPerDay: profitPerDay,
+      breakEvenDays: breakEvenDays,
     );
   }
 
@@ -79,7 +202,8 @@ class LocationEngine {
           icon: '🏢',
           audience: 'Büroarbeiter & Pendler',
           risk: 'Hohe Mittagsspitzen, Personalengpässe werden teuer.',
-          recommendation: 'Premium-Preis + schnelle Kasse funktionieren hier gut.',
+          recommendation:
+              'Premium-Preis + schnelle Kasse funktionieren hier gut.',
         );
       case LocationPersonality.transit:
         return (
@@ -93,14 +217,16 @@ class LocationEngine {
           icon: '🏘️',
           audience: 'Stammkunden & Familien',
           risk: 'Weniger Laufkundschaft, Wachstum braucht Reputation.',
-          recommendation: 'Qualität, faire Preise und lokale Flyer stärken Stammkunden.',
+          recommendation:
+              'Qualität, faire Preise und lokale Flyer stärken Stammkunden.',
         );
       case LocationPersonality.university:
         return (
           icon: '🎓',
           audience: 'Studierende',
           risk: 'Preissensibel, Rabatte drücken die Marge.',
-          recommendation: 'Combos, Social Media und günstige Dürüm-Angebote testen.',
+          recommendation:
+              'Combos, Social Media und günstige Dürüm-Angebote testen.',
         );
       case LocationPersonality.nightlife:
         return (
@@ -114,7 +240,8 @@ class LocationEngine {
           icon: name.toLowerCase().contains('shopping') ? '🛍️' : '📍',
           audience: 'Touristen & gemischte Laufkundschaft',
           risk: 'Teure Lage: Miete muss durch hohen Durchsatz getragen werden.',
-          recommendation: 'Sichtbares Marketing und solide Qualität zahlen sich aus.',
+          recommendation:
+              'Sichtbares Marketing und solide Qualität zahlen sich aus.',
         );
     }
   }

@@ -8,11 +8,20 @@
 
 ## Technische Risiken
 
-- Kotlin-Plugin-Migrationswarnung beim Android-Build:
-  Plugin `shared_preferences_android` nutzt noch KGP-Pfad, der in künftigen
-  Flutter-Versionen zu Build-Fehlern führen kann.
-- Build-Warnung zu erwarteten Cupertino-Fonts (nicht build-blockierend).
-  Prüfen, ob `cupertino_icons` benötigt und konsistent eingebunden werden soll.
+- Kotlin-Plugin-Migrationswarnung beim Android-Build (KGP → Built-in Kotlin):
+  Stand 2026-06-10 nach Patch-Update **nur noch `audioplayers_android`**
+  (6.7.1, neueste Version). `shared_preferences_android` (2.4.25) und
+  `url_launcher_android` (6.3.32) sind durch das Update bereits migriert und
+  raus aus der Warnung.
+  - **Upstream-blockiert:** Es gibt noch keine `audioplayers`-Version mit
+    Built-in-Kotlin-Support; die installierte ist bereits die neueste.
+  - **Nicht build-blockierend** auf Flutter 3.44 (Debug-/Release-APK bauen
+    erfolgreich). Künftige Flutter-Versionen könnten das erzwingen.
+  - **To-do:** `flutter pub upgrade audioplayers` sobald der Maintainer eine
+    migrierte Version veröffentlicht; dann verschwindet die Warnung ganz.
+- ~~Build-Warnung zu erwarteten Cupertino-Fonts (nicht build-blockierend).~~
+  Erledigt 2026-06-10: `cupertino_icons` als Dependency ergänzt (Flutter-Default);
+  Font-Manifest-Warnung verschwindet, ungenutzte Glyphen werden tree-geshaked.
 
 ## Produkt-/UX-Risiken für Testphase
 

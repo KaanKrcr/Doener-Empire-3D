@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart'; // StateProvider (riverpod 3: nach legacy verschoben)
 import 'package:go_router/go_router.dart';
 import '../core/theme.dart';
+import '../services/haptics_service.dart';
 import '../models/tutorial_model.dart';
 import '../providers/game_provider.dart';
 import '../services/sound_service.dart';
@@ -155,7 +156,7 @@ class MainScaffold extends ConsumerWidget {
         currentIndex: idx,
         highlightIndex: tutorialStep?.targetTabIndex,
         onTap: (i) {
-          HapticFeedback.selectionClick();
+          Haptics.selection();
           SoundService.play(Sfx.tap);
           ref.read(navIndexProvider.notifier).state = i;
         },

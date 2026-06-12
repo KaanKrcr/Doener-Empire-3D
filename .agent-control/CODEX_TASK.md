@@ -1,4 +1,4 @@
-﻿# CODEX_TASK
+# CODEX_TASK
 
 ## Rolle
 Implementation Agent.
@@ -7,29 +7,33 @@ Implementation Agent.
 - .agent-control/CURRENT_DECISION.md
 - .agent-control/MASTER_PLAN.md
 - .agent-control/REVIEW_CHECKLIST.md
+- .agent-control/REVIEW_QUEUE.md
 - AGENTS.md
 
 ## Aufgabe
-Implementiere Richtung Vertical Slice:
+Implementiere nur die Flutter-Spur.
 
-1. minimale State-/Economy-Struktur
-2. City Map mit auswählbaren Hotspots
-3. Location Bottom Sheet
-4. Kaufen/Upgraden
-5. Tag simulieren
-6. Tagesbericht
+Bevorzugte Produktbereiche:
+1. City Map als primaerer Ingame-Flow
+2. Standort-Prognose, Risiko und Konkurrenzdruck
+3. Shop-Detail als Premium-Management-Konsole
+4. Equipment, Personal, Marketing und Expansion
+5. Day-End-Loop mit klaren Ursachen und Folgen
 
 ## Nicht bauen
+- Unity-Code oder Unity-Projektdateien
+- Unity Android Build
 - Arcade Cooking
 - Echtzeit-Kundenbedienung
 - manuelle Food-Station
-- neue Systeme ohne Rücksprache
+- neue Systeme ohne klare Queue-/User-Richtung
 
 ## Validierung
 Kleinste sinnvolle Checks laufen lassen:
-- dotnet test falls Unity-Logic
-- flutter analyze/test falls Flutter
-- mindestens git diff --check
+- `flutter analyze`
+- `flutter test`
+- `flutter build apk --release` fuer testbare Android-Pakete
+- mindestens `git diff --check`
 
 ## Vor dem Stoppen
-STATUS.md aktualisieren und HANDOFF_LOG.md ergänzen.
+STATUS.md aktualisieren und HANDOFF_LOG.md ergaenzen.

@@ -1,16 +1,352 @@
 # STATUS
 
 ## Overall
-Unity-Port laeuft. Logik-Layer wird verifiziert (`dotnet test`) portiert; UX-Spec
-fuer den Vertical Slice ist geschrieben.
+Flutter ist die kanonische App. Der Unity-Port ist beendet und wird aus dem
+Repo entfernt, damit keine neuen Android-Pakete oder Review-Queues mehr ueber
+Unity laufen.
 
 ## Product Direction
-Unity Management-/Progression-Spiel mit Premium 2.5D/3D City Map.
-Arcade Cooking ist verworfen (`docs/UNITY_MVP_ARCADE_PLAN.md` = DEPRECATED).
+Flutter Management-/Progression-Spiel mit starker City Map, Premium-Shop-Detail
+und klarer Android-APK-Spur ueber `flutter build apk --release`.
+Arcade Cooking, Echtzeit-Kundenbedienung und parallele Unity-App sind verworfen.
 
 ## Claude Code (Planner/Reviewer)
-State: queued RestaurantDetail price controller flow review for Claude (2026-06-06 08:33)
+State: Flutter-only City Map competition slice complete (2026-06-12 06:04)
 Done:
+- Current Codex run 2026-06-12 06:04: Kaan hat direkt beauftragt, am Spiel
+  weiterzuarbeiten, ausdruecklich Flutter statt Unity. Kleiner Flutter-Slice
+  umgesetzt: City Map zeigt jetzt Konkurrenzdruck als Entscheidungshilfe.
+  `LocationEngine.competitionBrief(...)` fasst Rivalen je Stadt zusammen
+  (Anzahl, Rivalen-Filialen, Marktanteil, staerkster Rivale, Drucklabel und
+  operative Empfehlung). `CityMapScreen` zeigt das Drucklabel im Summary-Strip
+  und eine konkrete Konkurrenz-Empfehlung im Standortpanel. Testabdeckung in
+  `test/location_engine_test.dart` ergaenzt. Keine Unity-Dateien angefasst,
+  kein APK-/Dateiversand an Kaan. Validation: `flutter analyze` gruen,
+  `flutter test` gruen mit 99 bestandenen Tests, `git diff --check` clean
+  (nur bekannte LF/CRLF-Warnungen).
+- Current cron run 2026-06-12 05:41: Pflichtdateien gelesen. `REVIEW_QUEUE.md`
+  ist `Status: empty`, `HEAD == origin/main` bei `6586275`. Worktree enthaelt
+  nur erwartete Control-Datei-Aenderungen aus dem 2026-06-11-20:30-Statuscheck.
+  Gemaess Queue-Regel sollte n8n/Claude das naechste kleine Flutter-
+  Management-/Progression-Item waehlen; Dispatch an
+  `http://127.0.0.1:5678/webhook/doener-unity-dispatch` ist jedoch fehlgeschlagen
+  (Remoteverbindung nicht herstellbar). Keine Codex-Implementierung aus leerer
+  Queue gestartet.
+- Current cron run 2026-06-11 20:30: Pflichtdateien gelesen. `CURRENT_DECISION.md`
+  bindet Doener Empire auf Flutter-only; Unity ist beendet. `REVIEW_QUEUE.md`
+  ist `Status: empty` und verlangt inzwischen explizit: Review-Items muessen
+  Flutter betreffen, keine Unity-Review- oder Implementation-Items erzeugen,
+  bei leerer Queue `Status: empty` behalten. Deshalb wurde kein veraltetes
+  Unity-Review-Item neu formuliert und keine Codex-Implementierung gestartet.
+  `docs/UNITY_PRODUCT_VISION.md` und `docs/UNITY_CITY_MAP_UX.md` existieren
+  nach dem Unity-Retirement nicht mehr. Worktree sauber; letzter Commit:
+  `6586275` ("Retire Unity and port shop console to Flutter").
+- Current run 2026-06-11 19:40: Kaan hat klargestellt, dass Doener Empire auf
+  Flutter weitergefuehrt werden soll und Unity nicht mehr verwendet werden darf.
+  Der Premium-Console-Look aus dem Unity-RestaurantDetail-Slice wurde in die
+  Flutter-Shop-Detail-Ansicht portiert. Unity-Projekt, Unity-Logic-Tests,
+  Unity-GitHub-Actions und Unity-Dokumente werden entfernt. Agent-Control wird
+  auf Flutter-only umgestellt. Review Queue ist wieder `Status: empty`.
+  Validation: `flutter analyze`, `flutter test` (98 bestanden) und
+  `flutter build apk --release` erfolgreich.
+- Current cron run 2026-06-11 19:30: Pflichtdateien gelesen. Queue ist
+  weiterhin `Status: open` mit Claude-Reviewer-Item "Unity RestaurantDetail
+  premium console UI review"; keine Codex-Implementierung gestartet. Blocker
+  besteht fort: Queue-Target `df11d69`, aktueller `HEAD == origin/main` ist
+  `737f04c` ("Add local Unity Android APK build path"). Worktree ist weiterhin
+  nicht sauber mit bestehenden Control-/Flutter-Aenderungen, Unity-generierten
+  `.meta`-/ProjectSettings-Aenderungen und untracked Unity-Dateien. Naechster
+  Schritt bleibt: Claude Code muss das UI-Review gegen den passenden Stand
+  abschliessen und Queue leeren oder das Review-Item explizit aktualisieren.
+- Current cron run 2026-06-11 19:00: Pflichtdateien gelesen. Queue ist
+  weiterhin `Status: open` mit Claude-Reviewer-Item "Unity RestaurantDetail
+  premium console UI review"; deshalb keine Codex-Implementierung gestartet.
+  Blocker/Inkonistenz: Queue-Target ist `df11d69`, waehrend aktueller
+  `HEAD == origin/main` inzwischen `737f04c` ("Add local Unity Android APK
+  build path") ist. Worktree enthaelt Unity-generierte `.meta`-/ProjectSettings-
+  Aenderungen und untracked Unity-Dateien (`unity/.utmp/`, `unity/unity.slnx`
+  u. a.). Naechster Schritt: Claude Code muss das offene Review entweder gegen
+  den passenden UI-Commit/aktuellen Stand abschliessen und die Queue leeren
+  oder das Review-Item explizit aktualisieren. Codex bleibt blockiert.
+- Current cron run 2026-06-11 18:30: Pflichtdateien gelesen; Worktree sauber
+  und `HEAD == origin/main` (`bc34855`). Offenes Claude-Reviewer-Item
+  "Unity RestaurantDetail premium console UI review" wurde gemaess Queue-Regel
+  nicht durch Codex implementiert, sondern via n8n an Claude Code dispatcht.
+  Dispatch erfolgreich angenommen, runId:
+  `5bc9c346-55bb-4349-a56f-ae3c65f8ac28`. Queue bleibt `Status: open`, bis
+  das Review-Ergebnis dokumentiert ist.
+- Current run 2026-06-11 17:48: Kaan hat den Start fuer UI gegeben und
+  verlangt, dass Codex GitHub-Skills durchsucht und sichtbar besseres UI baut.
+  Passender GitHub-Skill recherchiert: `ui-ux-pro-max` (UI/UX Design
+  Intelligence). Verwendete Leitlinien: klare Informationshierarchie, groessere
+  Touch-Ziele, bessere Status-Zustaende, Management-Konsole statt technischer
+  Listen. `RestaurantDetailView` wurde als erster sichtbarer UI-Slice
+  ueberarbeitet: Hero-Header mit Cash/Ruf/Team/Tag, linke Management-
+  Navigation, deutlichere KPI-Kacheln, Decision-Rows mit Accent-Bar,
+  Status-Badges fuer installierte/aktive Optionen und klarere Abschnitts-
+  Unterzeilen. Keine neue Wirtschaftsmutation und keine neuen Services; die UI
+  feuert weiterhin nur bestehende Controller-Intents. Tests gruen; Review-Item
+  "Unity RestaurantDetail premium console UI review" gesetzt.
+- Current run 2026-06-11 17:39: Offenes Queue-Item "Unity RestaurantDetail
+  shop marketing controller flow review" fuer Commit `7bbb7bf` geprueft.
+  Ergebnis: akzeptiert. `GameController.StartShopCampaign(shopId, campaignId)`
+  ist die zentrale Shop-Marketing-Mutationsgrenze; bei Fehlern wird nur ein
+  Toast publiziert, bei Erfolg Snapshot, RestaurantDetail-Refresh und Toast.
+  `RestaurantDetailView` ruft im Marketing-Tab ausschliesslich diesen
+  Controller-Intent fuer `MarketingCatalog.ShopCampaigns` auf und mutiert
+  `GameState`, `Shop`, Cash, ActiveCampaigns, Save-State, Dateien oder Hotspots
+  nicht direkt. `ShopCampaignService` bleibt UnityEngine-frei, validiert State,
+  Shop, CampaignId, Scope `Shop`, Duplicate/aktive Kampagne und Cash fuer die
+  Katalogkosten. Erfolg zieht genau die Katalogkosten ab und haengt genau eine
+  `ActiveCampaign` mit `StartDay = CurrentDay` und `EndDay = CurrentDay +
+  DurationDays` an `Shop.ActiveCampaigns`. Keine City-/Global-Kampagnen-
+  Mutation, keine Preis-/Equipment-/SizeTier-/Personal-/Day-Sim-Mutation,
+  keine Save-/PlayerPrefs-/Filesystem-Logik und keine Arcade-/Realtime-
+  Serving-/CustomerSpawner-/manuelle Koch-/First-/Third-Person-Systeme
+  eingefuehrt. Tests gruen; Queue auf `Status: empty` gesetzt.
+- Current cron run 2026-06-11 17:30: Pflichtdateien gelesen; Worktree enthaelt
+  nur erwartete Control-Datei-Aenderungen aus dem 17:03-Review-Queue-Setup.
+  `HEAD == origin/main` (`7bbb7bf`). Offenes Claude-Reviewer-Item
+  "Unity RestaurantDetail shop marketing controller flow review" wurde gemaess
+  Queue-Regel nicht durch Codex implementiert, sondern via n8n an Claude Code
+  dispatcht. Dispatch erfolgreich angenommen, runId:
+  `ff2b7219-142e-4b07-9b62-d8fb12a49ad0`. Queue bleibt `Status: open`, bis
+  das Review-Ergebnis dokumentiert ist.
+- Current cron run 2026-06-11 17:03: Pflichtdateien gelesen;
+  `REVIEW_QUEUE.md` war `Status: empty`. Letzter Commit ist `7bbb7bf`
+  ("Add restaurant detail shop marketing flow"). Entsprechend der
+  Agent-Control-Regel wurde kein pauschales Codex-"mach weiter" gestartet,
+  sondern ein konkretes Claude-Review-Item formuliert: "Unity RestaurantDetail
+  shop marketing controller flow review". Scope: Commit `7bbb7bf` gegen
+  Management-Spiel-Richtung pruefen: `GameController.StartShopCampaign(shopId,
+  campaignId)` ist die einzige Shop-Marketing-Mutationsgrenze,
+  `RestaurantDetailView` feuert im Marketing-Tab nur diesen Intent fuer
+  `MarketingCatalog.ShopCampaigns`, `ShopCampaignService` bleibt UnityEngine-
+  frei und validiert State, Shop, CampaignId, Scope `Shop`, Duplicate/aktive
+  Kampagne und Cash fuer die expliziten Katalogkosten. Erfolg muss genau diese
+  Kosten abziehen, genau eine `ActiveCampaign` mit `StartDay = CurrentDay` und
+  `EndDay = CurrentDay + DurationDays` an `Shop.ActiveCampaigns` anhaengen und
+  Snapshot, RestaurantDetail-Refresh und Toast publizieren. Fehler bleiben ohne
+  Mutation und publizieren nur Toasts. Keine City-/Global-Kampagnen-Mutation,
+  keine Preis-/Equipment-/SizeTier-/Personal-/Day-Sim-Mutation ausserhalb
+  bestehender Pfade, keine Save-/PlayerPrefs-/Filesystem-Logik und keine
+  Arcade-/Realtime-Serving-/CustomerSpawner-/manuelle Koch-/First-/Third-
+  Person-Systeme freigegeben.
+- Current cron run 2026-06-11 17:00: Offenes Codex-Item "Unity
+  RestaurantDetail shop marketing controller mutation" umgesetzt.
+  `ShopCampaignService` ist UnityEngine-frei und validiert State, Shop,
+  CampaignId, Shop-Scope, Duplicate/aktuell aktive Kampagne und Cash fuer
+  die expliziten Katalogkosten. Erfolg zieht genau die Kosten der
+  Shop-Kampagne ab, haengt genau eine `ActiveCampaign` an
+  `Shop.ActiveCampaigns` und setzt `StartDay = CurrentDay`, `EndDay =
+  CurrentDay + DurationDays`. `GameController.StartShopCampaign(shopId,
+  campaignId)` publiziert bei Erfolg Snapshot, RestaurantDetail-Refresh und
+  Toast; Fehler publizieren nur Toasts. `RestaurantDetailView` zeigt
+  Shop-Kampagnen im Marketing-Tab und feuert nur diesen Controller-Intent.
+  Keine City-/Global-Kampagnen-Mutation, keine Preis-/Equipment-/SizeTier-/
+  Personal-/Day-Sim-Mutation, keine Save-/PlayerPrefs-/Filesystem-Logik und
+  keine Arcade-/Realtime-Serving-/CustomerSpawner-/manuelle Koch-/First-/
+  Third-Person-Systeme eingefuehrt. Tests gruen; Queue auf `Status: empty`
+  gesetzt.
+- Current cron run 2026-06-11 16:30: Pflichtdateien gelesen;
+  `REVIEW_QUEUE.md` war `Status: empty`. Letzter Commit ist `06e381d`
+  ("Accept RestaurantDetail staff hiring review"). Entsprechend der
+  Agent-Control-Regel wurde kein pauschales Codex-"mach weiter" gestartet,
+  sondern ein konkretes Codex-Item formuliert: "Unity RestaurantDetail shop
+  marketing controller mutation". Scope: Shop-Marketing fuer bestehende owned
+  Shops nur ueber einen `GameController`-Intent, z. B.
+  `StartShopCampaign(shopId, campaignId)`. `RestaurantDetailView` darf im
+  Marketing-Tab nur diesen Intent ausloesen. Ein UnityEngine-freier Service
+  validiert State, Shop, CampaignId, Scope `Shop`, Duplicate/aktive Kampagne
+  und ausreichend Cash fuer die expliziten Katalogkosten. Erfolg zieht genau
+  diese Kosten ab, fuegt genau eine `ActiveCampaign` mit `StartDay =
+  CurrentDay` und `EndDay = CurrentDay + DurationDays` an `Shop.ActiveCampaigns`
+  hinzu und publiziert Snapshot, RestaurantDetail-Refresh und Toast. Fehler
+  bleiben ohne Mutation und publizieren nur Toasts. Keine City-/Global-
+  Kampagnen-Mutation, keine Preis-/Equipment-/SizeTier-/Personal-/Day-Sim-
+  Mutation ausserhalb bestehender Pfade, keine Save-/PlayerPrefs-/Filesystem-
+  Logik und keine Arcade-/Realtime-Serving-/CustomerSpawner-/manuelle Koch-/
+  First-/Third-Person-Systeme freigegeben.
+- Current run 2026-06-11 16:08: Offenes Queue-Item "Unity RestaurantDetail
+  staff hiring controller flow review" fuer Commit `cddadac` geprueft.
+  Ergebnis: akzeptiert. `GameController.HireEmployee(shopId, employeeId)` ist
+  die zentrale Personal-Einstellungs-Mutationsgrenze; bei Fehlern wird nur ein
+  Toast publiziert, bei Erfolg Snapshot, RestaurantDetail-Refresh und Toast.
+  `RestaurantDetailView` ruft im Personal-Tab ausschliesslich diesen
+  Controller-Intent auf und mutiert `GameState`, `Shop`, Cash, Employees,
+  `EmployeePool`, Save-State, Dateien oder Hotspots nicht direkt.
+  `EmployeeHiringService` bleibt UnityEngine-frei, validiert Shop, Bewerber-ID,
+  Rollen-Katalog, Duplicate, effektives Stadt-/SizeTier-Personal-Cap und Cash
+  fuer die explizite Hiring Fee. Erfolg fuegt genau einen Mitarbeiter zur
+  Ziel-Filiale hinzu, entfernt genau diesen Kandidaten aus `EmployeePool` und
+  zieht nur die Hiring Fee ab. Keine Preis-/Equipment-/SizeTier-/Marketing-/
+  Day-Sim-Mutation, keine Save-/PlayerPrefs-/Filesystem-Logik und keine
+  Arcade-/Realtime-Serving-/CustomerSpawner-/manuelle Koch-/First-/Third-
+  Person-Systeme eingefuehrt. Tests gruen; Queue auf `Status: empty` gesetzt.
+- Current cron run 2026-06-11 16:00: Pflichtdateien gelesen; Worktree enthaelt
+  nur erwartete Control-Datei-Aenderungen aus dem 15:33-Queue-Setup.
+  `HEAD == origin/main` (`cddadac`). Offenes Claude-Reviewer-Item
+  "Unity RestaurantDetail staff hiring controller flow review" wurde gemaess
+  Queue-Regel nicht durch Codex implementiert, sondern via n8n an Claude Code
+  dispatcht. Dispatch erfolgreich angenommen, runId:
+  `0789f97b-066c-4bcf-8b1b-7bd4afd37e18`. Queue bleibt `Status: open`, bis
+  das Review-Ergebnis dokumentiert ist.
+- Current cron run 2026-06-11 15:33: Pflichtdateien gelesen;
+  `REVIEW_QUEUE.md` war nach Codex' Staff-Hiring-Umsetzung wieder
+  `Status: empty`. Worktree war vor diesem Lauf sauber. Letzter Commit ist
+  `cddadac` ("Add restaurant detail staff hiring flow"). Entsprechend der
+  Agent-Control-Regel wurde kein pauschales Codex-"mach weiter" gestartet,
+  sondern ein konkretes Claude-Review-Item formuliert: "Unity RestaurantDetail
+  staff hiring controller flow review". Scope: Commit `cddadac` gegen
+  Management-Spiel-Richtung pruefen: `GameController.HireEmployee(shopId,
+  employeeId)` ist die einzige Personal-Einstellungs-Mutationsgrenze,
+  `RestaurantDetailView` feuert im Personal-Tab nur den Intent,
+  `EmployeeHiringService` bleibt UnityEngine-frei und validiert Shop,
+  Candidate/EmployeeId, Rollen-Katalog, Duplicate, effektives Stadt-/
+  SizeTier-Personal-Cap und Cash fuer die explizite Hiring Fee. Erfolg muss
+  genau einen Mitarbeiter zur Ziel-Filiale hinzufuegen, genau diesen Kandidaten
+  aus `EmployeePool` entfernen, nur die explizite Fee abziehen und Snapshot,
+  RestaurantDetail-Refresh und Toast publizieren. Fehler bleiben ohne Mutation
+  und publizieren nur Toasts. Keine Preis-/Equipment-/SizeTier-/Marketing-/
+  Day-Sim-Mutation ausserhalb bestehender Pfade, keine Save-/PlayerPrefs-/
+  Filesystem-Logik und keine Arcade-/Realtime-Serving-/CustomerSpawner-/
+  manuelle Koch-/First-/Third-Person-Systeme freigegeben.
+- Current cron run 2026-06-11 15:30: Offenes Codex-Item "Unity
+  RestaurantDetail staff hiring controller mutation" umgesetzt.
+  `EmployeeHiringService` ist UnityEngine-frei und validiert Shop,
+  Bewerber-ID, Rollen-Katalog, Duplicate, effektiven Stadt-/SizeTier-Personal-
+  Cap und Cash fuer die explizite Hiring Fee (`SalaryPerDay * 1.25`). Erfolg
+  entfernt genau einen Bewerber aus `EmployeePool`, fuegt genau einen
+  Mitarbeiter zur Ziel-Filiale hinzu und zieht nur diese Fee ab. Fehlerpfade
+  mutieren den State nicht. `GameController.HireEmployee(shopId, employeeId)`
+  publiziert bei Erfolg Snapshot, RestaurantDetail-Refresh und Toast; bei
+  Fehlern nur Toast. `RestaurantDetailView` zeigt im Personal-Tab Bewerber und
+  feuert nur diesen Controller-Intent. Tests gruen; Queue wieder `Status:
+  empty`.
+- Current cron run 2026-06-11 15:00: Pflichtdateien gelesen;
+  `REVIEW_QUEUE.md` war `Status: empty`. Letzter Commit ist `82cbe55`
+  ("Add restaurant detail equipment purchase flow"). Worktree enthielt bereits
+  Control-Datei-Aenderungen in `STATUS.md` und `HANDOFF_LOG.md`; diese wurden
+  nicht zurueckgesetzt. Entsprechend der Agent-Control-Regel wurde kein
+  pauschales Codex-"mach weiter" gestartet, sondern ein konkretes Codex-Item
+  formuliert: "Unity RestaurantDetail staff hiring controller mutation".
+  Scope: Personal-Einstellung fuer bestehende owned Shops nur ueber einen
+  `GameController`-Intent. `RestaurantDetailView` darf im Personal-Tab nur den
+  Intent ausloesen. Ein UnityEngine-freier Service validiert Shop, Employee/
+  CandidateId, Duplicate, Employee-Cap und ausreichend Cash, falls ein
+  Hiring-Cost-Modell existiert. Erfolg fuegt genau einen Mitarbeiter hinzu,
+  entfernt den Kandidaten aus dem Pool falls vorhanden, zieht nur explizite
+  Hiring Costs ab und publiziert Snapshot, Detail-Refresh und Toast. Fehler
+  bleiben ohne Mutation und publizieren nur Toasts. Keine Preis-/Equipment-/
+  SizeTier-/Marketing-/Day-Sim-Mutation ausserhalb bestehender Pfade, keine
+  Save-/PlayerPrefs-/Filesystem-Logik und keine Arcade-/Realtime-Serving-/
+  CustomerSpawner-/manuelle Koch-/First-/Third-Person-Systeme freigegeben.
+- Current cron run 2026-06-11 14:30: Pflichtdateien gelesen und offenes
+  Queue-Item "Unity RestaurantDetail equipment purchase controller flow review"
+  fuer Commit `82cbe55` geprueft. Ergebnis: akzeptiert.
+  `GameController.BuyEquipment(shopId, equipmentId)` ist die zentrale
+  Equipment-Kauf-Mutationsgrenze; bei Fehlern wird nur ein Toast publiziert,
+  bei Erfolg Snapshot, RestaurantDetail-Refresh und Toast. `RestaurantDetailView`
+  ruft im Equipment-Tab ausschliesslich diesen Controller-Intent auf und
+  mutiert `GameState`, `Shop`, Cash, Equipment-Liste, Save-State, Dateien oder
+  Hotspots nicht direkt. `EquipmentPurchaseService` bleibt UnityEngine-frei,
+  validiert Shop, EquipmentId, Duplicate und ausreichend Cash; ungueltige
+  Faelle bleiben ohne State-Mutation. Erfolg zieht genau die Katalogkosten ab
+  und fuegt genau ein `ShopEquipment` hinzu. Keine Personal-/Marketing-Mutation,
+  keine neue SizeTier-/Preis-Mutation, keine Save-/PlayerPrefs-/Filesystem-Logik
+  und keine Arcade-/Realtime-Serving-/CustomerSpawner-/manuelle Koch-/First-/
+  Third-Person-Systeme eingefuehrt. Tests gruen; Queue auf `Status: empty`
+  gesetzt.
+- Current cron run 2026-06-11 13:32: Pflichtdateien gelesen;
+  `REVIEW_QUEUE.md` war nach Codex' Equipment-Kauf-Umsetzung wieder
+  `Status: empty`. Letzter Commit ist `82cbe55` ("Add restaurant detail
+  equipment purchase flow"). Entsprechend der Agent-Control-Regel wurde kein
+  pauschales Codex-"mach weiter" gestartet, sondern ein konkretes Claude-
+  Review-Item formuliert: "Unity RestaurantDetail equipment purchase controller
+  flow review". Scope: Commit `82cbe55` gegen Management-Spiel-Richtung
+  pruefen: `GameController.BuyEquipment(shopId, equipmentId)` ist die einzige
+  Equipment-Kauf-Mutationsgrenze, `RestaurantDetailView` feuert im Equipment-
+  Tab nur den Intent, `EquipmentPurchaseService` bleibt UnityEngine-frei und
+  validiert Shop, EquipmentId, Duplicate und Cash ohne Mutation bei Fehlern.
+  Erfolg muss genau die Equipment-Kosten abziehen, genau ein `ShopEquipment`
+  anfuegen und Snapshot, RestaurantDetail-Refresh und Toast publizieren. Keine
+  Personal-/Marketing-Mutation, keine SizeTier-/Preis-Mutation ausserhalb
+  bestehender Pfade, keine Save-/PlayerPrefs-/Filesystem-Logik und keine
+  Arcade-/Realtime-Serving-/CustomerSpawner-/manuelle Koch-/First-/Third-
+  Person-Systeme freigegeben.
+- Current cron run 2026-06-11 13:00: Pflichtdateien gelesen;
+  `REVIEW_QUEUE.md` war `Status: empty`. Letzter Commit ist `2ef9ca7`
+  ("Add restaurant detail size upgrade flow"). Entsprechend der Agent-Control-
+  Regel wurde kein pauschales Codex-"mach weiter" gestartet, sondern ein
+  konkretes Codex-Item formuliert: "Unity RestaurantDetail equipment purchase
+  controller mutation". Scope: Equipment-Kauf fuer bestehende owned Shops nur
+  ueber einen `GameController`-Intent; `RestaurantDetailView` darf im
+  Equipment-Tab nur diesen Intent ausloesen. Service bleibt UnityEngine-frei
+  und validiert Shop, EquipmentId, Duplicate und Cash; Erfolg zieht Kosten ab,
+  fuegt genau ein `ShopEquipment` hinzu und publiziert Snapshot, Detail-Refresh
+  und Toast. Fehler bleiben ohne Mutation und publizieren nur Toasts. Keine
+  Personal-/Marketing-Mutation, keine SizeTier-/Preis-Mutation ausserhalb
+  bestehender Pfade, keine Save-/PlayerPrefs-/Filesystem-Logik und keine
+  Arcade-/Realtime-Serving-/CustomerSpawner-/manuelle Koch-/First-/Third-
+  Person-Systeme freigegeben.
+- Current cron run 2026-06-11 12:30: Pflichtdateien gelesen und offenes
+  Queue-Item "Unity RestaurantDetail size-tier controller flow review" fuer
+  Commit `2ef9ca7` geprueft. Ergebnis: akzeptiert.
+  `GameController.UpgradeShopSizeTier(shopId)` ist die zentrale SizeTier-
+  Mutationsgrenze; Erfolg publiziert Snapshot, RestaurantDetail-Refresh und
+  Toast, Fehler publizieren nur Toast. `RestaurantDetailView` ruft im Ausbau-
+  Tab ausschliesslich diesen Controller-Intent auf und mutiert `GameState`,
+  `Shop`, Cash, Save-State, Dateien oder Hotspots nicht direkt.
+  `ShopExpansionService` bleibt UnityEngine-frei, validiert Shop, naechste
+  Stufe, Stadt-/Personal-Cap, Max-Tier und ausreichend Cash; ungueltige Faelle
+  bleiben ohne State-Mutation. Keine Equipment-/Personal-/Marketing-Mutation,
+  keine Save-/PlayerPrefs-/Filesystem-Logik und keine Arcade-/Realtime-Serving-/
+  CustomerSpawner-/manuelle Koch-/First-/Third-Person-Systeme eingefuehrt.
+  Tests gruen; Queue auf `Status: empty` gesetzt.
+- Current cron run 2026-06-11 09:33: Pflichtdateien gelesen;
+  `REVIEW_QUEUE.md` war nach Codex' Size-Tier-Umsetzung wieder `Status:
+  empty`. Worktree sauber; `HEAD == origin/main` (`2ef9ca7`, "Add restaurant
+  detail size upgrade flow"). Entsprechend der Agent-Control-Regel wurde kein
+  pauschales Codex-"mach weiter" gestartet, sondern ein konkretes Review-Item
+  formuliert: "Unity RestaurantDetail size-tier controller flow review".
+  Scope: Commit `2ef9ca7` gegen Management-Spiel-Richtung pruefen:
+  `GameController.UpgradeShopSizeTier(shopId)` ist die einzige
+  SizeTier-Mutationsgrenze, `RestaurantDetailView` feuert nur den Intent,
+  `ShopExpansionService` bleibt UnityEngine-frei und validiert Shop, naechste
+  Stufe, Stadt-/Personal-Cap, Max-Tier und Cash ohne Mutation bei Fehlern.
+  Keine Equipment-/Personal-/Marketing-Mutation, keine Save-/PlayerPrefs-/
+  Filesystem-Logik und keine Arcade-/Realtime-Serving-/CustomerSpawner-/
+  manuelle Koch-/First-/Third-Person-Systeme freigegeben.
+- Current cron run 2026-06-11 09:08: Pflichtdateien gelesen;
+  `REVIEW_QUEUE.md` war `Status: empty`. Letzter Commit ist `80689f5`
+  ("Add city map opening forecast"). Entsprechend der Agent-Control-Regel wurde
+  kein pauschales Codex-"mach weiter" gestartet, sondern ein konkretes Codex-
+  Item formuliert: "Unity RestaurantDetail size-tier controller mutation".
+  Scope: Nur Ausbau eines bestehenden owned Shops ueber einen
+  `GameController`-Intent; `RestaurantDetailView` darf nur den Intent
+  ausloesen. Erfolg zieht Upgrade-Kosten ab, aktualisiert `Shop.SizeTier` und
+  erwartete Rent/Cap-Wirkung, publiziert Snapshot/Detail-Refresh/Toast.
+  Ungueltige Eingaben, Max-Tier oder zu wenig Cash muessen ohne Mutation bleiben
+  und Toasts publizieren. Keine Equipment-/Personal-/Marketing-Mutation, keine
+  Save-/PlayerPrefs-/Filesystem-Logik und keine Arcade-/Realtime-Serving-/
+  CustomerSpawner-/manuelle Koch-/First-/Third-Person-Systeme freigegeben.
+- Current cron run 2026-06-11 07:38: Pflichtdateien gelesen und offenes
+  Queue-Item "Unity RestaurantDetail price controller flow review" geprueft.
+  Ergebnis: akzeptiert. `GameController.SetProductPrice(shopId, productId,
+  price)` ist die zentrale Preis-Mutationsgrenze; Erfolg publiziert Snapshot,
+  `RestaurantDetailRequestedEvent` und Toast, Fehler nur Toast. `RestaurantDetailView`
+  ruft im Sortiment nur diesen Controller-Intent auf; Ausbau, Equipment,
+  Personal und Marketing bleiben read-only. `ProductPricingService` ist
+  UnityEngine-frei, validiert Shop, Produkt und Preisbereich 1.00 bis 25.00 EUR
+  und laesst State bei ungueltigen Eingaben unveraendert. Tests gruen; Queue auf
+  `Status: empty` gesetzt.
+- Current cron run 2026-06-11 07:06: Pflichtdateien gelesen; Worktree clean
+  und `HEAD == origin/main` (`bb9e7fa`). `REVIEW_QUEUE.md` enthaelt weiterhin
+  das offene Claude-Reviewer-Item "Unity RestaurantDetail price controller flow
+  review" fuer Commit `f51589c`. Review-Dispatch an
+  `http://127.0.0.1:5678/webhook/doener-unity-dispatch` wurde versucht, ist
+  aber fehlgeschlagen: lokale n8n-Verbindung konnte nicht hergestellt werden.
+  Keine Code-Aenderung gestartet; Queue bleibt offen.
 - Current Claude run 2026-06-06 08:33: Pflichtdateien gelesen;
   `REVIEW_QUEUE.md` war nach Codex' RestaurantDetail-Preis-Umsetzung wieder
   `Status: empty`. Letzter Commit ist `f51589c` ("Add restaurant detail price
@@ -169,10 +505,8 @@ Done:
   fehlt, kein Fokus-Tween, IMGUI statt UI Toolkit (erwartet Schritt 7).
 - Bereit fuer Unity-Editor-Test: Bootstrap auto-fires, keine manuellen Scene-Objekte.
 Next:
-- Claude Code: Genau das offene Queue-Item "Unity RestaurantDetail price
-  controller flow review" fuer Commit `f51589c` reviewen, `dotnet test` und
-  Scope-Scan laufen lassen, Ergebnis in `STATUS.md`/`HANDOFF_LOG.md`
-  dokumentieren und Queue danach wieder auf `Status: empty` setzen.
+- Claude Code: Pushed SHA reviewen und danach das naechste kleine kohaerente
+  Management-/Progression-Queue-Item waehlen.
 - Upgrades, Equipment-/Personal-/Marketing-Aktionen, Cash-Mutation ausserhalb
   eigener Items und Save-/Persistenzlogik bleiben gesperrt.
 - UI-Toolkit-Migration (IMGUI ersetzen) geplant fuer Schritt 7 (Premium-Polish).
@@ -180,8 +514,37 @@ Next:
   Available: KONKURRENZ); Locked-Tap auf Toast-only umstellen.
 
 ## Codex (Implementation)
-State: complete - Unity RestaurantDetail price controller mutation implemented, validation green (2026-06-06)
+State: complete - Unity RestaurantDetail equipment purchase controller mutation implemented, validation green (2026-06-11)
 Done:
+- Current Codex run 2026-06-11 13:30: Offenes Review-Item
+  "Unity RestaurantDetail equipment purchase controller mutation" umgesetzt:
+  - `EquipmentPurchaseService` als UnityEngine-freier Kaufpfad hinzugefuegt;
+    validiert Shop, EquipmentId, Duplicate und ausreichend Cash.
+  - `GameController.BuyEquipment(shopId, equipmentId)` ist der einzige Intent
+    fuer Equipment-Kauf; Fehler publizieren nur Toasts, Erfolg zieht Kosten ab,
+    fuegt genau ein `ShopEquipment` hinzu, publiziert Snapshot, Detail-Refresh
+    und Toast.
+  - `RestaurantDetailView` loest im Equipment-Tab nur diesen Controller-Intent
+    aus; keine direkte Mutation von `GameState`, `Shop`, Cash, Equipment-Liste,
+    Save-State, Dateien oder Hotspots.
+  - Fokussierte Tests decken erfolgreichen Kauf sowie ungueltigen Shop,
+    ungueltiges Equipment, Duplicate und zu wenig Cash ohne Mutation ab.
+  - `REVIEW_QUEUE.md` wieder auf `Status: empty` gesetzt.
+- Current Codex run 2026-06-11 09:30: Offenes Review-Item
+  "Unity RestaurantDetail size-tier controller mutation" umgesetzt:
+  - `ShopExpansionService` als UnityEngine-freier Ausbaupfad hinzugefuegt;
+    validiert Shop, naechste Stufe, Stadt-/Personal-Cap und ausreichend Cash.
+  - `GameController.UpgradeShopSizeTier(shopId)` ist der einzige Intent fuer
+    SizeTier-Ausbau; Fehler publizieren nur Toasts, Erfolg zieht Kosten ab,
+    aktualisiert `Shop.SizeTier`, publiziert Snapshot, Detail-Refresh und Toast.
+  - `RestaurantDetailView` loest im Ausbau-Tab nur diesen Controller-Intent aus;
+    keine direkte Mutation von `GameState`, `Shop`, Cash, Save-State, Dateien
+    oder Hotspots.
+  - Fokussierte Tests decken erfolgreichen Ausbau sowie zu wenig Cash, Stadt-Cap
+    und Max-Tier ohne Mutation ab.
+  - Keine Equipment-/Personal-/Marketing-Mutation, keine Save-/PlayerPrefs-/
+    Filesystem-Logik und keine Arcade-/Realtime-Serving-/CustomerSpawner-/
+    manuelle Koch-/First-/Third-Person-Systeme eingefuehrt.
 - Current Codex run 2026-06-06 08:30: Offenes Review-Item
   "Unity RestaurantDetail price controller mutation" umgesetzt:
   - `ProductPricingService` als UnityEngine-freier Preis-Mutationspfad
