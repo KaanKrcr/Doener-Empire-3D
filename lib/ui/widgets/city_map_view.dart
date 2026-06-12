@@ -7,6 +7,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import '../../core/theme.dart';
 import '../../models/city_map_model.dart';
 import '../../models/city_model.dart';
+import '../../models/competitor_model.dart';
 import '../../models/shop_model.dart';
 
 /// Isometrische 2.5D-City-Map. Öffentliche API unverändert (city/locations/
@@ -17,6 +18,7 @@ class CityMapView extends StatefulWidget {
   final CityData city;
   final List<CityMapLocation> locations;
   final List<Shop> shops;
+  final List<Competitor> competitors;
   final CityMapLocation? selected;
   final ValueChanged<CityMapLocation> onSelect;
 
@@ -25,6 +27,7 @@ class CityMapView extends StatefulWidget {
     required this.city,
     required this.locations,
     required this.shops,
+    required this.competitors,
     required this.selected,
     required this.onSelect,
   });
@@ -146,6 +149,8 @@ class _CityMapViewState extends State<CityMapView> {
                       // Interaktive Hotspot-Gebäude (tiefensortiert)
                       for (final entry in ordered)
                         _buildHotspot(entry.key, entry.value),
+                      for (final marker in _rivalMarkers(placed))
+                        _buildRivalMarker(marker),
                     ],
                   ),
                 ),
@@ -232,6 +237,154 @@ class _CityMapViewState extends State<CityMapView> {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  List<_RivalMarkerData> _rivalMarkers(Map<_Tile, CityMapLocation> placed) {
+    if (widget.locations.isEmpty) return const [];
+
+    final markers = <_RivalMarkerData>[];
+    final rivals =
+        widget.competitors.where((rival) => rival.cityId == widget.city.id);
+
+    for (final rival in rivals) {
+      final index = rival.id.hashCode.abs() % widget.locations.length;
+      final location = widget.locations[index];
+      final tile = placed.entries
+          .firstWhere(
+            (entry) => entry.value.id == location.id,
+            orElse: () => MapEntry(CityMapView._tileFor(location), location),
+          )
+          .key;
+      markers.add(
+        _RivalMarkerData(rival: rival, location: location, tile: tile),
+      );
+    }
+
+    return markers;
+  }
+
+  Widget _buildRivalMarker(_RivalMarkerData marker) {
+    final base = CityMapView._iso(
+      marker.tile.col.toDouble(),
+      marker.tile.row.toDouble(),
+    );
+    final offsetSeed = marker.rival.id.hashCode.abs() % 4;
+    final offset = [
+      const Offset(36, -26),
+      const Offset(-42, -18),
+      const Offset(28, 20),
+      const Offset(-30, 24),
+    ][offsetSeed];
+
+    return Positioned(
+      left: base.dx + offset.dx - 43,
+      top: base.dy + offset.dy - 40,
+      child: IgnorePointer(
+        child: _RivalMarker(
+          competitor: marker.rival,
+          locationLabel: marker.location.label,
+        ),
+      ),
+    );
+  }
+}
+
+class _RivalMarkerData {
+  final Competitor rival;
+  final CityMapLocation location;
+  final _Tile tile;
+
+  const _RivalMarkerData({
+    required this.rival,
+    required this.location,
+    required this.tile,
+  });
+}
+
+class _RivalMarker extends StatelessWidget {
+  final Competitor competitor;
+  final String locationLabel;
+
+  const _RivalMarker({
+    required this.competitor,
+    required this.locationLabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final pressure = competitor.marketShare.clamp(0.0, 0.95);
+    final ringSize = 42.0 + pressure * 32.0;
+
+    return Tooltip(
+      message: '${competitor.name} bei $locationLabel',
+      child: SizedBox(
+        width: 86,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: ringSize,
+              height: ringSize,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.danger.withAlpha(26),
+                      border: Border.all(
+                        color: AppColors.danger.withAlpha(120),
+                        width: 1.4,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: AppColors.bgCard.withAlpha(238),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppColors.danger),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.danger.withAlpha(55),
+                          blurRadius: 12,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.store_mall_directory_outlined,
+                      color: AppColors.danger,
+                      size: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 2),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+              decoration: BoxDecoration(
+                color: AppColors.bg.withAlpha(190),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.danger.withAlpha(110)),
+              ),
+              child: const Text(
+                'Rivale',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: AppColors.danger,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
