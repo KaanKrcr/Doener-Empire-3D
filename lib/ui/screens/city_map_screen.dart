@@ -59,6 +59,7 @@ class _CityMapScreenState extends ConsumerState<CityMapScreen> {
             city: city,
             locations: locations,
             shops: cityShops,
+            competitors: game.competitorsIn(city.id),
             selected: selected,
             onSelect: (location) => setState(() => _selected = location),
           ).animate().fadeIn(duration: 260.ms).slideY(begin: 0.04, end: 0),
