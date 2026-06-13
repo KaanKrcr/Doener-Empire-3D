@@ -51,14 +51,11 @@ extension TutorialStepMeta on TutorialStep {
   String get hint {
     return switch (this) {
       TutorialStep.openFirstShop => 'Tipp: Wähle einen Standort auf der Karte',
-      TutorialStep.changeProductPrice =>
-        'Preise veränderst du in den Filialdetails.',
-      TutorialStep.hireFirstEmployee =>
-        'Mitarbeiter findest du in der Filiale.',
+      TutorialStep.changeProductPrice => 'Preise veränderst du in den Filialdetails.',
+      TutorialStep.hireFirstEmployee => 'Mitarbeiter findest du in der Filiale.',
       TutorialStep.endFirstDay => 'Nutze den goldenen Button im Dashboard.',
       TutorialStep.readDayReport => 'Schließe den Tagesbericht nach dem Lesen.',
-      TutorialStep.viewCityMapMetrics =>
-        'Die Kennzahlen siehst du oben auf der Stadtkarte.',
+      TutorialStep.viewCityMapMetrics => 'Achte auf Umsatz und Filialen.',
       TutorialStep.finishTutorial =>
         'Du bist bereit für den Ausbau deines Imperiums.',
     };
@@ -86,7 +83,7 @@ extension TutorialStepMeta on TutorialStep {
       TutorialStep.readDayReport =>
         'Im Bericht erkennst du früh, ob Preise, Personal oder Kosten angepasst werden müssen.',
       TutorialStep.viewCityMapMetrics =>
-        'Die Stadtkarte zeigt dir auf einen Blick, wie dein Imperium dasteht.',
+        'Die Stadtkarte zeigt dir deinen Gesamtfortschritt mit Umsatz und Filialen.',
       TutorialStep.finishTutorial =>
         'Mit dem Abschluss kennst du die Kernmechaniken und kannst eigenständig optimieren.',
     };

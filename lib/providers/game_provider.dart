@@ -566,7 +566,7 @@ class GameNotifier extends Notifier<GameState?> {
   void onTutorialTabOpened(int tabIndex) {
     final current = currentTutorialStep;
     if (current == null) return;
-    // Alle Tutorial-Schritte finden auf der City Map (Tab 0) statt
+    // Nur noch openFirstShop wird auf Tab 0 (City Map) geprüft
     if (current == TutorialStep.openFirstShop && tabIndex == 0) {
       _completeTutorialStep(TutorialStep.openFirstShop);
       return;
