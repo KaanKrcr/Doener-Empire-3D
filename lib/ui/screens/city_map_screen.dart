@@ -107,6 +107,7 @@ class _CityMapScreenState extends ConsumerState<CityMapScreen> {
       body: SafeArea(
         bottom: false,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Premium Header
             _PremiumHeader(
@@ -154,7 +155,7 @@ class _CityMapScreenState extends ConsumerState<CityMapScreen> {
                     shops: cityShops,
                     selected: selected,
                     onSelect: (location) => setState(() => _selected = location),
-                  ).animate().fadeIn(duration: 260.ms).slideY(begin: 0.04, end: 0),
+                  ),
                   const SizedBox(height: 16),
                   if (selected != null)
                     _LocationPanel(
