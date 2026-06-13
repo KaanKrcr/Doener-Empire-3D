@@ -4973,6 +4973,249 @@ Naechster kleinster Schritt:
   klein umsetzen, State-Mutation nur ueber `GameController`/Events.
 
 ---
+## 2026-06-12 19:00 - Codex cron (Claude review dispatch still blocked)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Ergebnis:
+- `REVIEW_QUEUE.md` ist `Status: empty`; keine Codex-Implementierung gestartet.
+- Worktree enthaelt nur erwartete Control-Datei-Aenderungen von vorherigen
+  Dispatch-Blockern.
+- Aktueller `HEAD`: `53321e608f533f969704005434d2858c56804805`.
+- `origin/main`: `7e768ab3931e245f8928fc027c8239c0f089a2d6`.
+- n8n-Dispatch fuer Claude-Review des Flutter-only City-Map-Competition-Slice
+  fehlgeschlagen: Remoteverbindung nicht herstellbar.
+
+Validation:
+- Pflichtdateien geprueft.
+- Keine Tests ausgefuehrt, da keine Code-Aenderung vorgenommen wurde.
+
+Naechster kleinster Schritt:
+- Naechster Tick: n8n/Claude-Review fuer `53321e6` erneut dispatchen; erst nach
+  Review/Queue-Item wieder Codex-Codearbeit starten.
+
+---
+## 2026-06-12 18:53 - Codex cron (Claude review dispatch still blocked)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Ergebnis:
+- `REVIEW_QUEUE.md` ist `Status: empty`; keine Codex-Implementierung gestartet.
+- Worktree enthaelt nur erwartete Control-Datei-Aenderungen von vorherigen
+  Dispatch-Blockern.
+- Aktueller `HEAD`: `53321e608f533f969704005434d2858c56804805`.
+- `origin/main`: `7e768ab3931e245f8928fc027c8239c0f089a2d6`.
+- n8n-Dispatch fuer Claude-Review des Flutter-only City-Map-Competition-Slice
+  fehlgeschlagen: Remoteverbindung nicht herstellbar.
+
+Validation:
+- Pflichtdateien geprueft.
+- Keine Tests ausgefuehrt, da keine Code-Aenderung vorgenommen wurde.
+
+Naechster kleinster Schritt:
+- Naechster Tick: n8n/Claude-Review fuer `53321e6` erneut dispatchen; erst nach
+  Review/Queue-Item wieder Codex-Codearbeit starten.
+
+---
+## 2026-06-12 16:51 - Codex cron (Claude review dispatch still blocked)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Ergebnis:
+- `REVIEW_QUEUE.md` ist `Status: empty`; keine Codex-Implementierung gestartet.
+- Worktree enthaelt nur erwartete Control-Datei-Aenderungen von vorherigen
+  Dispatch-Blockern.
+- Aktueller `HEAD`: `53321e608f533f969704005434d2858c56804805`.
+- `origin/main`: `7e768ab3931e245f8928fc027c8239c0f089a2d6`.
+- n8n-Dispatch fuer Claude-Review des Flutter-only City-Map-Competition-Slice
+  fehlgeschlagen: Remoteverbindung nicht herstellbar.
+
+Validation:
+- Pflichtdateien geprueft.
+- Keine Tests ausgefuehrt, da keine Code-Aenderung vorgenommen wurde.
+
+Naechster kleinster Schritt:
+- Naechster Tick: n8n/Claude-Review fuer `53321e6` erneut dispatchen; erst nach
+  Review/Queue-Item wieder Codex-Codearbeit starten.
+
+---
+## 2026-06-12 15:50 - Codex cron (Claude review dispatch still blocked)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Ergebnis:
+- `REVIEW_QUEUE.md` ist `Status: empty`; keine Codex-Implementierung gestartet.
+- Worktree enthaelt nur erwartete Control-Datei-Aenderungen von vorherigen
+  Dispatch-Blockern.
+- Aktueller `HEAD`: `53321e608f533f969704005434d2858c56804805`.
+- `origin/main`: `7e768ab3931e245f8928fc027c8239c0f089a2d6`.
+- n8n-Dispatch fuer Claude-Review des Flutter-only City-Map-Competition-Slice
+  fehlgeschlagen: Remoteverbindung nicht herstellbar.
+
+Validation:
+- Pflichtdateien geprueft.
+- Keine Tests ausgefuehrt, da keine Code-Aenderung vorgenommen wurde.
+
+Naechster kleinster Schritt:
+- Naechster Tick: n8n/Claude-Review fuer `53321e6` erneut dispatchen; erst nach
+  Review/Queue-Item wieder Codex-Codearbeit starten.
+
+---
+## 2026-06-12 14:49 - Codex cron (Claude review dispatch still blocked)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Ergebnis:
+- `REVIEW_QUEUE.md` ist `Status: empty`; keine Codex-Implementierung gestartet.
+- Worktree enthaelt nur erwartete Control-Datei-Aenderungen von vorherigen
+  Dispatch-Blockern.
+- Aktueller `HEAD`: `53321e608f533f969704005434d2858c56804805`.
+- `origin/main`: `7e768ab3931e245f8928fc027c8239c0f089a2d6`.
+- n8n-Dispatch fuer Claude-Review des Flutter-only City-Map-Competition-Slice
+  fehlgeschlagen: Remoteverbindung nicht herstellbar.
+
+Validation:
+- Pflichtdateien geprueft.
+- Keine Tests ausgefuehrt, da keine Code-Aenderung vorgenommen wurde.
+
+Naechster kleinster Schritt:
+- Naechster Tick: n8n/Claude-Review fuer `53321e6` erneut dispatchen; erst nach
+  Review/Queue-Item wieder Codex-Codearbeit starten.
+
+---
+## 2026-06-12 13:48 - Codex cron (Claude review dispatch still blocked)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Ergebnis:
+- `REVIEW_QUEUE.md` ist `Status: empty`; keine Codex-Implementierung gestartet.
+- Worktree enthaelt nur erwartete Control-Datei-Aenderungen von vorherigen
+  Dispatch-Blockern.
+- Aktueller `HEAD`: `53321e608f533f969704005434d2858c56804805`.
+- `origin/main`: `7e768ab3931e245f8928fc027c8239c0f089a2d6`.
+- n8n-Dispatch fuer Claude-Review des Flutter-only City-Map-Competition-Slice
+  fehlgeschlagen: Remoteverbindung nicht herstellbar.
+
+Validation:
+- Pflichtdateien geprueft.
+- Keine Tests ausgefuehrt, da keine Code-Aenderung vorgenommen wurde.
+
+Naechster kleinster Schritt:
+- Naechster Tick: n8n/Claude-Review fuer `53321e6` erneut dispatchen; erst nach
+  Review/Queue-Item wieder Codex-Codearbeit starten.
+
+---
+## 2026-06-12 12:47 - Codex cron (Claude review dispatch still blocked)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Ergebnis:
+- `REVIEW_QUEUE.md` ist `Status: empty`; keine Codex-Implementierung gestartet.
+- Worktree enthaelt nur erwartete Control-Datei-Aenderungen von vorherigen
+  Dispatch-Blockern.
+- Aktueller `HEAD`: `53321e608f533f969704005434d2858c56804805`.
+- `origin/main`: `7e768ab3931e245f8928fc027c8239c0f089a2d6`.
+- n8n-Dispatch fuer Claude-Review des Flutter-only City-Map-Competition-Slice
+  fehlgeschlagen: Remoteverbindung nicht herstellbar.
+
+Validation:
+- Pflichtdateien geprueft.
+- Keine Tests ausgefuehrt, da keine Code-Aenderung vorgenommen wurde.
+
+Naechster kleinster Schritt:
+- Naechster Tick: n8n/Claude-Review fuer `53321e6` erneut dispatchen; erst nach
+  Review/Queue-Item wieder Codex-Codearbeit starten.
+
+---
+## 2026-06-12 11:46 - Codex cron (Claude review dispatch still blocked)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Ergebnis:
+- `REVIEW_QUEUE.md` ist `Status: empty`; keine Codex-Implementierung gestartet.
+- Worktree enthaelt nur erwartete Control-Datei-Aenderungen von vorherigen
+  Dispatch-Blockern.
+- Aktueller `HEAD`: `53321e608f533f969704005434d2858c56804805`.
+- `origin/main`: `7e768ab3931e245f8928fc027c8239c0f089a2d6`.
+- n8n-Dispatch fuer Claude-Review des Flutter-only City-Map-Competition-Slice
+  fehlgeschlagen: Remoteverbindung nicht herstellbar.
+
+Validation:
+- Pflichtdateien geprueft.
+- Keine Tests ausgefuehrt, da keine Code-Aenderung vorgenommen wurde.
+
+Naechster kleinster Schritt:
+- Naechster Tick: n8n/Claude-Review fuer `53321e6` erneut dispatchen; erst nach
+  Review/Queue-Item wieder Codex-Codearbeit starten.
+
+---
+## 2026-06-12 10:44 - Codex cron (Claude review dispatch still blocked)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Ergebnis:
+- `REVIEW_QUEUE.md` ist `Status: empty`; keine Codex-Implementierung gestartet.
+- Worktree enthaelt nur erwartete Control-Datei-Aenderungen vom vorherigen
+  Dispatch-Blocker.
+- Aktueller `HEAD`: `53321e608f533f969704005434d2858c56804805`.
+- `origin/main`: `7e768ab3931e245f8928fc027c8239c0f089a2d6`.
+- n8n-Dispatch fuer Claude-Review des Flutter-only City-Map-Competition-Slice
+  fehlgeschlagen: Remoteverbindung nicht herstellbar.
+
+Validation:
+- Pflichtdateien geprueft.
+- Keine Tests ausgefuehrt, da keine Code-Aenderung vorgenommen wurde.
+
+Naechster kleinster Schritt:
+- Naechster Tick: n8n/Claude-Review fuer `53321e6` erneut dispatchen; erst nach
+  Review/Queue-Item wieder Codex-Codearbeit starten.
+
+---
+## 2026-06-12 17:52 - Codex cron (Claude review dispatch still blocked)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Ergebnis:
+- `REVIEW_QUEUE.md` ist `Status: empty`; keine Codex-Implementierung gestartet.
+- Worktree enthaelt nur erwartete Control-Datei-Aenderungen von vorherigen
+  Dispatch-Blockern.
+- Aktueller `HEAD`: `53321e608f533f969704005434d2858c56804805`.
+- `origin/main`: `7e768ab3931e245f8928fc027c8239c0f089a2d6`.
+- n8n-Dispatch fuer Claude-Review des Flutter-only City-Map-Competition-Slice
+  fehlgeschlagen: Remoteverbindung nicht herstellbar.
+
+Validation:
+- Pflichtdateien geprueft.
+- Keine Tests ausgefuehrt, da keine Code-Aenderung vorgenommen wurde.
+
+Naechster kleinster Schritt:
+- Naechster Tick: n8n/Claude-Review fuer `53321e6` erneut dispatchen; erst nach
+  Review/Queue-Item wieder Codex-Codearbeit starten.
+
+---
+---
+## 2026-06-12 19:30 - Codex cron (Claude review dispatch still blocked)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Ergebnis:
+- `REVIEW_QUEUE.md` ist `Status: empty`; keine Codex-Implementierung gestartet.
+- Worktree enthaelt nur erwartete Control-Datei-Aenderungen von vorherigen
+  Dispatch-Blockern.
+- Aktueller `HEAD`: `53321e608f533f969704005434d2858c56804805`.
+- `origin/main`: `7e768ab3931e245f8928fc027c8239c0f089a2d6`.
+- n8n-Dispatch fuer Claude-Review des Flutter-only City-Map-Competition-Slice
+  fehlgeschlagen: Remoteverbindung nicht herstellbar.
+
+Validation:
+- Pflichtdateien geprueft.
+- Keine Tests ausgefuehrt, da keine Code-Aenderung vorgenommen wurde.
+
+Naechster kleinster Schritt:
+- Naechster Tick: n8n/Claude-Review fuer `53321e6` erneut dispatchen; erst nach
+  Review/Queue-Item wieder Codex-Codearbeit starten.
+
+---
 ## 2026-06-05 (pending) - Codex (Day Sim controller intent + DayReport shell)
 
 Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
@@ -5010,3 +5253,67 @@ Naechster kleinster Schritt:
   Management-/Progression-Queue-Item waehlen.
 
 ---
+## 2026-06-12 07:43 - Codex cron (Claude review dispatch still blocked)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Ergebnis:
+- `REVIEW_QUEUE.md` ist `Status: empty`; keine Codex-Implementierung gestartet.
+- Worktree enthaelt nur erwartete Control-Datei-Aenderungen vom vorherigen
+  Dispatch-Blocker.
+- Aktueller `HEAD`: `53321e608f533f969704005434d2858c56804805`.
+- `origin/main`: `7e768ab3931e245f8928fc027c8239c0f089a2d6`.
+- n8n-Dispatch fuer Claude-Review des Flutter-only City-Map-Competition-Slice
+  fehlgeschlagen: Remoteverbindung nicht herstellbar.
+
+Validation:
+- Pflichtdateien geprueft.
+- Keine Tests ausgefuehrt, da keine Code-Aenderung vorgenommen wurde.
+
+Naechster kleinster Schritt:
+- Naechster Tick: n8n/Claude-Review fuer `53321e6` erneut dispatchen; erst nach
+  Review/Queue-Item wieder Codex-Codearbeit starten.
+
+---
+## 2026-06-12 06:43 - Codex cron (Claude review dispatch blocked)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Ergebnis:
+- `REVIEW_QUEUE.md` ist `Status: empty`; keine Codex-Implementierung gestartet.
+- Worktree war vor Control-Datei-Update sauber.
+- Aktueller `HEAD`: `53321e608f533f969704005434d2858c56804805`.
+- `origin/main`: `7e768ab3931e245f8928fc027c8239c0f089a2d6`.
+- n8n-Dispatch fuer Claude-Review des Flutter-only City-Map-Competition-Slice
+  fehlgeschlagen: Remoteverbindung nicht herstellbar.
+
+Validation:
+- Pflichtdateien geprueft.
+- Keine Tests ausgefuehrt, da keine Code-Aenderung vorgenommen wurde.
+
+Naechster kleinster Schritt:
+- Naechster Tick: n8n/Claude-Review fuer `53321e6` erneut dispatchen; erst nach
+  Review/Queue-Item wieder Codex-Codearbeit starten.
+
+---
+---
+## 2026-06-12 20:00 - Codex cron (Claude review dispatch still blocked)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Ergebnis:
+- `REVIEW_QUEUE.md` ist `Status: empty`; keine Codex-Implementierung gestartet.
+- Worktree enthaelt nur erwartete Control-Datei-Aenderungen von vorherigen
+  Dispatch-Blockern.
+- Aktueller `HEAD`: `53321e608f533f969704005434d2858c56804805`.
+- `origin/main`: `7e768ab3931e245f8928fc027c8239c0f089a2d6`.
+- n8n-Dispatch fuer Claude-Review des Flutter-only City-Map-Competition-Slice
+  fehlgeschlagen: Remoteverbindung nicht herstellbar.
+
+Validation:
+- Pflichtdateien geprueft.
+- Keine Tests ausgefuehrt, da keine Code-Aenderung vorgenommen wurde.
+
+Naechster kleinster Schritt:
+- Naechster Tick: n8n/Claude-Review fuer `53321e6` erneut dispatchen; erst nach
+  Review/Queue-Item wieder Codex-Codearbeit starten.

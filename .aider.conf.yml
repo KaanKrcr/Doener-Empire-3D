@@ -1,0 +1,26 @@
+# Aider Konfiguration - Doener Empire 3D
+# Modell: MiniMax M2.5
+# Erstellt von Klaus am 2026-06-13
+
+## Modell
+model: minimax/MiniMax-M2.5
+
+## Projekt
+restore-chat-history: true
+git: true
+auto-commits: true
+dirty-commits: false
+attribute-commit-message-author: false
+attribute-commit-message-committer: false
+lint: false
+pretty: false
+stream: true
+show-release-notes: false
+suggest-shell-commands: false
+architect: true
+no-gitignore: false
+cache-prompts: true
+yes-always: true
+
+## Datei-Editier-Format
+edit-format: whole
