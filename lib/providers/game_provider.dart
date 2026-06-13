@@ -552,9 +552,7 @@ class GameNotifier extends Notifier<GameState?> {
     final current = currentTutorialStep;
     if (current == null) return;
     switch (current) {
-      case TutorialStep.understandLocationValues:
-      case TutorialStep.viewDashboardMetrics:
-      case TutorialStep.understandHrCompetitionGrowth:
+      case TutorialStep.viewCityMapMetrics:
         _completeTutorialStep(current);
         break;
       case TutorialStep.finishTutorial:
@@ -568,12 +566,9 @@ class GameNotifier extends Notifier<GameState?> {
   void onTutorialTabOpened(int tabIndex) {
     final current = currentTutorialStep;
     if (current == null) return;
-    if (current == TutorialStep.openEmpireMenu && tabIndex == 2) {
-      _completeTutorialStep(TutorialStep.openEmpireMenu);
-      return;
-    }
-    if (current == TutorialStep.understandLocationValues && tabIndex == 0) {
-      _completeTutorialStep(TutorialStep.understandLocationValues);
+    // Alle Tutorial-Schritte finden auf der City Map (Tab 0) statt
+    if (current == TutorialStep.openFirstShop && tabIndex == 0) {
+      _completeTutorialStep(TutorialStep.openFirstShop);
       return;
     }
   }
