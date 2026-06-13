@@ -103,101 +103,71 @@ class _CityMapScreenState extends ConsumerState<CityMapScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.bg,
-      body: SafeArea(
-        bottom: false,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Premium Header
-            _PremiumHeader(
-              cityName: city.name,
+      body: Stack(
+        children: [
+          // Layer 1: City Map (Vollbild)
+          Positioned.fill(
+            child: CityMapView(
+              city: city,
+              locations: locations,
+              shops: cityShops,
+              selected: selected,
               cash: game.cash,
+              currentDay: game.currentDay,
+              onSelect: (location) => setState(() => _selected = location),
             ),
-            // Summary Strip
-            _SummaryStrip(
-              totalRevenue: totalRevenue,
-              shopCount: cityShops.length,
-            ),
-            // Gold-CTA Button unter dem Summary Strip
-            const SizedBox(height: 4),
-            Container(
-              width: double.infinity,
-              margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              child: ElevatedButton.icon(
-                onPressed: _endingDay ? null : _endDay,
-                icon: Icon(
-                  _endingDay ? Icons.hourglass_empty : Icons.nightlight_round,
-                  color: Colors.white,
-                  size: 18,
-                ),
-                label: Text(
-                  _endingDay ? 'Tag läuft...' : 'Tag beenden  ·  Kasse machen',
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  disabledBackgroundColor: AppColors.primary.withAlpha(100),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                ),
-              ),
-            ),
-            // City Map und restlicher Content
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
-                children: [
-                  CityMapView(
-                    city: city,
-                    locations: locations,
-                    shops: cityShops,
-                    selected: selected,
-                    onSelect: (location) => setState(() => _selected = location),
+          ),
+          // Layer 2: Tag beenden Button (oben rechts)
+          Positioned(
+            top: 12,
+            right: 12,
+            child: SafeArea(
+              child: SizedBox(
+                height: 38,
+                child: ElevatedButton.icon(
+                  onPressed: _endingDay ? null : _endDay,
+                  icon: Icon(
+                    _endingDay ? Icons.hourglass_empty : Icons.nightlight_round,
+                    color: Colors.white,
+                    size: 16,
                   ),
-                  const SizedBox(height: 16),
-                  if (selected != null)
-                    _LocationPanel(
-                      city: city,
-                      location: selected,
-                      shopCount: cityShops
-                          .where((shop) => shop.locationName == selected.template.name)
-                          .length,
-                      cash: game.cash,
-                      competition: competition,
-                      onOpenShop: () => context.push(
-                        '/open-shop/${city.id}?location=${Uri.encodeComponent(selected.template.name)}',
-                      ),
-                    ),
-                  const SizedBox(height: 14),
-                  if (cityShops.isNotEmpty) ...[
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Text(
-                        'Deine Filialen',
-                        style: AppText.label(color: AppColors.secondary),
-                      ),
-                    ),
-                    for (final shop in cityShops)
-                      _ShopMapCard(
-                        title: shop.displayName,
-                        subtitle: '${shop.locationName} · ${shop.reputation.toStringAsFixed(1)} ★',
-                        revenue: GameEngine.calculateDailyRevenue(
-                          shop,
-                          day: game.currentDay,
-                          state: game,
-                        ),
-                        onTap: () => context.push('/shop/${shop.id}'),
-                      ),
-                  ],
-                ],
+                  label: Text(
+                    _endingDay ? 'Läuft...' : 'Tag beenden',
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor: AppColors.primary.withAlpha(100),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  ),
+                ),
               ),
             ),
-          ],
-        ),
+          ),
+          // Layer 3: Location Panel Overlay
+          if (selected != null)
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: _LocationPanelOverlay(
+                city: city,
+                location: selected,
+                shopCount: cityShops
+                    .where((shop) => shop.locationName == selected.template.name)
+                    .length,
+                cash: game.cash,
+                competition: competition,
+                onOpenShop: () => context.push(
+                  '/open-shop/?location=',
+                ),
+              ),
+            ),
+        ],
       ),
-    );
-  }
+    ); }
 }
 
 class _PremiumHeader extends StatelessWidget {
@@ -362,7 +332,8 @@ class _SummaryCard extends StatelessWidget {
   }
 }
 
-class _LocationPanel extends StatelessWidget {
+/// Premium-Overlay für Standort-Details (Coffee Inc 2-Stil)
+class _LocationPanelOverlay extends StatelessWidget {
   final CityData city;
   final CityMapLocation location;
   final int shopCount;
@@ -370,7 +341,65 @@ class _LocationPanel extends StatelessWidget {
   final CityCompetitionBrief competition;
   final VoidCallback onOpenShop;
 
-  const _LocationPanel({
+  const _LocationPanelOverlay({
+    required this.city,
+    required this.location,
+    required this.shopCount,
+    required this.cash,
+    required this.competition,
+    required this.onOpenShop,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xCC1A1A1A),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        border: Border(top: BorderSide(color: const Color(0xFF3A2C20))),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Drag handle
+              Container(
+                width: 36,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.textMuted.withAlpha(80),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              _LocationPanelContent(
+                city: city,
+                location: location,
+                shopCount: shopCount,
+                cash: cash,
+                competition: competition,
+                onOpenShop: onOpenShop,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LocationPanelContent extends StatelessWidget {
+  final CityData city;
+  final CityMapLocation location;
+  final int shopCount;
+  final double cash;
+  final CityCompetitionBrief competition;
+  final VoidCallback onOpenShop;
+
+  const _LocationPanelContent({
     required this.city,
     required this.location,
     required this.shopCount,

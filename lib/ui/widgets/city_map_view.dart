@@ -13,6 +13,8 @@ class CityMapView extends StatelessWidget {
   final List<Shop> shops;
   final CityMapLocation? selected;
   final ValueChanged<CityMapLocation> onSelect;
+  final double cash;
+  final int currentDay;
 
   const CityMapView({
     super.key,
@@ -21,6 +23,8 @@ class CityMapView extends StatelessWidget {
     required this.shops,
     required this.selected,
     required this.onSelect,
+    this.cash = 0,
+    this.currentDay = 1,
   });
 
   @override
@@ -31,6 +35,8 @@ class CityMapView extends StatelessWidget {
       shops: shops,
       selected: selected,
       onSelect: onSelect,
+      cash: cash,
+      currentDay: currentDay,
     );
   }
 }
@@ -42,6 +48,8 @@ class _CoffeeMapLayout extends StatefulWidget {
   final List<Shop> shops;
   final CityMapLocation? selected;
   final ValueChanged<CityMapLocation> onSelect;
+  final double cash;
+  final int currentDay;
 
   const _CoffeeMapLayout({
     required this.city,
@@ -49,6 +57,8 @@ class _CoffeeMapLayout extends StatefulWidget {
     required this.shops,
     required this.selected,
     required this.onSelect,
+    this.cash = 0,
+    this.currentDay = 1,
   });
 
   @override
@@ -101,8 +111,8 @@ class _CoffeeMapLayoutState extends State<_CoffeeMapLayout> {
           child: _FloatingHeader(
             cityName: widget.city.name,
             cityEmoji: widget.city.emoji,
-            cash: _calcCash(),
-            day: _calcDay(),
+            cash: widget.cash,
+            day: widget.currentDay,
             shopCount: shops.length,
           ),
         ),
@@ -129,13 +139,6 @@ class _CoffeeMapLayoutState extends State<_CoffeeMapLayout> {
       ],
     );
   }
-
-  double _calcCash() {
-    // Versuche GameState aus dem Baum zu lesen — Fallback 0
-    return 0.0; // wird vom CityMapScreen übergeben
-  }
-
-  int _calcDay() => 1;
 
   void _handleTap(Offset localPos, List<CityMapLocation> locs) {
     const gridN = 6;
