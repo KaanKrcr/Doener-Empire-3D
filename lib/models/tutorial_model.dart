@@ -38,7 +38,7 @@ extension TutorialStepMeta on TutorialStep {
   String get description {
     return switch (this) {
       TutorialStep.openFirstShop =>
-        'Wechsle zu Städte und eröffne deine erste Filiale.',
+        'Eröffne deine erste Filiale auf der Stadtkarte.',
       TutorialStep.understandLocationValues =>
         'Prüfe Miete, Nachfrage und Konkurrenz am Standort.',
       TutorialStep.changeProductPrice =>
@@ -62,7 +62,7 @@ extension TutorialStepMeta on TutorialStep {
 
   String get hint {
     return switch (this) {
-      TutorialStep.openFirstShop => 'Tipp: Tab "Städte"',
+      TutorialStep.openFirstShop => 'Tipp: Wähle einen Standort auf der Karte',
       TutorialStep.understandLocationValues =>
         'Vergleiche die Werte vor der Standortwahl.',
       TutorialStep.changeProductPrice =>
@@ -118,8 +118,8 @@ extension TutorialStepMeta on TutorialStep {
 
   int? get targetTabIndex {
     return switch (this) {
-      TutorialStep.openFirstShop => 1,
-      TutorialStep.understandLocationValues => 1,
+      TutorialStep.openFirstShop => 0,
+      TutorialStep.understandLocationValues => 0,
       TutorialStep.changeProductPrice => 1,
       TutorialStep.hireFirstEmployee => 1,
       TutorialStep.endFirstDay => 0,

@@ -572,7 +572,7 @@ class GameNotifier extends Notifier<GameState?> {
       _completeTutorialStep(TutorialStep.openEmpireMenu);
       return;
     }
-    if (current == TutorialStep.understandLocationValues && tabIndex == 1) {
+    if (current == TutorialStep.understandLocationValues && tabIndex == 0) {
       _completeTutorialStep(TutorialStep.understandLocationValues);
       return;
     }
