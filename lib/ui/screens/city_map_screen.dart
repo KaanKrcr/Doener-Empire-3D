@@ -10,8 +10,16 @@ import '../../models/city_map_model.dart';
 import '../../models/city_model.dart';
 import '../../providers/game_provider.dart';
 import '../../services/game_engine.dart';
+import '../../services/haptics_service.dart';
 import '../../services/location_engine.dart';
+import '../../services/sound_service.dart';
 import '../widgets/city_map_view.dart';
+import '../widgets/day_end_dialog.dart';
+import '../widgets/mission_banner.dart';
+import '../widgets/quarterly_report_dialog.dart';
+import '../widgets/weekly_report_dialog.dart';
+import '../widgets/bankruptcy_dialog.dart';
+import '../screens/campaign_screen.dart';
 
 final _fmt = NumberFormat('#,##0', 'de_DE');
 
@@ -24,9 +32,45 @@ class CityMapScreen extends ConsumerStatefulWidget {
 }
 
 class _CityMapScreenState extends ConsumerState<CityMapScreen> {
+  bool _endingDay = false;
   CityMapLocation? _selected;
 
   CityData get city => kAllCities.firstWhere((c) => c.id == widget.cityId);
+
+  Future<void> _endDay() async {
+    if (_endingDay) return;
+    Haptics.medium();
+    SoundService.play(Sfx.dayend);
+    setState(() => _endingDay = true);
+    final notifier = ref.read(gameProvider.notifier);
+    notifier.endDay();
+    final result = notifier.lastDayResult;
+    if (result != null && mounted) {
+      await DayEndDialog.show(context, result);
+      if (result.missionCompleted != null && mounted) {
+        await MissionCompletedDialog.show(context, result.missionCompleted!);
+      }
+      if (result.quarterlyReport != null && mounted) {
+        await QuarterlyReportDialog.show(context, result.quarterlyReport!);
+      }
+      if (result.chapterCompleted != null && mounted) {
+        await CampaignChapterDialog.show(context, result.chapterCompleted!);
+      }
+      if (result.weeklyReport != null && mounted) {
+        await WeeklyReportDialog.show(context, result.weeklyReport!);
+      }
+      if (result.taxPaid > 0 && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Steuern (30 Tage): -${_fmt.format(result.taxPaid)} €'),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+  
+    }
+    if (mounted) setState(() => _endingDay = false);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +92,16 @@ class _CityMapScreenState extends ConsumerState<CityMapScreen> {
       );
     }
 
+    // ── Insolvenz-Listener ─────────────────────────────────────────
+    ref.listen(gameProvider, (prev, next) {
+      if (next == null) return;
+      final wasOk = prev == null || prev.cash >= 0;
+      final isNowBad = next.cash < 0;
+      if (wasOk && isNowBad && mounted) {
+        BankruptcyDialog.show(context);
+      }
+    });
+
     return Scaffold(
       backgroundColor: AppColors.bg,
       body: SafeArea(
@@ -63,6 +117,31 @@ class _CityMapScreenState extends ConsumerState<CityMapScreen> {
             _SummaryStrip(
               totalRevenue: totalRevenue,
               shopCount: cityShops.length,
+            ),
+            // Gold-CTA Button unter dem Summary Strip
+            const SizedBox(height: 4),
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: ElevatedButton.icon(
+                onPressed: _endingDay ? null : _endDay,
+                icon: Icon(
+                  _endingDay ? Icons.hourglass_empty : Icons.nightlight_round,
+                  color: Colors.white,
+                  size: 18,
+                ),
+                label: Text(
+                  _endingDay ? 'Tag läuft...' : 'Tag beenden  ·  Kasse machen',
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor: AppColors.primary.withAlpha(100),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+              ),
             ),
             // City Map und restlicher Content
             Expanded(
