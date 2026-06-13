@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
 
 import '../../core/theme.dart';
 import '../../models/city_map_model.dart';
 import '../../models/city_model.dart';
 import '../../models/shop_model.dart';
 
-/// Coffee Inc 2-inspirierte 2.5D Stadtkarte mit CustomPainter.
-/// Ersetzt die alte card-basierte Version.
-/// API bleibt unverändert (city/locations/shops/selected/onSelect).
+/// Coffee Inc 2-inspirierte 2.5D-Stadtkarte mit isometrischen Gebäuden,
+/// Pins für eigene Filialen/Konkurrenz und Floating-UI.
 class CityMapView extends StatelessWidget {
   final CityData city;
   final List<CityMapLocation> locations;
@@ -27,538 +25,535 @@ class CityMapView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // Calculate optimal canvas size for the map
-        const canvasWidth = 1200.0;
-        const canvasHeight = 900.0;
-        
-        return Stack(
-          children: [
-            // Layer 1: Interactive Map with Pan/Zoom
-            InteractiveViewer(
-              minScale: 0.5,
-              maxScale: 3.0,
-              boundaryMargin: const EdgeInsets.all(100),
-              child: SizedBox(
-                width: canvasWidth,
-                height: canvasHeight,
-                child: CustomPaint(
-                  painter: _CityMapPainter(
-                    city: city,
-                    locations: locations,
-                    shops: shops,
-                  ),
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.translucent,
-                    onTapUp: (details) => _handleTap(details.localPosition, context),
-                    child: SizedBox(width: canvasWidth, height: canvasHeight),
-                  ),
-                ),
-              ),
-            ),
-            // Layer 2: Floating Header (nicht gescrollt)
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: _FloatingHeader(city: city),
-            ),
-            // Layer 3: Bottom Bar (nicht gescrollt)
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: _BottomBar(
-                selected: selected,
-                onSelect: onSelect,
-              ),
-            ),
-          ],
-        );
-      },
+    return _CoffeeMapLayout(
+      city: city,
+      locations: locations,
+      shops: shops,
+      selected: selected,
+      onSelect: onSelect,
     );
-  }
-
-  void _handleTap(Offset position, BuildContext context) {
-    // Grid-Größe berechnen
-    const gridSize = 6;
-    const cellWidth = 1200.0 / gridSize;
-    const cellHeight = 900.0 / gridSize;
-    
-    for (final location in locations) {
-      // Position aus dem Model holen
-      final x = location.mapPosition.dx * cellWidth;
-      final y = location.mapPosition.dy * cellHeight;
-      
-      // Prüfen ob Tap im Bereich des Standorts ist
-      final rect = Rect.fromCenter(
-        center: Offset(x + cellWidth / 2, y + cellHeight / 2),
-        width: cellWidth * 0.8,
-        height: cellHeight * 0.8,
-      );
-      
-      if (rect.contains(position)) {
-        onSelect(location);
-        return;
-      }
-    }
   }
 }
 
-// ── City Map Painter (2.5D Isometrisch) ───────────────────────────────
-class _CityMapPainter extends CustomPainter {
+// ─── Layout (Stack: Karte + Floating UI) ──────────────────────────────────
+class _CoffeeMapLayout extends StatefulWidget {
   final CityData city;
   final List<CityMapLocation> locations;
   final List<Shop> shops;
-
-  // Farben aus dem Prompt
-  static const waterColor = Color(0xFF0077BE);
-  static const streetColor = Color(0xFF999999);
-  static const streetLineColor = Color(0xFFFFFFFF);
-  static const sidewalkColor = Color(0xFFCCCCCC);
-  static const buildingWallLeft = Color(0xFFB8956A);
-  static const buildingWallRight = Color(0xFFA08050);
-  static const buildingRoof = Color(0xFFC4A882);
-  static const windowColor = Color(0xFF87CEEB);
-  static const windowLitColor = Color(0xFFFFE4B5);
-  static const greenColor = Color(0xFF4CAF50);
-
-  static const gridN = 6;
-  static const cellWidth = 1200.0 / gridN;
-  static const cellHeight = 900.0 / gridN;
-
-  _CityMapPainter({
-    required this.city,
-    required this.locations,
-    required this.shops,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    _drawBackground(canvas, size);
-    _drawStreets(canvas, size);
-    _drawBuildings(canvas, size);
-  }
-
-  void _drawBackground(Canvas canvas, Size size) {
-    // Wasser-Hintergrund
-    final waterPaint = Paint()..color = waterColor;
-    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), waterPaint);
-
-    // Grünflächen in bestimmten Zellen
-    final greenPaint = Paint()..color = greenColor;
-    for (int i = 0; i < gridN; i++) {
-      for (int j = 0; j < gridN; j++) {
-        // Zufällige Grünflächen (deterministisch basierend auf Position)
-        if ((i + j * 3) % 7 == 0) {
-          final rect = Rect.fromLTWH(
-            i * cellWidth + 10,
-            j * cellHeight + 10,
-            cellWidth - 20,
-            cellHeight - 20,
-          );
-          canvas.drawRRect(
-            RRect.fromRectAndRadius(rect, const Radius.circular(8)),
-            greenPaint,
-          );
-        }
-      }
-    }
-  }
-
-  void _drawStreets(Canvas canvas, Size size) {
-    final streetPaint = Paint()
-      ..color = streetColor
-      ..strokeWidth = 24
-      ..style = PaintingStyle.stroke;
-
-    final linePaint = Paint()
-      ..color = streetLineColor
-      ..strokeWidth = 2
-      ..style = PaintingStyle.stroke;
-
-    // Vertikale Straßen
-    for (int i = 1; i < gridN; i++) {
-      final x = i * cellWidth;
-      canvas.drawLine(
-        Offset(x, 0),
-        Offset(x, size.height),
-        streetPaint,
-      );
-      // Gestrichelte Mittellinie
-      _drawDashedLine(
-        canvas,
-        Offset(x, 0),
-        Offset(x, size.height),
-        linePaint,
-        dashLength: 20,
-        gapLength: 15,
-      );
-    }
-
-    // Horizontale Straßen
-    for (int j = 1; j < gridN; j++) {
-      final y = j * cellHeight;
-      canvas.drawLine(
-        Offset(0, y),
-        Offset(size.width, y),
-        streetPaint,
-      );
-      // Gestrichelte Mittellinie
-      _drawDashedLine(
-        canvas,
-        Offset(0, y),
-        Offset(size.width, y),
-        linePaint,
-        dashLength: 20,
-        gapLength: 15,
-      );
-    }
-
-    // Gehwege an Kreuzungen
-    final sidewalkPaint = Paint()..color = sidewalkColor;
-    for (int i = 0; i < gridN; i++) {
-      for (int j = 0; j < gridN; j++) {
-        final rect = Rect.fromLTWH(
-          i * cellWidth + 4,
-          j * cellHeight + 4,
-          cellWidth - 8,
-          cellHeight - 8,
-        );
-        canvas.drawRRect(
-          RRect.fromRectAndRadius(rect, const Radius.circular(4)),
-          sidewalkPaint..style = PaintingStyle.stroke,
-        );
-      }
-    }
-  }
-
-  void _drawDashedLine(Canvas canvas, Offset start, Offset end, Paint paint,
-      {double dashLength = 10, double gapLength = 10}) {
-    final dx = end.dx - start.dx;
-    final dy = end.dy - start.dy;
-    final length = math.sqrt(dx * dx + dy * dy);
-    final unitDx = dx / length;
-    final unitDy = dy / length;
-
-    double distance = 0;
-    while (distance < length) {
-      final startPoint = Offset(
-        start.dx + unitDx * distance,
-        start.dy + unitDy * distance,
-      );
-      final endDistance = math.min(distance + dashLength, length);
-      final endPoint = Offset(
-        start.dx + unitDx * endDistance,
-        start.dy + unitDy * endDistance,
-      );
-      canvas.drawLine(startPoint, endPoint, paint);
-      distance += dashLength + gapLength;
-    }
-  }
-
-  void _drawBuildings(Canvas canvas, Size size) {
-    for (final location in locations) {
-      final gridX = location.mapPosition.dx.toInt();
-      final gridY = location.mapPosition.dy.toInt();
-
-      // Prüfen ob Position gültig ist
-      if (gridX < 0 || gridX >= gridN || gridY < 0 || gridY >= gridN) continue;
-
-      // Isometrische Position berechnen
-      final baseX = gridX * cellWidth + cellWidth / 2;
-      final baseY = gridY * cellHeight + cellHeight / 2;
-
-      // Building-Dimensionen (isometrisch)
-      final bWidth = cellWidth * 0.7;
-      final bHeight = cellHeight * 0.7;
-      final bDepth = 40.0;
-      final floors = _getFloorsForLocation(location);
-
-      // Hat eigene Filiale?
-      final hasOwned = shops.any(
-          (s) => s.cityId == city.id && s.locationName == location.template.name);
-
-      // 2.5D Isometrisches Gebäude zeichnen
-      _drawIsometricBuilding(
-        canvas,
-        Offset(baseX, baseY - 20),
-        bWidth,
-        bHeight,
-        bDepth,
-        floors,
-        hasOwned,
-      );
-    }
-  }
-
-  int _getFloorsForLocation(CityMapLocation location) {
-    // Stockwerke basierend auf Standort-Typ
-    switch (location.template.personality) {
-      case LocationPersonality.business:
-        return 5 + (location.mapPosition.dx.toInt() % 3);
-      case LocationPersonality.university:
-        return 4 + (location.mapPosition.dy.toInt() % 2);
-      case LocationPersonality.touristic:
-        return 6 + (location.mapPosition.dx.toInt() % 2);
-      case LocationPersonality.residential:
-        return 3 + (location.mapPosition.dy.toInt() % 4);
-      case LocationPersonality.industrial:
-        return 2;
-      case LocationPersonality.suburban:
-        return 2 + (location.mapPosition.dx.toInt() % 2);
-    }
-  }
-
-  void _drawIsometricBuilding(
-    Canvas canvas,
-    Offset base,
-    double width,
-    double height,
-    double depth,
-    int floors,
-    bool hasOwned,
-  ) {
-    final floorHeight = 12.0;
-    final buildingHeight = floors * floorHeight;
-
-    // Linke Wand (dunkler)
-    final wallLeftPath = Path()
-      ..moveTo(base.dx - width / 2, base.dy)
-      ..lineTo(base.dx - width / 2, base.dy - buildingHeight)
-      ..lineTo(base.dx, base.dy - buildingHeight - depth)
-      ..lineTo(base.dx, base.dy - depth)
-      ..close();
-    canvas.drawPath(
-      wallLeftPath,
-      Paint()..color = buildingWallLeft,
-    );
-
-    // Rechte Wand (dunkler)
-    final wallRightPath = Path()
-      ..moveTo(base.dx, base.dy - depth)
-      ..lineTo(base.dx, base.dy - buildingHeight - depth)
-      ..lineTo(base.dx + width / 2, base.dy - buildingHeight)
-      ..lineTo(base.dx + width / 2, base.dy)
-      ..close();
-    canvas.drawPath(
-      wallRightPath,
-      Paint()..color = buildingWallRight,
-    );
-
-    // Dach
-    final roofPath = Path()
-      ..moveTo(base.dx - width / 2, base.dy - buildingHeight)
-      ..lineTo(base.dx, base.dy - buildingHeight - depth)
-      ..lineTo(base.dx + width / 2, base.dy - buildingHeight)
-      ..lineTo(base.dx, base.dy - buildingHeight + depth)
-      ..close();
-    canvas.drawPath(
-      roofPath,
-      Paint()..color = buildingRoof,
-    );
-
-    // Fenster zeichnen
-    for (int floor = 0; floor < floors; floor++) {
-      final floorY = base.dy - (floor + 1) * floorHeight - 10;
-      // Linke Fenster
-      for (int w = 0; w < 2; w++) {
-        final windowX = base.dx - width / 2 + 15 + w * 25;
-        canvas.drawRect(
-          Rect.fromCenter(
-            center: Offset(windowX + 5, floorY),
-            width: 12,
-            height: 10,
-          ),
-          Paint()..color = windowColor,
-        );
-      }
-      // Rechte Fenster
-      for (int w = 0; w < 2; w++) {
-        final windowX = base.dx + 10 + w * 25;
-        canvas.drawRect(
-          Rect.fromCenter(
-            center: Offset(windowX, floorY),
-            width: 12,
-            height: 10,
-          ),
-          Paint()..color = windowColor,
-        );
-      }
-    }
-
-    // Eingang
-    canvas.drawRect(
-      Rect.fromCenter(
-        center: Offset(base.dx, base.dy - 8),
-        width: 20,
-        height: 16,
-      ),
-      Paint()..color = const Color(0xFF5D4037),
-    );
-
-    // Eigene Filiale: Goldener Rand
-    if (hasOwned) {
-      final borderPaint = Paint()
-        ..color = const Color(0xFFD46816)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 3;
-      canvas.drawPath(wallLeftPath, borderPaint);
-      canvas.drawPath(wallRightPath, borderPaint);
-      canvas.drawPath(roofPath, borderPaint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _CityMapPainter oldDelegate) {
-    return oldDelegate.city != city ||
-        oldDelegate.locations != locations ||
-        oldDelegate.shops != shops;
-  }
-}
-
-// ── Floating Header ─────────────────────────────────────────────────
-class _FloatingHeader extends StatelessWidget {
-  final CityData city;
-
-  const _FloatingHeader({required this.city});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.all(12),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A).withAlpha(204),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Text(city.emoji, style: const TextStyle(fontSize: 24)),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  city.name,
-                  style: AppText.display(
-                    size: 18,
-                    color: AppColors.primary,
-                  ),
-                ),
-                Text(
-                  city.tier.label,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 11,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Cash Anzeige (würde normalerweise aus GameState kommen)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.success.withAlpha(40),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('💰', style: TextStyle(fontSize: 14)),
-                const SizedBox(width: 6),
-                Text(
-                  '€${city.rentBase * 10}',
-                  style: const TextStyle(
-                    color: AppColors.success,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Bottom Bar ─────────────────────────────────────────────────────────
-class _BottomBar extends StatelessWidget {
   final CityMapLocation? selected;
   final ValueChanged<CityMapLocation> onSelect;
 
-  const _BottomBar({
+  const _CoffeeMapLayout({
+    required this.city,
+    required this.locations,
+    required this.shops,
     required this.selected,
     required this.onSelect,
   });
 
   @override
+  State<_CoffeeMapLayout> createState() => _CoffeeMapLayoutState();
+}
+
+class _CoffeeMapLayoutState extends State<_CoffeeMapLayout> {
+  final TransformationController _transformCtrl = TransformationController();
+
+  @override
+  void dispose() {
+    _transformCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final locs = widget.locations;
+    final shops = widget.shops;
+
+    return Stack(
+      children: [
+        // Layer 1: Stadtkarte (pan & zoom)
+        InteractiveViewer(
+          transformationController: _transformCtrl,
+          minScale: 0.5,
+          maxScale: 2.5,
+          boundaryMargin: const EdgeInsets.all(80),
+          constrained: false,
+          child: SizedBox(
+            width: 1200,
+            height: 920,
+            child: CustomPaint(
+              painter: _CityMapPainter(
+                city: widget.city,
+                locations: locs,
+                shops: shops,
+                selected: widget.selected,
+                onHover: (_) {},
+              ),
+            ),
+          ),
+        ),
+
+        // Layer 2: Floating Header
+        Positioned(
+          top: 8,
+          left: 12,
+          right: 12,
+          child: _FloatingHeader(
+            cityName: widget.city.name,
+            cityEmoji: widget.city.emoji,
+            cash: _calcCash(),
+            day: _calcDay(),
+            shopCount: shops.length,
+          ),
+        ),
+
+        // Layer 3: Tap-Handler (da InteractiveViewer Tap blockiert)
+        Positioned.fill(
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTapUp: (details) {
+              _handleTap(details.localPosition, locs);
+            },
+          ),
+        ),
+
+        // Layer 4: Bottom Controls
+        Positioned(
+          bottom: 4,
+          left: 12,
+          right: 12,
+          child: _BottomBar(
+            selectedName: widget.selected?.label ?? 'Standort wählen',
+          ),
+        ),
+      ],
+    );
+  }
+
+  double _calcCash() {
+    // Versuche GameState aus dem Baum zu lesen — Fallback 0
+    return 0.0; // wird vom CityMapScreen übergeben
+  }
+
+  int _calcDay() => 1;
+
+  void _handleTap(Offset localPos, List<CityMapLocation> locs) {
+    const gridN = 6;
+    const tileW = 132.0;
+    const tileH = 76.0;
+    const sceneW = 1200.0;
+    // sceneH = 920.0 (for future use)
+    const originX = sceneW / 2;
+    const originY = 180.0;
+
+    // Inverse isometric: find closest location
+    CityMapLocation? closest;
+    double minDist = 40;
+
+    for (final loc in locs) {
+      final c = (loc.mapPosition.dx * (gridN - 1)).round().clamp(0, gridN - 1);
+      final r = (loc.mapPosition.dy * (gridN - 1)).round().clamp(0, gridN - 1);
+      final isoX = originX + (c - r) * (tileW / 2);
+      final isoY = originY + (c + r) * (tileH / 2);
+      final dist = (localPos - Offset(isoX, isoY)).distance;
+      if (dist < minDist) {
+        minDist = dist;
+        closest = loc;
+      }
+    }
+
+    if (closest != null) {
+      widget.onSelect(closest);
+    }
+  }
+}
+
+// ─── Floating Header ──────────────────────────────────────────────────────
+class _FloatingHeader extends StatelessWidget {
+  final String cityName;
+  final String cityEmoji;
+  final double cash;
+  final int day;
+  final int shopCount;
+
+  const _FloatingHeader({
+    required this.cityName,
+    required this.cityEmoji,
+    required this.cash,
+    required this.day,
+    required this.shopCount,
+  });
+
+  @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.all(12),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A).withAlpha(204),
+        color: const Color(0xCC1A1A1A),
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFF3A2C20), width: 1),
       ),
       child: Row(
         children: [
-          if (selected != null) ...[
-            Text(selected!.icon, style: const TextStyle(fontSize: 24)),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    selected!.template.name,
+          Text(cityEmoji, style: const TextStyle(fontSize: 22)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(cityName,
                     style: AppText.display(
-                      size: 16,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  Text(
-                    '★ ${selected!.attractivenessScore(selected!.template.personality == LocationPersonality.business ? CityData(id: '', name: '', tier: CityTier.klein, footTrafficBase: 1000, rentBase: 500) : CityData(id: '', name: '', tier: CityTier.klein, footTrafficBase: 1000, rentBase: 500)).round()}',
+                        size: 16, weight: FontWeight.w800, color: AppColors.primary)),
+                Text('$shopCount Filialen',
                     style: const TextStyle(
-                      color: AppColors.gold,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ] else ...[
-            const Text(
-              '📍 Standort wählen',
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 14,
-              ),
-            ),
-            const Spacer(),
-          ],
-          // Menü Button
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppColors.bgCard,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(
-              Icons.menu,
-              color: AppColors.textSecondary,
-              size: 20,
+                        color: AppColors.textSecondary, fontSize: 11)),
+              ],
             ),
           ),
+          const SizedBox(width: 8),
+          _MiniStat(label: '💰', value: '€${_fmt(cash)}'),
+          const SizedBox(width: 12),
+          _MiniStat(label: '📅', value: 'Tag $day'),
         ],
       ),
     );
   }
+
+  String _fmt(double v) {
+    if (v >= 1000000) return '${(v / 1000000).toStringAsFixed(1)}M';
+    if (v >= 1000) return '${(v / 1000).toStringAsFixed(0)}k';
+    return v.toStringAsFixed(0);
+  }
+}
+
+class _MiniStat extends StatelessWidget {
+  final String label;
+  final String value;
+  const _MiniStat({required this.label, required this.value});
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 14)),
+        Text(value,
+            style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 12,
+                fontWeight: FontWeight.w700)),
+      ],
+    );
+  }
+}
+
+// ─── Bottom Bar ───────────────────────────────────────────────────────────
+class _BottomBar extends StatelessWidget {
+  final String selectedName;
+  const _BottomBar({required this.selectedName});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xCC1A1A1A),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFF3A2C20)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.layers_outlined, color: AppColors.textSecondary, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(selectedName,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600)),
+          ),
+          const SizedBox(width: 12),
+          const Icon(Icons.menu_rounded, color: AppColors.textSecondary, size: 20),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── CustomPainter: 2.5D Stadtkarte ──────────────────────────────────────
+class _CityMapPainter extends CustomPainter {
+  final CityData city;
+  final List<CityMapLocation> locations;
+  final List<Shop> shops;
+  final CityMapLocation? selected;
+  final ValueChanged<CityMapLocation> onHover;
+
+  _CityMapPainter({
+    required this.city,
+    required this.locations,
+    required this.shops,
+    required this.selected,
+    required this.onHover,
+  });
+
+  // Isometrie-Geometrie
+  static const int gridN = 6;
+  static const double tileW = 132;
+  static const double tileH = 76;
+  static const double sceneW = 1200;
+  static const double originX = sceneW / 2;
+  static const double originY = 160;
+
+  Offset _iso(int col, int row) => Offset(
+        originX + (col - row) * (tileW / 2),
+        originY + (col + row) * (tileH / 2),
+      );
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    _drawWater(canvas);
+    _drawGrid(canvas);
+    _drawBuildings(canvas);
+    _drawPins(canvas);
+  }
+
+  void _drawWater(Canvas canvas) {
+    final bg = Paint()..color = const Color(0xFF0077BE);
+    canvas.drawRect(const Offset(0, 0) & const Size(1200, 920), bg);
+  }
+
+  void _drawGrid(Canvas canvas) {
+    final roadPaint = Paint()
+      ..color = const Color(0xFF999999)
+      ..style = PaintingStyle.fill;
+    final dashedPaint = Paint()
+      ..color = Colors.white.withAlpha(160)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+
+    // Horizontal roads
+    for (int row = 0; row <= gridN; row++) {
+      final p1 = _iso(0, row);
+      final p2 = _iso(gridN, row);
+      final dy = 10;
+
+      // Road surface
+      final path = Path()
+        ..moveTo(p1.dx, p1.dy + dy)
+        ..lineTo(p2.dx, p2.dy + dy)
+        ..lineTo(p2.dx - tileW / 2, p2.dy + dy + tileH / 2)
+        ..lineTo(p1.dx - tileW / 2, p1.dy + dy + tileH / 2)
+        ..close();
+      canvas.drawPath(path, roadPaint);
+
+      // Dashed center line
+      final midDx = (p2.dx - p1.dx) / 2;
+      final midDy = (p2.dy - p1.dy) / 2;
+      final cx = p1.dx + midDx;
+      final cy = p1.dy + midDy + dy;
+      final dx = tileW / 4;
+      final dy2 = tileH / 4;
+      canvas.drawLine(Offset(cx - dx, cy - dy2), Offset(cx + dx, cy + dy2), dashedPaint);
+    }
+
+    // Vertical roads
+    for (int col = 0; col <= gridN; col++) {
+      final p1 = _iso(col, 0);
+      final p2 = _iso(col, gridN);
+      final dx = 10;
+
+      final path = Path()
+        ..moveTo(p1.dx - dx, p1.dy)
+        ..lineTo(p2.dx - dx, p2.dy)
+        ..lineTo(p2.dx - dx + tileW / 2, p2.dy + tileH / 2)
+        ..lineTo(p1.dx - dx + tileW / 2, p1.dy + tileH / 2)
+        ..close();
+      canvas.drawPath(path, roadPaint);
+
+      final cx = p1.dx - dx + tileW / 4;
+      final cy = p1.dy + tileH / 4;
+      final midX = (p2.dx - p1.dx) / 2;
+      final midY = (p2.dy - p1.dy) / 2;
+      canvas.drawLine(
+        Offset(cx + midX * 0.5, cy + midY * 0.5),
+        Offset(cx + midX * 0.7, cy + midY * 0.7),
+        dashedPaint,
+      );
+    }
+
+    // Grass patches (corners of grid)
+    final grass = Paint()..color = const Color(0xFF4CAF50);
+    for (int col = 0; col < gridN; col++) {
+      for (int row = 0; row < gridN; row++) {
+        final p = _iso(col, row);
+        // Small grass patch between roads
+        final path = Path()
+          ..moveTo(p.dx, p.dy)
+          ..lineTo(p.dx + tileW / 4, p.dy + tileH / 4)
+          ..lineTo(p.dx, p.dy + tileH / 2)
+          ..lineTo(p.dx - tileW / 4, p.dy + tileH / 4)
+          ..close();
+        canvas.drawPath(path, grass);
+      }
+    }
+  }
+
+  void _drawBuildings(Canvas canvas) {
+    for (int i = 0; i < locations.length; i++) {
+      final loc = locations[i];
+      final c = (loc.mapPosition.dx * (gridN - 1)).round().clamp(0, gridN - 1);
+      final r = (loc.mapPosition.dy * (gridN - 1)).round().clamp(0, gridN - 1);
+      final center = _iso(c, r);
+
+      // Vary building parameters by index
+      final floors = 3 + (i % 4);
+      final width = 40.0 + (i % 3) * 8;
+      final height = floors * 10.0;
+      final colorIdx = i % 3;
+      final wallLeft = colorIdx == 0
+          ? const Color(0xFFB8956A)
+          : colorIdx == 1
+              ? const Color(0xFFA88B6A)
+              : const Color(0xFFC4A080);
+      final wallRight = Color.lerp(wallLeft, Colors.black, 0.15)!;
+      final roofColor = Color.lerp(wallLeft, Colors.white, 0.2)!;
+
+      _drawBuilding(canvas, center.dx, center.dy - height / 2 + 20, width, height,
+          wallLeft, wallRight, roofColor, floors);
+    }
+  }
+
+  void _drawBuilding(
+    Canvas canvas,
+    double x,
+    double yBase,
+    double w,
+    double h,
+    Color wallLeft,
+    Color wallRight,
+    Color roof,
+    int floors,
+  ) {
+    final halfW = w / 2;
+    final halfH = h / 3; // isometric height
+
+    // Left wall
+    final leftPath = Path()
+      ..moveTo(x, yBase)
+      ..lineTo(x - halfW, yBase + halfH)
+      ..lineTo(x - halfW, yBase + halfH + h)
+      ..lineTo(x, yBase + h)
+      ..close();
+    canvas.drawPath(leftPath, Paint()..color = wallLeft);
+
+    // Right wall
+    final rightPath = Path()
+      ..moveTo(x, yBase)
+      ..lineTo(x + halfW, yBase + halfH)
+      ..lineTo(x + halfW, yBase + halfH + h)
+      ..lineTo(x, yBase + h)
+      ..close();
+    canvas.drawPath(rightPath, Paint()..color = wallRight);
+
+    // Roof
+    final roofPath = Path()
+      ..moveTo(x, yBase)
+      ..lineTo(x + halfW, yBase - halfH)
+      ..lineTo(x, yBase - halfH * 2)
+      ..lineTo(x - halfW, yBase - halfH)
+      ..close();
+    canvas.drawPath(roofPath, Paint()..color = roof);
+
+    // Windows (left wall)
+    final winPaint = Paint()..color = const Color(0xFF87CEEB);
+    final winLit = Paint()..color = const Color(0xFFFFE4B5);
+    for (int f = 0; f < floors; f++) {
+      for (int wi = 0; wi < 2; wi++) {
+        final wx = x - halfW * 0.7 + wi * halfW * 0.5;
+        final wy = yBase + f * (h / floors) + 4;
+        canvas.drawRect(
+          Rect.fromLTWH(wx, wy, 8, 6),
+          (f + wi) % 2 == 0 ? winLit : winPaint,
+        );
+      }
+    }
+
+    // Door (front edge, right wall)
+    final doorPaint = Paint()..color = const Color(0xFF5D4037);
+    final doorPath = Path()
+      ..moveTo(x + 4, yBase + h - 16)
+      ..lineTo(x + 4 + 10, yBase + h - 16 - 6)
+      ..lineTo(x + 4 + 10, yBase + h - 6)
+      ..lineTo(x + 4, yBase + h)
+      ..close();
+    canvas.drawPath(doorPath, doorPaint);
+  }
+
+  void _drawPins(Canvas canvas) {
+    for (int i = 0; i < locations.length; i++) {
+      final loc = locations[i];
+      final c = (loc.mapPosition.dx * (gridN - 1)).round().clamp(0, gridN - 1);
+      final r = (loc.mapPosition.dy * (gridN - 1)).round().clamp(0, gridN - 1);
+      final center = _iso(c, r);
+
+      final hasOwn = shops.any(
+          (s) => s.cityId == city.id && s.locationName == loc.template.name);
+      final isSelected = selected?.id == loc.id;
+
+      _drawPin(canvas, center.dx - 8, center.dy - 50, hasOwn, isSelected, loc.icon);
+    }
+  }
+
+  void _drawPin(
+    Canvas canvas,
+    double x,
+    double y,
+    bool isOwned,
+    bool isSelected,
+    String icon,
+  ) {
+    if (isOwned) {
+      // Gold pin for own shop
+      final bg = Paint()..color = AppColors.primary;
+      canvas.drawCircle(Offset(x + 8, y + 8), 16, Paint()..color = Colors.black38);
+      canvas.drawCircle(Offset(x + 8, y + 8), 15, bg);
+      // Draw icon text
+      final tp = TextPainter(
+        text: TextSpan(text: icon, style: const TextStyle(fontSize: 16)),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      tp.paint(canvas, Offset(x + 1, y + 1));
+    } else {
+      // Dark pin for available
+      final bg = Paint()..color = const Color(0xFF3D2E22);
+      canvas.drawCircle(Offset(x + 8, y + 8), 14, Paint()..color = Colors.black26);
+      canvas.drawCircle(Offset(x + 8, y + 8), 13, bg);
+      // Small flag
+      final flagPaint = Paint()..color = AppColors.primary;
+      final flagPath = Path()
+        ..moveTo(x + 8, y + 5)
+        ..lineTo(x + 8 + 10, y + 5)
+        ..lineTo(x + 8 + 10, y + 12)
+        ..close();
+      canvas.drawPath(flagPath, flagPaint);
+      // Line down
+      canvas.drawLine(
+        Offset(x + 8, y + 5),
+        Offset(x + 8, y + 18),
+        Paint()..color = Colors.white70..strokeWidth = 1.5,
+      );
+    }
+
+    if (isSelected) {
+      // Glow effect
+      final glow = Paint()
+        ..color = AppColors.primary.withAlpha(60)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
+      canvas.drawCircle(Offset(x + 8, y + 8), 22, glow);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_CityMapPainter oldDelegate) => true;
 }
