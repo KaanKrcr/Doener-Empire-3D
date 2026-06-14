@@ -5,6 +5,14 @@ Sobald eine Datei mit passendem Namen existiert, nutzt die City-Map sie
 automatisch statt des prozeduralen Vektor-Gebäudes (Foto-Look). Fehlt sie,
 greift der Vektor-Fallback — die App funktioniert in jedem Fall.
 
+> **Status:** `building_owned.png` / `building_empty.png` sind seit 2026-06-14
+> in `lib/ui/widgets/iso_city_map_canvas.dart` verdrahtet (eigene/aktive Filiale
+> = Sprite, Nachbarn = Vektor). Die aktuellen Sprites haben noch einen
+> **eingebackenen bräunlichen Halo** statt echtem Alpha — er wird zur Laufzeit
+> per `ShaderMask` (radialer Alpha-Cut) kaschiert. Besser: Sprites mit echtem
+> transparentem Hintergrund exportieren, dann kann der ShaderMask-Workaround
+> entfallen.
+
 ## Erwartete Dateien (Namen exakt)
 
 | Datei | Bedeutung |

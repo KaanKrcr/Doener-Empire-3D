@@ -6,6 +6,27 @@ Flutter/CustomPainter-Implementierungen. Alle Maße beziehen sich auf einen
 
 Starter-Implementierung: [`lib/ui/widgets/iso_city_map_painter.dart`](../lib/ui/widgets/iso_city_map_painter.dart)
 
+## Status — Umsetzung (Stand 2026-06-14)
+
+**Gewählter Weg: Hybrid (Sprite + Flutter-Overlays), KEIN Engine-Wechsel.**
+Begründung in [`MAP_ENGINE_ENTSCHEIDUNG.md`](MAP_ENGINE_ENTSCHEIDUNG.md).
+
+- **Feld/Nachbarn:** `IsoMapPainter` (Vektor, dunkle Nacht-Blöcke) — Fallback.
+- **Aktive/eigene Filiale:** vorgerendertes Sprite `assets/iso/building_owned.png`
+  (freier Standort: `building_empty.png`) via `IsoCityMapCanvas`, Halo per
+  `ShaderMask` (radialer Alpha-Cut) entfernt.
+- **UI-Overlays** (Label-Bubble, Header, Pins, Detail-Panel, Donut, Sparklines)
+  = reine Flutter-Widgets. Voller Referenz-Screen: `lib/ui/widgets/hybrid_shop_screen.dart`.
+- **Integriert in** `city_map_view.dart`; Sprite & Painter teilen die statische
+  Projektion `IsoMapPainter.originFor()/projectTile()`; Tap via `toScene()`.
+- **Headless-Render-Helfer** (PNG nach `build/`): `test/iso_canvas_test.dart`,
+  `test/hybrid_screen_test.dart` u. a.
+
+**Offene Punkte:** (1) Sprites brauchen echten transparenten Hintergrund
+(Alpha-Cutout) statt eingebackenem Halo — aktuell per ShaderMask kaschiert.
+(2) `InteractiveViewer(constrained:false)` zeigt anfangs die obere-linke Ecke
+→ initiales Transform auf eigene/zentrale Filiale setzen.
+
 > **Wichtig — Palette weicht vom aktuellen Theme ab.**
 > Das Mockup ist ein *kühler* Premium-Dark-Look mit Neon-Orange. Das aktuelle
 > `AppColors` in `lib/core/theme.dart` ist *warm braun-orange*. Diese Spec
