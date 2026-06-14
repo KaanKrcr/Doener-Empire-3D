@@ -7,19 +7,19 @@ import 'building_styles.dart';
 /// Ungefähre, stilisierte Position jeder Stadt auf dem Deutschland-Umriss
 /// (normalisiert 0..1; x = West→Ost, y = Nord→Süd).
 const Map<String, Offset> kCityMapPositions = {
-  'hamburg': Offset(0.44, 0.17),
-  'berlin': Offset(0.66, 0.26),
-  'muenster': Offset(0.24, 0.35),
-  'braunschweig': Offset(0.52, 0.31),
-  'goettingen': Offset(0.43, 0.39),
-  'duesseldorf': Offset(0.19, 0.42),
-  'koeln': Offset(0.20, 0.46),
-  'frankfurt': Offset(0.33, 0.53),
-  'fulda': Offset(0.40, 0.49),
-  'bayreuth': Offset(0.58, 0.56),
-  'stuttgart': Offset(0.33, 0.72),
-  'augsburg': Offset(0.52, 0.80),
-  'muenchen': Offset(0.56, 0.84),
+  'hamburg': Offset(0.47, 0.18),
+  'berlin': Offset(0.70, 0.25),
+  'muenster': Offset(0.30, 0.34),
+  'braunschweig': Offset(0.55, 0.30),
+  'goettingen': Offset(0.46, 0.40),
+  'duesseldorf': Offset(0.27, 0.42),
+  'koeln': Offset(0.29, 0.47),
+  'frankfurt': Offset(0.40, 0.52),
+  'fulda': Offset(0.47, 0.49),
+  'bayreuth': Offset(0.62, 0.54),
+  'stuttgart': Offset(0.42, 0.64),
+  'augsburg': Offset(0.54, 0.70),
+  'muenchen': Offset(0.60, 0.72),
 };
 
 /// Ebene 1: Deutschlandkarte mit Städte-Auswahl.
@@ -38,7 +38,13 @@ class MapDeutschland extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: MapPalette.bgBase,
+      decoration: const BoxDecoration(
+        gradient: RadialGradient(
+          center: Alignment.topCenter,
+          radius: 1.2,
+          colors: [Color(0xFF0C0E11), Color(0xFF07080A)],
+        ),
+      ),
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
       child: Column(
         children: [
@@ -47,7 +53,7 @@ class MapDeutschland extends StatelessWidget {
           Expanded(
             child: LayoutBuilder(
               builder: (context, c) {
-                const aspect = 0.80; // Deutschland ist höher als breit
+                const aspect = 0.82; // Deutschland ist höher als breit
                 var mapW = c.maxWidth;
                 var mapH = mapW / aspect;
                 if (mapH > c.maxHeight) {
@@ -67,7 +73,7 @@ class MapDeutschland extends StatelessWidget {
                       child: CustomPaint(painter: _GermanyPainter()),
                     ),
                     for (final city in kAllCities)
-                      _buildDot(city, ox, oy, mapW, mapH),
+                      ..._buildCity(city, ox, oy, mapW, mapH),
                   ],
                 );
               },
@@ -78,62 +84,71 @@ class MapDeutschland extends StatelessWidget {
     );
   }
 
-  Widget _buildDot(
+  List<Widget> _buildCity(
       CityData city, double ox, double oy, double mapW, double mapH) {
     final pos = kCityMapPositions[city.id] ?? const Offset(0.5, 0.5);
     final unlocked = unlockedCityIds.contains(city.id);
     final hasShop = cityIdsWithShops.contains(city.id);
-    const dotSize = 16.0;
-    final left = ox + pos.dx * mapW - dotSize / 2;
-    final top = oy + pos.dy * mapH - dotSize / 2;
+    const dot = 14.0;
+    final dx = ox + pos.dx * mapW;
+    final dy = oy + pos.dy * mapH;
 
-    return Positioned(
-      left: left - 30,
-      top: top - 4,
-      width: 60 + dotSize,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: unlocked ? () => onSelectCity(city.id) : null,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: dotSize,
-              height: dotSize,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: unlocked ? MapPalette.success : MapPalette.textDim,
-                border: Border.all(
-                  color: hasShop ? MapPalette.accent : MapPalette.bgDeep,
-                  width: hasShop ? 2.5 : 1.5,
-                ),
-                boxShadow: unlocked
-                    ? [
-                        BoxShadow(
-                          color: MapPalette.success.withAlpha(120),
-                          blurRadius: 8,
-                          spreadRadius: 1,
-                        )
-                      ]
-                    : null,
+    return [
+      // Punkt
+      Positioned(
+        left: dx - dot / 2,
+        top: dy - dot / 2,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: unlocked ? () => onSelectCity(city.id) : null,
+          child: Container(
+            width: dot,
+            height: dot,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: unlocked
+                  ? const Color(0xFF7BC950)
+                  : const Color(0xFF5C606A),
+              border: Border.all(
+                color: hasShop ? MapPalette.accent : const Color(0xFF07080A),
+                width: hasShop ? 2.5 : 1.5,
               ),
+              boxShadow: unlocked
+                  ? [
+                      const BoxShadow(
+                        color: Color(0x807BC950),
+                        blurRadius: 8,
+                        spreadRadius: 1,
+                      )
+                    ]
+                  : null,
             ),
-            const SizedBox(height: 2),
-            Text(
+          ),
+        ),
+      ),
+      // Name rechts vom Punkt
+      Positioned(
+        left: dx + dot / 2 + 4,
+        top: dy - 7,
+        child: IgnorePointer(
+          child: SizedBox(
+            width: 78,
+            child: Text(
               city.name,
-              textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: 10,
+                fontSize: 11,
                 fontWeight: FontWeight.w600,
-                color: unlocked ? MapPalette.textMain : MapPalette.textDim,
+                color: unlocked
+                    ? MapPalette.textMain
+                    : const Color(0xFF5C606A),
               ),
             ),
-          ],
+          ),
         ),
       ),
-    );
+    ];
   }
 }
 
@@ -159,59 +174,58 @@ class _Hint extends StatelessWidget {
 }
 
 class _GermanyPainter extends CustomPainter {
-  // Stilisierter Deutschland-Umriss (normalisiert).
+  // Vereinfachte Deutschland-Kontur (normalisiert, im Uhrzeigersinn ab Norden):
+  // Kiel → Usedom → Görlitz → Passau → Oberstdorf → Saarbrücken → Aachen → Nordsee.
   static const List<Offset> _outline = [
-    Offset(0.40, 0.05),
-    Offset(0.50, 0.07),
-    Offset(0.52, 0.13),
-    Offset(0.60, 0.10),
-    Offset(0.70, 0.16),
-    Offset(0.72, 0.30),
-    Offset(0.66, 0.45),
-    Offset(0.62, 0.55),
-    Offset(0.68, 0.64),
-    Offset(0.60, 0.82),
-    Offset(0.55, 0.93),
-    Offset(0.45, 0.83),
-    Offset(0.36, 0.74),
-    Offset(0.31, 0.62),
-    Offset(0.18, 0.52),
-    Offset(0.13, 0.42),
-    Offset(0.21, 0.33),
-    Offset(0.16, 0.24),
-    Offset(0.27, 0.18),
-    Offset(0.30, 0.10),
-    Offset(0.38, 0.06),
+    Offset(0.50, 0.05), // N — Kiel/Flensburg
+    Offset(0.66, 0.08),
+    Offset(0.85, 0.10), // NO — Usedom
+    Offset(0.88, 0.22),
+    Offset(0.90, 0.35), // O — Görlitz
+    Offset(0.85, 0.50),
+    Offset(0.80, 0.60), // SO — Passau
+    Offset(0.66, 0.70),
+    Offset(0.55, 0.76), // S — Oberstdorf
+    Offset(0.45, 0.70),
+    Offset(0.30, 0.65), // SW — Saarbrücken
+    Offset(0.24, 0.50),
+    Offset(0.20, 0.35), // W — Aachen
+    Offset(0.22, 0.22),
+    Offset(0.25, 0.10), // NW — Borkum/Nordsee
+    Offset(0.37, 0.07),
   ];
 
   @override
   void paint(Canvas canvas, Size size) {
+    final pts = _outline
+        .map((o) => Offset(o.dx * size.width, o.dy * size.height))
+        .toList();
+    final n = pts.length;
+
+    Offset mid(int i) => (pts[i] + pts[(i + 1) % n]) / 2;
+
+    // Geglättete Kontur: quadratische Beziers durch die Kantenmittelpunkte,
+    // mit den Eckpunkten als Kontrollpunkten → organischer Umriss.
     final path = Path();
-    for (int i = 0; i < _outline.length; i++) {
-      final p = Offset(_outline[i].dx * size.width, _outline[i].dy * size.height);
-      if (i == 0) {
-        path.moveTo(p.dx, p.dy);
-      } else {
-        path.lineTo(p.dx, p.dy);
-      }
+    final start = mid(n - 1);
+    path.moveTo(start.dx, start.dy);
+    for (int i = 0; i < n; i++) {
+      final c = pts[i];
+      final m = mid(i);
+      path.quadraticBezierTo(c.dx, c.dy, m.dx, m.dy);
     }
     path.close();
 
     canvas.drawPath(
       path,
-      Paint()
-        ..shader = const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [MapPalette.bgPanel, MapPalette.bgCard],
-        ).createShader(Offset.zero & size),
+      Paint()..color = const Color(0xF2121418), // #121418, leicht transparent
     );
     canvas.drawPath(
       path,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5
-        ..color = MapPalette.gold.withAlpha(150),
+        ..strokeWidth = 2
+        ..color = const Color(0xFF22252B),
     );
   }
 

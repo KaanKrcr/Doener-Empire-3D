@@ -5,8 +5,10 @@ import 'package:doener_empire/models/competitor_model.dart';
 import 'package:doener_empire/models/shop_model.dart';
 import 'package:doener_empire/services/location_engine.dart';
 import 'package:doener_empire/ui/widgets/building_styles.dart';
+import 'package:doener_empire/ui/widgets/map_city_overview.dart';
+import 'package:doener_empire/ui/widgets/map_deutschland.dart';
 import 'package:doener_empire/ui/widgets/map_street_view.dart';
-import 'package:flutter/painting.dart' show Color;
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 Shop _shop({
@@ -133,6 +135,64 @@ void main() {
           .where((b) => b.kind == StreetBuildingKind.competitor)
           .length;
       expect(compCount, 2);
+    });
+  });
+
+  group('Render-Smoke (Painter werfen keine Exception)', () {
+    Future<void> pump(WidgetTester tester, Widget child) async {
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: SizedBox(width: 390, height: 560, child: child),
+        ),
+      ));
+      await tester.pump();
+    }
+
+    testWidgets('MapDeutschland', (tester) async {
+      await pump(
+        tester,
+        MapDeutschland(
+          unlockedCityIds: const {'augsburg', 'fulda'},
+          cityIdsWithShops: const {'augsburg'},
+          onSelectCity: (_) {},
+        ),
+      );
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('MapCityOverview', (tester) async {
+      await pump(
+        tester,
+        MapCityOverview(
+          city: city,
+          locations: LocationEngine.locationsFor(city),
+          cityShops: [_shop(location: location.template.name)],
+          competitors: [
+            _comp('c1', CompetitorPersonality.cheapMass),
+            _comp('c2', CompetitorPersonality.premium),
+          ],
+          onEnterLocation: (_) {},
+        ),
+      );
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('MapStreetView mit Hero + Konkurrenz', (tester) async {
+      await pump(
+        tester,
+        MapStreetView(
+          city: city,
+          location: location,
+          playerShop: _shop(location: location.template.name),
+          competitors: [_comp('c1', CompetitorPersonality.aggressive)],
+          cash: 50000,
+          onManage: (_) {},
+          onCustomize: (_) {},
+          onOpenFree: (_) {},
+          onAcquire: (_) {},
+        ),
+      );
+      expect(tester.takeException(), isNull);
     });
   });
 }
