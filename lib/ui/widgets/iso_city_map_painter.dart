@@ -61,12 +61,17 @@ class IsoBuilding {
   /// Eigene aktive Filiale → Neon-Outline + Boden-Glow + warme Fenster.
   final bool hero;
 
+  /// Vektor-Körper zeichnen? `false`, wenn an dieser Stelle stattdessen ein
+  /// Sprite überlagert wird (Boden-Glow bleibt für Hero erhalten).
+  final bool body;
+
   const IsoBuilding({
     required this.tx,
     required this.ty,
     required this.floors,
     this.seed = 0,
     this.hero = false,
+    this.body = true,
   });
 
   int get depth => tx + ty;
@@ -98,11 +103,12 @@ class IsoMapPainter extends CustomPainter {
     // Painter's Algorithm: hinten (kleiner depth) zuerst.
     final sorted = [...buildings]..sort((a, b) => a.depth.compareTo(b.depth));
     for (final b in sorted) {
+      if (!b.body) continue; // Stelle bekommt ein Sprite statt Vektor-Körper.
       _paintBuilding(canvas, b, origin);
     }
 
-    // Neon-Outline der Hero-Gebäude on top.
-    for (final b in sorted.where((b) => b.hero)) {
+    // Neon-Outline der Hero-Gebäude on top (nur für Vektor-Heroes).
+    for (final b in sorted.where((b) => b.hero && b.body)) {
       _paintHeroOutline(canvas, b, origin);
     }
 
@@ -184,10 +190,8 @@ class IsoMapPainter extends CustomPainter {
 
   // ── Gebäude ───────────────────────────────────────────────────────────────
 
-  Offset _worldToScreen(IsoBuilding b, Offset origin) => Offset(
-        origin.dx + (b.tx - b.ty) * kTileW / 2,
-        origin.dy + (b.tx + b.ty) * kTileH / 2,
-      );
+  Offset _worldToScreen(IsoBuilding b, Offset origin) =>
+      projectTile(b.tx, b.ty, origin);
 
   void _paintBuilding(Canvas canvas, IsoBuilding b, Offset origin) {
     final base = _worldToScreen(b, origin);
@@ -201,8 +205,7 @@ class IsoMapPainter extends CustomPainter {
     final up = Offset(0, -h);
 
     // Schlagschatten am Boden (nach unten-rechts versetzt).
-    final shadow = Path()
-      ..addPolygon([n, e, s, w], true);
+    final shadow = Path()..addPolygon([n, e, s, w], true);
     canvas.drawPath(
       shadow.shift(const Offset(6, 8)),
       Paint()
@@ -234,8 +237,8 @@ class IsoMapPainter extends CustomPainter {
 
   /// Fenstergitter auf einer Fassade. [topA]→[topB] ist die obere Kante,
   /// [h] die Wandhöhe nach unten.
-  void _paintWindows(
-      Canvas canvas, Offset topA, Offset topB, double h, IsoBuilding b, Color wall) {
+  void _paintWindows(Canvas canvas, Offset topA, Offset topB, double h,
+      IsoBuilding b, Color wall) {
     final rng = math.Random(b.seed ^ (topA.dx * 7).round());
     final edge = topB - topA;
     final cols = (edge.distance / 14).floor().clamp(1, 5);
@@ -320,17 +323,28 @@ class IsoMapPainter extends CustomPainter {
 
   // ── Layout-Helfer ───────────────────────────────────────────────────────
 
+  Offset _computeOrigin(Size size) => originFor(buildings, size);
+
   /// Verschiebt das Raster so, dass sein Mittelpunkt bei ~(50 %, 45 %) liegt.
-  Offset _computeOrigin(Size size) {
+  /// Static, damit Overlay-Widgets (Sprites) dieselbe Projektion nutzen.
+  static Offset originFor(List<IsoBuilding> buildings, Size size) {
     if (buildings.isEmpty) return Offset(size.width / 2, size.height * 0.45);
-    final cx = buildings.map((b) => b.tx).reduce((a, b) => a + b) / buildings.length;
-    final cy = buildings.map((b) => b.ty).reduce((a, b) => a + b) / buildings.length;
+    final cx =
+        buildings.map((b) => b.tx).reduce((a, b) => a + b) / buildings.length;
+    final cy =
+        buildings.map((b) => b.ty).reduce((a, b) => a + b) / buildings.length;
     final centerScreen = Offset(
       (cx - cy) * kTileW / 2,
       (cx + cy) * kTileH / 2,
     );
     return Offset(size.width / 2, size.height * 0.45) - centerScreen;
   }
+
+  /// Bildschirm-Position des Kachel-Fußpunkts (Mitte der Grundflächen-Raute).
+  static Offset projectTile(int tx, int ty, Offset origin) => Offset(
+        origin.dx + (tx - ty) * kTileW / 2,
+        origin.dy + (tx + ty) * kTileH / 2,
+      );
 
   @override
   bool shouldRepaint(covariant IsoMapPainter old) =>
