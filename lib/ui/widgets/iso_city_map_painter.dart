@@ -2,327 +2,372 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-/// Datenmodell: Ein isometrisches Gebäude auf der Karte.
+/// Premium-Iso-Stadtkarte im Stil des Döner-Empire-Mockups (Nacht-City mit
+/// Orange-Neon-Hero). Eigenständiger Startpunkt — bewusst NICHT an die echten
+/// City-/Shop-Daten gebunden, damit nichts am bestehenden [CityMapView]
+/// kaputtgeht. Farben sind hier lokal definiert ([MapColors]), weil die
+/// Mockup-Palette kühler ist als das warme `AppColors`-Set in theme.dart.
+/// Bei Übernahme ins finale Theme können sie nach AppColors wandern.
+///
+/// Spec: docs/MAP_DESIGN_SPEC.md
+///
+/// Schnelltest:
+/// ```dart
+/// Scaffold(body: IsoCityMapDemo())
+/// ```
+
+/// Dimetrische 2:1-Iso-Kachel.
+const double kTileW = 64;
+const double kTileH = 32;
+
+/// Höhe einer Etage in Pixeln (Wand-Extrusion).
+const double kFloorH = 18;
+
+/// Kühle Mockup-Palette (siehe Spec §0). Lokal, um theme.dart nicht zu berühren.
+class MapColors {
+  const MapColors._();
+
+  static const bgDeepest = Color(0xFF07080A);
+  static const bgBase = Color(0xFF0C0E11);
+
+  static const roofMid = Color(0xFF1E2127);
+  static const roofLight = Color(0xFF262A31);
+  static const wallLight = Color(0xFF1C1F25);
+  static const wallDark = Color(0xFF101216);
+
+  static const winOff = Color(0xFF0E1014);
+  static const winWarm = Color(0xFFE8A24B);
+  static const winCool = Color(0xFF4A6B8A);
+
+  static const road = Color(0xFF0A0B0D);
+  static const roadLine = Color(0xFF3A3D44);
+
+  static const accent = Color(0xFFF5A623);
+  static const accentGlow = Color(0x66F5A623);
+}
+
+/// Ein Gebäude auf dem Iso-Raster. Footprint = 1 Kachel.
 class IsoBuilding {
-  final int tx;        // Grid-Spalte (0-5)
-  final int ty;        // Grid-Zeile (0-5)
-  final int floors;    // Stockwerke (3-7)
-  final int seed;      // Deterministischer Zufall für Fenster
-  final bool hero;     // Hervorgehobenes Gebäude (Gold-Glow)
+  /// Kachel-Koordinaten (Spalte/Zeile im Raster).
+  final int tx;
+  final int ty;
+
+  /// Höhe in Etagen → Pixelhöhe = floors * kFloorH.
+  final int floors;
+
+  /// Seed für die deterministische Fensterverteilung.
+  final int seed;
+
+  /// Eigene aktive Filiale → Neon-Outline + Boden-Glow + warme Fenster.
+  final bool hero;
 
   const IsoBuilding({
     required this.tx,
     required this.ty,
-    this.floors = 4,
+    required this.floors,
     this.seed = 0,
     this.hero = false,
   });
+
+  int get depth => tx + ty;
+  double get heightPx => floors * kFloorH;
 }
 
-/// Professioneller Iso-CityMap-Painter nach MAP_DESIGN_SPEC.md.
 class IsoMapPainter extends CustomPainter {
   final List<IsoBuilding> buildings;
 
-  // Iso-Geometrie
-  static const double _tileW = 140;
-  static const double _tileH = 80;
-  static const double _sceneW = 1400;
-  static const double _sceneH = 1060;
-  static const double _originX = _sceneW / 2;
-  static const double _originY = 180;
+  /// Manueller Pan-Offset (optional, für späteres Scrollen/Zoomen).
+  final Offset pan;
 
-  IsoMapPainter({required this.buildings});
-
-  Offset _iso(int col, int row) => Offset(
-        _originX + (col - row) * (_tileW / 2),
-        _originY + (col + row) * (_tileH / 2),
-      );
+  IsoMapPainter({required this.buildings, this.pan = Offset.zero});
 
   @override
   void paint(Canvas canvas, Size size) {
-    _drawBackground(canvas);
-    _drawGrid(canvas);
-    _drawBuildings(canvas);
-  }
+    _paintBackground(canvas, size);
 
-  // ── 1. Hintergrund ──────────────────────────────────────────────────────
-  void _drawBackground(Canvas canvas) {
-    final bgRect = Offset.zero & const Size(_sceneW, _sceneH);
-    final gradient = Paint()
-      ..shader = const LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [Color(0xFF1A1A2E), Color(0xFF16213E)],
-      ).createShader(bgRect);
-    canvas.drawRect(bgRect, gradient);
+    // Raster mittig platzieren: Schwerpunkt der Kacheln auf ~45 % Höhe.
+    final origin = _computeOrigin(size) + pan;
 
-    // Horizon fade
-    final horizon = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [Colors.transparent, const Color(0xFF2D2D44)],
-      ).createShader(Rect.fromLTWH(0, 300, _sceneW, 200));
-    canvas.drawRect(const Offset(0, 300) & const Size(_sceneW, 200), horizon);
-  }
-
-  // ── 2. Iso-Straßen (6×6 Grid) ───────────────────────────────────────────
-  void _drawGrid(Canvas canvas) {
-    final road = Paint()..color = const Color(0xFF555566);
-    final curb = Paint()..color = const Color(0xFF666677);
-    final dashed = Paint()
-      ..color = const Color(0xFF888899)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
-
-    // Horizontal roads (row → row+1 connections)
-    for (int r = 0; r <= 6; r++) {
-      final p0 = _iso(0, r);
-      final p6 = _iso(6, r);
-      final dy = 10.0;
-
-      // Road body
-      final body = Path()
-        ..moveTo(p0.dx, p0.dy + dy)
-        ..lineTo(p6.dx, p6.dy + dy)
-        ..lineTo(p6.dx - _tileW / 2, p6.dy + dy + _tileH / 2)
-        ..lineTo(p0.dx - _tileW / 2, p0.dy + dy + _tileH / 2)
-        ..close();
-      canvas.drawPath(body, road);
-
-      // Curb left
-      final curbL = Path()
-        ..moveTo(p0.dx, p0.dy + dy)
-        ..lineTo(p6.dx, p6.dy + dy)
-        ..lineTo(p6.dx - 4, p6.dy + dy - 2)
-        ..lineTo(p0.dx - 4, p0.dy + dy - 2)
-        ..close();
-      canvas.drawPath(curbL, curb);
-
-      // Dashed center
-      final mid = Offset(
-        (p0.dx + p6.dx) / 2 - _tileW / 4,
-        (p0.dy + p6.dy) / 2 + dy + _tileH / 4,
-      );
-      canvas.drawLine(
-        Offset(mid.dx - 10, mid.dy - 6),
-        Offset(mid.dx + 10, mid.dy + 6),
-        dashed,
-      );
+    // Hero-Boden-Glow ZUERST (liegt unter den Gebäuden).
+    for (final b in buildings.where((b) => b.hero)) {
+      _paintGroundGlow(canvas, _worldToScreen(b, origin));
     }
 
-    // Vertical roads
-    for (int c = 0; c <= 6; c++) {
-      final p0 = _iso(c, 0);
-      final p6 = _iso(c, 6);
-      final dx = 10.0;
+    _paintRoads(canvas, origin);
 
-      final body = Path()
-        ..moveTo(p0.dx - dx, p0.dy)
-        ..lineTo(p6.dx - dx, p6.dy)
-        ..lineTo(p6.dx - dx + _tileW / 2, p6.dy + _tileH / 2)
-        ..lineTo(p0.dx - dx + _tileW / 2, p0.dy + _tileH / 2)
-        ..close();
-      canvas.drawPath(body, road);
-
-      final mid = Offset(
-        (p0.dx + p6.dx) / 2 - dx + _tileW / 4,
-        (p0.dy + p6.dy) / 2 + _tileH / 4,
-      );
-      canvas.drawLine(
-        Offset(mid.dx - 6, mid.dy - 10),
-        Offset(mid.dx + 6, mid.dy + 10),
-        dashed,
-      );
-    }
-
-    // Grass patches (Tile-Mitten)
-    final grass = Paint()..color = const Color(0xFF2D5A27);
-    for (int c = 0; c < 6; c++) {
-      for (int r = 0; r < 6; r++) {
-        final p = _iso(c, r);
-        final g = Path()
-          ..moveTo(p.dx, p.dy + 2)
-          ..lineTo(p.dx + _tileW / 4 - 4, p.dy + _tileH / 4)
-          ..lineTo(p.dx, p.dy + _tileH / 2 - 2)
-          ..lineTo(p.dx - _tileW / 4 + 4, p.dy + _tileH / 4)
-          ..close();
-        canvas.drawPath(g, grass);
-      }
-    }
-  }
-
-  // ── 3. Gebäude ──────────────────────────────────────────────────────────
-  void _drawBuildings(Canvas canvas) {
-    // Depth sort: draw back-to-front (row + col)
-    final sorted = List<IsoBuilding>.from(buildings)
-      ..sort((a, b) => (a.tx + a.ty).compareTo(b.tx + b.ty));
-
+    // Painter's Algorithm: hinten (kleiner depth) zuerst.
+    final sorted = [...buildings]..sort((a, b) => a.depth.compareTo(b.depth));
     for (final b in sorted) {
-      final center = _iso(b.tx, b.ty);
-      _drawSingleBuilding(canvas, center.dx, center.dy, b);
+      _paintBuilding(canvas, b, origin);
+    }
+
+    // Neon-Outline der Hero-Gebäude on top.
+    for (final b in sorted.where((b) => b.hero)) {
+      _paintHeroOutline(canvas, b, origin);
+    }
+
+    _paintVignette(canvas, size);
+  }
+
+  // ── Boden & Atmosphäre ────────────────────────────────────────────────────
+
+  void _paintBackground(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..shader = const LinearGradient(
+        colors: [MapColors.bgBase, MapColors.bgDeepest],
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+      ).createShader(Offset.zero & size);
+    canvas.drawRect(Offset.zero & size, paint);
+  }
+
+  void _paintVignette(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final paint = Paint()
+      ..shader = RadialGradient(
+        center: const Alignment(0, -0.1),
+        radius: 0.9,
+        colors: const [Color(0x00000000), Color(0xB3070809)],
+        stops: const [0.55, 1.0],
+      ).createShader(rect);
+    canvas.drawRect(rect, paint);
+  }
+
+  void _paintGroundGlow(Canvas canvas, Offset center) {
+    final paint = Paint()
+      ..shader = RadialGradient(
+        colors: const [Color(0x66F5A623), Color(0x00F5A623)],
+      ).createShader(Rect.fromCircle(center: center, radius: 120))
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 16);
+    canvas.drawCircle(center, 120, paint);
+  }
+
+  /// Zwei kreuzende Iso-Straßen als Orientierung (Starter — echte Straßen =
+  /// leere Kachelreihen im Raster, siehe Spec §2).
+  void _paintRoads(Canvas canvas, Offset origin) {
+    final road = Paint()
+      ..color = MapColors.road
+      ..strokeWidth = kTileH * 0.9
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
+    final line = Paint()
+      ..color = MapColors.roadLine
+      ..strokeWidth = 2
+      ..style = PaintingStyle.stroke;
+
+    Offset iso(double tx, double ty) => Offset(
+          origin.dx + (tx - ty) * kTileW / 2,
+          origin.dy + (tx + ty) * kTileH / 2,
+        );
+
+    for (final spec in [
+      [iso(-1, 3), iso(7, 3)], // horizontale Iso-Achse
+      [iso(3, -1), iso(3, 7)], // vertikale Iso-Achse
+    ]) {
+      canvas.drawLine(spec[0], spec[1], road);
+      _dashedLine(canvas, spec[0], spec[1], line, dash: 12, gap: 16);
     }
   }
 
-  void _drawSingleBuilding(Canvas canvas, double x, double y, IsoBuilding b) {
-    final rng = math.Random(b.seed);
-    final w = 48.0;
-    final floors = b.floors;
-    final h = floors * 12.0;
-
-    // Shadow
-    if (b.hero) {
-      final glow = Paint()
-        ..shader = RadialGradient(
-          colors: [
-            const Color(0xFFD46816).withAlpha(50),
-            Colors.transparent,
-          ],
-        ).createShader(Rect.fromCircle(center: Offset(x, y + h + 10), radius: 60));
-      canvas.drawCircle(Offset(x, y + h + 10), 60, glow);
-    } else {
-      final shadow = Paint()
-        ..color = Colors.black.withAlpha(40)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
-      final sPath = Path()
-        ..moveTo(x + 8, y + h + 4)
-        ..lineTo(x + w / 2 + 18, y + h + 4 + w / 4 + 2)
-        ..lineTo(x + w / 2 + 10, y + h + 4 + w / 4 + 2 + h - 10)
-        ..lineTo(x + 8, y + h + h - 8)
-        ..close();
-      canvas.drawPath(sPath, shadow);
+  void _dashedLine(Canvas canvas, Offset a, Offset b, Paint paint,
+      {required double dash, required double gap}) {
+    final total = (b - a).distance;
+    final dir = (b - a) / total;
+    double t = 0;
+    while (t < total) {
+      final start = a + dir * t;
+      final end = a + dir * math.min(t + dash, total);
+      canvas.drawLine(start, end, paint);
+      t += dash + gap;
     }
+  }
 
-    // Neon outline for hero
-    if (b.hero) {
-      final neon = Paint()
-        ..color = const Color(0xFFD46816)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
-      final nPath = Path()
-        ..moveTo(x, y)
-        ..lineTo(x + w / 2, y - w / 4)
-        ..lineTo(x + w / 2, y - w / 4 + h)
-        ..lineTo(x, y + h)
-        ..close();
-      canvas.drawPath(nPath, neon);
-    }
+  // ── Gebäude ───────────────────────────────────────────────────────────────
 
-    // Walls
-    final halfW = w / 2;
-    final halfH = w / 4; // isometric depth
+  Offset _worldToScreen(IsoBuilding b, Offset origin) => Offset(
+        origin.dx + (b.tx - b.ty) * kTileW / 2,
+        origin.dy + (b.tx + b.ty) * kTileH / 2,
+      );
 
-    // Left wall
-    final leftShade = Paint()
-      ..color = const Color(0xFFB8956A);
-    final leftPath = Path()
-      ..moveTo(x, y)
-      ..lineTo(x - halfW, y + halfH)
-      ..lineTo(x - halfW, y + halfH + h)
-      ..lineTo(x, y + h)
-      ..close();
-    canvas.drawPath(leftPath, leftShade);
+  void _paintBuilding(Canvas canvas, IsoBuilding b, Offset origin) {
+    final base = _worldToScreen(b, origin);
+    final h = b.heightPx;
 
-    // Right wall (darker)
-    final rightShade = Paint()
-      ..color = const Color(0xFFA08050);
-    final rightPath = Path()
-      ..moveTo(x, y)
-      ..lineTo(x + halfW, y + halfH)
-      ..lineTo(x + halfW, y + halfH + h)
-      ..lineTo(x, y + h)
-      ..close();
-    canvas.drawPath(rightPath, rightShade);
+    // Diamant-Eckpunkte der Grundfläche.
+    final n = base + Offset(0, -kTileH / 2); // Nord (hinten)
+    final e = base + Offset(kTileW / 2, 0); // Ost (rechts)
+    final s = base + Offset(0, kTileH / 2); // Süd (vorne)
+    final w = base + Offset(-kTileW / 2, 0); // West (links)
+    final up = Offset(0, -h);
 
-    // Roof
-    final roof = Paint()..color = const Color(0xFFD4B892);
-    final roofPath = Path()
-      ..moveTo(x, y)
-      ..lineTo(x + halfW, y - halfH)
-      ..lineTo(x, y - halfH * 2)
-      ..lineTo(x - halfW, y - halfH)
-      ..close();
-    canvas.drawPath(roofPath, roof);
+    // Schlagschatten am Boden (nach unten-rechts versetzt).
+    final shadow = Path()
+      ..addPolygon([n, e, s, w], true);
+    canvas.drawPath(
+      shadow.shift(const Offset(6, 8)),
+      Paint()
+        ..color = const Color(0x66000000)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10),
+    );
 
-    // Roof overhang edge
-    final roofEdge = Paint()
-      ..color = const Color(0xFFC4A882)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
-    canvas.drawPath(roofPath, roofEdge);
+    // Sichtbare Fassaden (links beleuchtet, rechts im Schatten).
+    final leftWall = Path()..addPolygon([w, s, s + up, w + up], true);
+    final rightWall = Path()..addPolygon([s, e, e + up, s + up], true);
+    canvas.drawPath(leftWall, Paint()..color = MapColors.wallLight);
+    canvas.drawPath(rightWall, Paint()..color = MapColors.wallDark);
 
-    // Windows (left wall)
-    const warm = Color(0xFFFFE4B5);
-    const cool = Color(0xFF87CEEB);
-    const darkWin = Color(0xFF3D3D5C);
-    final winSize = const Size(8, 6);
+    // Fenster.
+    _paintWindows(canvas, w + up, s + up, h, b, MapColors.wallLight);
+    _paintWindows(canvas, s + up, e + up, h, b, MapColors.wallDark);
 
-    for (int f = 0; f < floors; f++) {
-      for (int wi = 0; wi < 2; wi++) {
-        final winX = x - halfW * 0.75 + wi * halfW * 0.5;
-        final winY = y + f * (h / floors) + 6;
-        final winColor = [warm, cool, darkWin][rng.nextInt(3)];
-        canvas.drawRect(
-          Rect.fromLTWH(winX, winY, winSize.width, winSize.height),
-          Paint()..color = winColor,
-        );
+    // Dach.
+    final roof = Path()..addPolygon([n + up, e + up, s + up, w + up], true);
+    canvas.drawPath(roof, Paint()..color = MapColors.roofMid);
+    canvas.drawPath(
+      roof,
+      Paint()
+        ..color = MapColors.roofLight
+        ..strokeWidth = 1
+        ..style = PaintingStyle.stroke,
+    );
+  }
+
+  /// Fenstergitter auf einer Fassade. [topA]→[topB] ist die obere Kante,
+  /// [h] die Wandhöhe nach unten.
+  void _paintWindows(
+      Canvas canvas, Offset topA, Offset topB, double h, IsoBuilding b, Color wall) {
+    final rng = math.Random(b.seed ^ (topA.dx * 7).round());
+    final edge = topB - topA;
+    final cols = (edge.distance / 14).floor().clamp(1, 5);
+    final rows = b.floors.clamp(1, 7);
+    final down = Offset(0, h); // von Oberkante nach unten
+
+    Offset p(double u, double v) => topA + edge * u + down * v;
+
+    for (var c = 0; c < cols; c++) {
+      for (var r = 0; r < rows; r++) {
+        final u0 = (c + 0.22) / cols, u1 = (c + 0.78) / cols;
+        final v0 = (r + 0.25) / rows, v1 = (r + 0.78) / rows;
+        final quad = Path()
+          ..addPolygon([p(u0, v0), p(u1, v0), p(u1, v1), p(u0, v1)], true);
+
+        final roll = rng.nextDouble();
+        final Color color;
+        if (b.hero) {
+          color = roll < 0.7 ? MapColors.winWarm : MapColors.winOff;
+        } else if (roll < 0.70) {
+          color = MapColors.winOff;
+        } else if (roll < 0.95) {
+          color = MapColors.winWarm;
+        } else {
+          color = MapColors.winCool;
+        }
+        canvas.drawPath(quad, Paint()..color = color);
+
+        if (color == MapColors.winWarm) {
+          canvas.drawPath(
+            quad,
+            Paint()
+              ..color = MapColors.winWarm.withAlpha(120)
+              ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2),
+          );
+        }
       }
     }
+  }
 
-    // Door (right wall, ground floor)
-    final door = Paint()..color = const Color(0xFF5D4037);
-    final doorPath = Path()
-      ..moveTo(x + 6, y + h - 14)
-      ..lineTo(x + 6 + 12, y + h - 14 - 6)
-      ..lineTo(x + 6 + 12, y + h - 6)
-      ..lineTo(x + 6, y + h - 2)
-      ..close();
-    canvas.drawPath(doorPath, door);
+  void _paintHeroOutline(Canvas canvas, IsoBuilding b, Offset origin) {
+    final base = _worldToScreen(b, origin);
+    final h = b.heightPx;
+    final up = Offset(0, -h);
+    final n = base + Offset(0, -kTileH / 2) + up;
+    final e = base + Offset(kTileW / 2, 0) + up;
+    final s = base + Offset(0, kTileH / 2) + up;
+    final w = base + Offset(-kTileW / 2, 0) + up;
+    final sBase = base + Offset(0, kTileH / 2);
+    final eBase = base + Offset(kTileW / 2, 0);
+    final wBase = base + Offset(-kTileW / 2, 0);
+
+    // Outline: Dachkante + senkrechte Vorderkanten.
+    final outline = Path()
+      ..addPolygon([n, e, s, w], true)
+      ..moveTo(w.dx, w.dy)
+      ..lineTo(wBase.dx, wBase.dy)
+      ..moveTo(s.dx, s.dy)
+      ..lineTo(sBase.dx, sBase.dy)
+      ..moveTo(e.dx, e.dy)
+      ..lineTo(eBase.dx, eBase.dy);
+
+    // Glow-Pass.
+    canvas.drawPath(
+      outline,
+      Paint()
+        ..color = MapColors.accentGlow
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 8
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12),
+    );
+    // Scharfe Kernlinie.
+    canvas.drawPath(
+      outline,
+      Paint()
+        ..color = MapColors.accent
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3
+        ..strokeJoin = StrokeJoin.round,
+    );
+  }
+
+  // ── Layout-Helfer ───────────────────────────────────────────────────────
+
+  /// Verschiebt das Raster so, dass sein Mittelpunkt bei ~(50 %, 45 %) liegt.
+  Offset _computeOrigin(Size size) {
+    if (buildings.isEmpty) return Offset(size.width / 2, size.height * 0.45);
+    final cx = buildings.map((b) => b.tx).reduce((a, b) => a + b) / buildings.length;
+    final cy = buildings.map((b) => b.ty).reduce((a, b) => a + b) / buildings.length;
+    final centerScreen = Offset(
+      (cx - cy) * kTileW / 2,
+      (cx + cy) * kTileH / 2,
+    );
+    return Offset(size.width / 2, size.height * 0.45) - centerScreen;
   }
 
   @override
-  bool shouldRepaint(covariant IsoMapPainter oldDelegate) => true;
+  bool shouldRepaint(covariant IsoMapPainter old) =>
+      old.buildings != buildings || old.pan != pan;
 }
 
-/// Test-Demo (einfach per Scaffold(body: IsoCityMapDemo()) nutzbar).
+/// Lauffähige Demo: 7×7-Block-Stadt mit einer Hero-Filiale in der Mitte.
 class IsoCityMapDemo extends StatelessWidget {
   const IsoCityMapDemo({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final buildings = [
-      const IsoBuilding(tx: 1, ty: 1, floors: 4, seed: 42, hero: true),
-      const IsoBuilding(tx: 4, ty: 1, floors: 5, seed: 17),
-      const IsoBuilding(tx: 1, ty: 4, floors: 6, seed: 33),
-      const IsoBuilding(tx: 4, ty: 4, floors: 3, seed: 55),
-      const IsoBuilding(tx: 2, ty: 2, floors: 5, seed: 91),
-      const IsoBuilding(tx: 3, ty: 2, floors: 7, seed: 12),
-      const IsoBuilding(tx: 2, ty: 3, floors: 6, seed: 78),
-      const IsoBuilding(tx: 3, ty: 3, floors: 3, seed: 44),
-      const IsoBuilding(tx: 2, ty: 1, floors: 7, seed: 99, hero: true),
-      const IsoBuilding(tx: 3, ty: 1, floors: 6, seed: 21),
-      const IsoBuilding(tx: 1, ty: 2, floors: 5, seed: 66),
-      const IsoBuilding(tx: 4, ty: 3, floors: 3, seed: 88),
-    ];
-
-    return Scaffold(
-      backgroundColor: const Color(0xFF1A1A2E),
-      body: Center(
-        child: InteractiveViewer(
-          minScale: 0.5,
-          maxScale: 2.5,
-          boundaryMargin: const EdgeInsets.all(80),
-          constrained: false,
-          child: SizedBox(
-            width: 1400,
-            height: 1060,
-            child: CustomPaint(
-              painter: IsoMapPainter(buildings: buildings),
-            ),
-          ),
-        ),
+    return ColoredBox(
+      color: MapColors.bgDeepest,
+      child: CustomPaint(
+        painter: IsoMapPainter(buildings: _demoCity()),
+        size: Size.infinite,
       ),
     );
+  }
+
+  static List<IsoBuilding> _demoCity() {
+    final rng = math.Random(42);
+    final list = <IsoBuilding>[];
+    for (var x = 0; x < 7; x++) {
+      for (var y = 0; y < 7; y++) {
+        if (x == 3 || y == 3) continue; // Straßenreihen freilassen
+        list.add(IsoBuilding(
+          tx: x,
+          ty: y,
+          floors: 2 + rng.nextInt(7),
+          seed: x * 31 + y,
+        ));
+      }
+    }
+    // Hero-Filiale prominent neben der Kreuzung.
+    list.add(const IsoBuilding(tx: 2, ty: 2, floors: 4, seed: 99, hero: true));
+    return list;
   }
 }
