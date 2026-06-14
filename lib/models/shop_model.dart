@@ -25,6 +25,11 @@ class Shop {
   final String? originalCompetitorName; // ehemals welcher Konkurrent
   final bool wasAcquired; // stammt aus einer Übernahme
 
+  /// Vom Spieler gewählte Akzentfarbe der Filiale (ARGB-Wert) für den
+  /// 2.5D-Straßenzug. Default = Döner-Orange. Wird in dieser Runde bewusst
+  /// nicht persistiert (kein toJson/fromJson) — Wert lebt nur zur Laufzeit.
+  final int accentColor;
+
   const Shop({
     required this.id,
     required this.name,
@@ -45,6 +50,7 @@ class Shop {
     this.autoHire = false,
     this.originalCompetitorName,
     this.wasAcquired = false,
+    this.accentColor = 0xFFF5A623,
   });
 
   bool hasUpgrade(String upgradeId) => upgradeIds.contains(upgradeId);
@@ -88,6 +94,7 @@ class Shop {
     String? originalCompetitorName,
     bool clearOriginalCompetitorName = false,
     bool? wasAcquired,
+    int? accentColor,
   }) {
     return Shop(
       id: id,
@@ -111,6 +118,7 @@ class Shop {
           ? null
           : (originalCompetitorName ?? this.originalCompetitorName),
       wasAcquired: wasAcquired ?? this.wasAcquired,
+      accentColor: accentColor ?? this.accentColor,
     );
   }
 
