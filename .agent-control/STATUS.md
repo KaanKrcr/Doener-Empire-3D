@@ -13,6 +13,131 @@ Arcade Cooking, Echtzeit-Kundenbedienung und parallele Unity-App sind verworfen.
 ## Claude Code (Planner/Reviewer)
 State: Flutter-only City Map competition slice complete (2026-06-12 06:04)
 Done:
+- Current cron run 2026-06-12 20:00: Pflichtdateien gelesen. `REVIEW_QUEUE.md`
+  ist `Status: empty`; Worktree enthaelt nur erwartete Control-Datei-
+  Aenderungen von vorherigen Dispatch-Blockern. Aktueller `HEAD` ist
+  `53321e6`, `origin/main` ist `7e768ab` (Branch trackt
+  `origin/feat/iso-2.5d-citymap`). Gemaess Queue-Regel wurde n8n/Claude-Review
+  fuer den neuesten Flutter-only City-Map-Competition-Slice erneut versucht;
+  Dispatch an `http://127.0.0.1:5678/webhook/doener-unity-dispatch` ist weiter
+  fehlgeschlagen (Remoteverbindung nicht herstellbar). Keine Codex-
+  Implementierung aus leerer Queue gestartet.
+- Current cron run 2026-06-12 19:30: Pflichtdateien gelesen. `REVIEW_QUEUE.md`
+  ist `Status: empty`; Worktree enthaelt nur erwartete Control-Datei-
+  Aenderungen von vorherigen Dispatch-Blockern. Aktueller `HEAD` ist
+  `53321e6`, `origin/main` ist `7e768ab` (Branch trackt
+  `origin/feat/iso-2.5d-citymap`). Gemaess Queue-Regel wurde n8n/Claude-Review
+  fuer den neuesten Flutter-only City-Map-Competition-Slice erneut versucht;
+  Dispatch an `http://127.0.0.1:5678/webhook/doener-unity-dispatch` ist weiter
+  fehlgeschlagen (Remoteverbindung nicht herstellbar). Keine Codex-
+  Implementierung aus leerer Queue gestartet.
+- Current cron run 2026-06-12 19:00: Pflichtdateien gelesen. `REVIEW_QUEUE.md`
+  ist `Status: empty`; Worktree enthaelt nur erwartete Control-Datei-
+  Aenderungen von vorherigen Dispatch-Blockern. Aktueller `HEAD` ist
+  `53321e6`, `origin/main` ist `7e768ab` (Branch trackt
+  `origin/feat/iso-2.5d-citymap`). Gemaess Queue-Regel wurde n8n/Claude-Review
+  fuer den neuesten Flutter-only City-Map-Competition-Slice erneut versucht;
+  Dispatch an `http://127.0.0.1:5678/webhook/doener-unity-dispatch` ist weiter
+  fehlgeschlagen (Remoteverbindung nicht herstellbar). Keine Codex-
+  Implementierung aus leerer Queue gestartet.
+- Current cron run 2026-06-12 18:53: Pflichtdateien gelesen. `REVIEW_QUEUE.md`
+  ist `Status: empty`; Worktree enthaelt nur erwartete Control-Datei-
+  Aenderungen von vorherigen Dispatch-Blockern. Aktueller `HEAD` ist
+  `53321e6`, `origin/main` ist `7e768ab` (Branch trackt
+  `origin/feat/iso-2.5d-citymap`). Gemaess Queue-Regel wurde n8n/Claude-Review
+  fuer den neuesten Flutter-only City-Map-Competition-Slice erneut versucht;
+  Dispatch an `http://127.0.0.1:5678/webhook/doener-unity-dispatch` ist weiter
+  fehlgeschlagen (Remoteverbindung nicht herstellbar). Keine Codex-
+  Implementierung aus leerer Queue gestartet.
+- Current cron run 2026-06-12 17:52: Pflichtdateien gelesen. `REVIEW_QUEUE.md`
+  ist `Status: empty`; Worktree enthaelt nur erwartete Control-Datei-
+  Aenderungen von vorherigen Dispatch-Blockern. Aktueller `HEAD` ist
+  `53321e6`, `origin/main` ist `7e768ab` (Branch trackt
+  `origin/feat/iso-2.5d-citymap`). Gemaess Queue-Regel wurde n8n/Claude-Review
+  fuer den neuesten Flutter-only City-Map-Competition-Slice erneut versucht;
+  Dispatch an `http://127.0.0.1:5678/webhook/doener-unity-dispatch` ist weiter
+  fehlgeschlagen (Remoteverbindung nicht herstellbar). Keine Codex-
+  Implementierung aus leerer Queue gestartet.
+- Current cron run 2026-06-12 16:51: Pflichtdateien gelesen. `REVIEW_QUEUE.md`
+  ist `Status: empty`; Worktree enthaelt nur erwartete Control-Datei-
+  Aenderungen von vorherigen Dispatch-Blockern. Aktueller `HEAD` ist
+  `53321e6`, `origin/main` ist `7e768ab` (Branch trackt
+  `origin/feat/iso-2.5d-citymap`). Gemaess Queue-Regel wurde n8n/Claude-Review
+  fuer den neuesten Flutter-only City-Map-Competition-Slice erneut versucht;
+  Dispatch an `http://127.0.0.1:5678/webhook/doener-unity-dispatch` ist weiter
+  fehlgeschlagen (Remoteverbindung nicht herstellbar). Keine Codex-
+  Implementierung aus leerer Queue gestartet.
+- Current cron run 2026-06-12 15:50: Pflichtdateien gelesen. `REVIEW_QUEUE.md`
+  ist `Status: empty`; Worktree enthaelt nur erwartete Control-Datei-
+  Aenderungen von vorherigen Dispatch-Blockern. Aktueller `HEAD` ist
+  `53321e6`, `origin/main` ist `7e768ab` (Branch trackt
+  `origin/feat/iso-2.5d-citymap`). Gemaess Queue-Regel wurde n8n/Claude-Review
+  fuer den neuesten Flutter-only City-Map-Competition-Slice erneut versucht;
+  Dispatch an `http://127.0.0.1:5678/webhook/doener-unity-dispatch` ist weiter
+  fehlgeschlagen (Remoteverbindung nicht herstellbar). Keine Codex-
+  Implementierung aus leerer Queue gestartet.
+- Current cron run 2026-06-12 14:49: Pflichtdateien gelesen. `REVIEW_QUEUE.md`
+  ist `Status: empty`; Worktree enthaelt nur erwartete Control-Datei-
+  Aenderungen von vorherigen Dispatch-Blockern. Aktueller `HEAD` ist
+  `53321e6`, `origin/main` ist `7e768ab` (Branch trackt
+  `origin/feat/iso-2.5d-citymap`). Gemaess Queue-Regel wurde n8n/Claude-Review
+  fuer den neuesten Flutter-only City-Map-Competition-Slice erneut versucht;
+  Dispatch an `http://127.0.0.1:5678/webhook/doener-unity-dispatch` ist weiter
+  fehlgeschlagen (Remoteverbindung nicht herstellbar). Keine Codex-
+  Implementierung aus leerer Queue gestartet.
+- Current cron run 2026-06-12 13:48: Pflichtdateien gelesen. `REVIEW_QUEUE.md`
+  ist `Status: empty`; Worktree enthaelt nur erwartete Control-Datei-
+  Aenderungen von vorherigen Dispatch-Blockern. Aktueller `HEAD` ist
+  `53321e6`, `origin/main` ist `7e768ab` (Branch trackt
+  `origin/feat/iso-2.5d-citymap`). Gemaess Queue-Regel wurde n8n/Claude-Review
+  fuer den neuesten Flutter-only City-Map-Competition-Slice erneut versucht;
+  Dispatch an `http://127.0.0.1:5678/webhook/doener-unity-dispatch` ist weiter
+  fehlgeschlagen (Remoteverbindung nicht herstellbar). Keine Codex-
+  Implementierung aus leerer Queue gestartet.
+- Current cron run 2026-06-12 12:47: Pflichtdateien gelesen. `REVIEW_QUEUE.md`
+  ist `Status: empty`; Worktree enthaelt nur erwartete Control-Datei-
+  Aenderungen von vorherigen Dispatch-Blockern. Aktueller `HEAD` ist
+  `53321e6`, `origin/main` ist `7e768ab` (Branch trackt
+  `origin/feat/iso-2.5d-citymap`). Gemaess Queue-Regel wurde n8n/Claude-Review
+  fuer den neuesten Flutter-only City-Map-Competition-Slice erneut versucht;
+  Dispatch an `http://127.0.0.1:5678/webhook/doener-unity-dispatch` ist weiter
+  fehlgeschlagen (Remoteverbindung nicht herstellbar). Keine Codex-
+  Implementierung aus leerer Queue gestartet.
+- Current cron run 2026-06-12 11:46: Pflichtdateien gelesen. `REVIEW_QUEUE.md`
+  ist `Status: empty`; Worktree enthaelt nur erwartete Control-Datei-
+  Aenderungen von vorherigen Dispatch-Blockern. Aktueller `HEAD` ist
+  `53321e6`, `origin/main` ist `7e768ab` (Branch trackt
+  `origin/feat/iso-2.5d-citymap`). Gemaess Queue-Regel wurde n8n/Claude-Review
+  fuer den neuesten Flutter-only City-Map-Competition-Slice erneut versucht;
+  Dispatch an `http://127.0.0.1:5678/webhook/doener-unity-dispatch` ist weiter
+  fehlgeschlagen (Remoteverbindung nicht herstellbar). Keine Codex-
+  Implementierung aus leerer Queue gestartet.
+- Current cron run 2026-06-12 10:44: Pflichtdateien gelesen. `REVIEW_QUEUE.md`
+  ist `Status: empty`; Worktree enthaelt nur erwartete Control-Datei-
+  Aenderungen vom vorherigen Dispatch-Blocker. Aktueller `HEAD` ist `53321e6`,
+  `origin/main` ist `7e768ab` (Branch trackt `origin/feat/iso-2.5d-citymap`).
+  Gemaess Queue-Regel wurde n8n/Claude-Review fuer den neuesten Flutter-only
+  City-Map-Competition-Slice erneut versucht; Dispatch an
+  `http://127.0.0.1:5678/webhook/doener-unity-dispatch` ist weiter
+  fehlgeschlagen (Remoteverbindung nicht herstellbar). Keine Codex-
+  Implementierung aus leerer Queue gestartet.
+- Current cron run 2026-06-12 07:43: Pflichtdateien gelesen. `REVIEW_QUEUE.md`
+  ist `Status: empty`; Worktree enthaelt nur erwartete Control-Datei-
+  Aenderungen vom vorherigen Dispatch-Blocker. Aktueller `HEAD` ist `53321e6`,
+  `origin/main` ist `7e768ab` (Branch trackt `origin/feat/iso-2.5d-citymap`).
+  Gemaess Queue-Regel wurde erneut n8n/Claude-Review fuer den neuesten
+  Flutter-only City-Map-Competition-Slice versucht; Dispatch an
+  `http://127.0.0.1:5678/webhook/doener-unity-dispatch` ist weiter
+  fehlgeschlagen (Remoteverbindung nicht herstellbar). Keine Codex-
+  Implementierung aus leerer Queue gestartet.
+- Current cron run 2026-06-12 06:43: Pflichtdateien gelesen. `REVIEW_QUEUE.md`
+  ist `Status: empty`; Worktree sauber. Aktueller `HEAD` ist `53321e6`,
+  `origin/main` ist `7e768ab` (aktueller Branch trackt
+  `origin/feat/iso-2.5d-citymap`). Gemaess Queue-Regel sollte n8n/Claude den
+  neuesten Flutter-only City-Map-Competition-Slice reviewen; Dispatch an
+  `http://127.0.0.1:5678/webhook/doener-unity-dispatch` ist fehlgeschlagen
+  (Remoteverbindung nicht herstellbar). Keine Codex-Implementierung aus leerer
+  Queue gestartet.
 - Current Codex run 2026-06-12 06:04: Kaan hat direkt beauftragt, am Spiel
   weiterzuarbeiten, ausdruecklich Flutter statt Unity. Kleiner Flutter-Slice
   umgesetzt: City Map zeigt jetzt Konkurrenzdruck als Entscheidungshilfe.

@@ -1,21 +1,36 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/constants.dart';
-import '../../core/theme.dart';
 import '../../models/city_map_model.dart';
 import '../../models/city_model.dart';
 import '../../models/competitor_model.dart';
+import '../../models/game_state.dart';
+import '../../models/shop_model.dart';
 import '../../providers/game_provider.dart';
-import '../../services/game_engine.dart';
+import '../../services/haptics_service.dart';
 import '../../services/location_engine.dart';
-import '../widgets/city_map_view.dart';
+import '../../services/sound_service.dart';
+import '../widgets/bankruptcy_dialog.dart';
+import '../widgets/building_styles.dart';
+import '../widgets/day_end_dialog.dart';
+import '../widgets/facade_customizer.dart';
+import '../widgets/map_city_overview.dart';
+import '../widgets/map_deutschland.dart';
+import '../widgets/map_street_view.dart';
+import '../widgets/mission_banner.dart';
+import '../widgets/quarterly_report_dialog.dart';
+import '../widgets/weekly_report_dialog.dart';
+import '../screens/campaign_screen.dart' show CampaignChapterDialog;
 
 final _fmt = NumberFormat('#,##0', 'de_DE');
 
+/// Die drei Ebenen des Karten-Systems.
+enum _MapLevel { deutschland, city, street }
+
+/// 3-Ebenen-City-Map: Deutschlandkarte → Vogelperspektive → 2.5D-Straßenzug.
 class CityMapScreen extends ConsumerStatefulWidget {
   final String cityId;
   const CityMapScreen({super.key, required this.cityId});
@@ -25,567 +40,314 @@ class CityMapScreen extends ConsumerStatefulWidget {
 }
 
 class _CityMapScreenState extends ConsumerState<CityMapScreen> {
-  CityMapLocation? _selected;
+  bool _endingDay = false;
+  late _MapLevel _level;
+  late String _cityId;
+  CityMapLocation? _location;
 
-  CityData get city => kAllCities.firstWhere((c) => c.id == widget.cityId);
+  @override
+  void initState() {
+    super.initState();
+    _cityId = widget.cityId;
+    _level = _MapLevel.city; // Einstieg: Stadtplan der gewählten Stadt
+  }
 
+  CityData get _city => kAllCities.firstWhere(
+        (c) => c.id == _cityId,
+        orElse: () => kAllCities.first,
+      );
+
+  // ── Tag beenden ────────────────────────────────────────────────────────
+  Future<void> _endDay() async {
+    if (_endingDay) return;
+    Haptics.medium();
+    SoundService.play(Sfx.dayend);
+    setState(() => _endingDay = true);
+    final notifier = ref.read(gameProvider.notifier);
+    notifier.endDay();
+    final result = notifier.lastDayResult;
+    if (result != null && mounted) {
+      await DayEndDialog.show(context, result);
+      if (result.missionCompleted != null && mounted) {
+        await MissionCompletedDialog.show(context, result.missionCompleted!);
+      }
+      if (result.quarterlyReport != null && mounted) {
+        await QuarterlyReportDialog.show(context, result.quarterlyReport!);
+      }
+      if (result.chapterCompleted != null && mounted) {
+        await CampaignChapterDialog.show(context, result.chapterCompleted!);
+      }
+      if (result.weeklyReport != null && mounted) {
+        await WeeklyReportDialog.show(context, result.weeklyReport!);
+      }
+      if (result.taxPaid > 0 && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text('Steuern (30 Tage): -${_fmt.format(result.taxPaid)} €'),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+    if (mounted) setState(() => _endingDay = false);
+  }
+
+  // ── Navigation zwischen den Ebenen ───────────────────────────────────────
+  void _onBack() {
+    switch (_level) {
+      case _MapLevel.street:
+        setState(() => _level = _MapLevel.city);
+        break;
+      case _MapLevel.city:
+        setState(() => _level = _MapLevel.deutschland);
+        break;
+      case _MapLevel.deutschland:
+        context.pop();
+        break;
+    }
+  }
+
+  void _onSelectCity(String cityId) {
+    setState(() {
+      _cityId = cityId;
+      _level = _MapLevel.city;
+    });
+  }
+
+  void _onEnterLocation(CityMapLocation loc) {
+    setState(() {
+      _location = loc;
+      _level = _MapLevel.street;
+    });
+  }
+
+  // ── Aktionen im Straßenzug ───────────────────────────────────────────────
+  void _onManage(Shop shop) => context.push('/shop/${shop.id}');
+
+  void _onOpenFree(CityMapLocation loc) {
+    context.push(
+      '/open-shop/$_cityId?location=${Uri.encodeComponent(loc.template.name)}',
+    );
+  }
+
+  void _onAcquire(Competitor c) {
+    ref.read(gameProvider.notifier).acquireCompetitor(c);
+    Haptics.medium();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${c.name} übernommen 🤝')),
+      );
+    }
+  }
+
+  Future<void> _onCustomize(Shop shop) async {
+    await FacadeCustomizer.show(
+      context,
+      currentColor: shop.accentColor,
+      onPick: (argb) =>
+          ref.read(gameProvider.notifier).setShopAccentColor(shop.id, argb),
+    );
+  }
+
+  // ── Build ─────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     final game = ref.watch(gameProvider)!;
-    final locations = LocationEngine.locationsFor(city);
-    final selected =
-        _selected ?? (locations.isNotEmpty ? locations.first : null);
-    final cityShops =
-        game.shops.where((shop) => shop.cityId == city.id).toList();
-    final summary = LocationEngine.summarize(city, game.shops);
-    final competition = LocationEngine.competitionBrief(game, city.id);
-    final latestCompetitorAction = game.latestCompetitorActionIn(city.id);
+
+    ref.listen(gameProvider, (prev, next) {
+      if (next == null) return;
+      final wasOk = prev == null || prev.cash >= 0;
+      if (wasOk && next.cash < 0 && mounted) {
+        BankruptcyDialog.show(context);
+      }
+    });
+
+    final cityShops = game.shops.where((s) => s.cityId == _cityId).toList();
+
+    final (String title, String? subtitle) = switch (_level) {
+      _MapLevel.deutschland => ('🇩🇪 Deutschland', null),
+      _MapLevel.city => ('${_city.emoji} ${_city.name}', 'Stadtplan'),
+      _MapLevel.street => (_city.name, _location?.label),
+    };
+
+    final showEndDay = _level != _MapLevel.deutschland;
 
     return Scaffold(
-      backgroundColor: AppColors.bg,
-      appBar: AppBar(
-        title: Text('${city.name} City-Map'),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
+      backgroundColor: MapPalette.bgBase,
+      body: Stack(
         children: [
-          _SummaryStrip(
-            summary: summary,
-            competition: competition,
-            latestCompetitorAction: latestCompetitorAction,
-          ),
-          const SizedBox(height: 14),
-          CityMapView(
-            city: city,
-            locations: locations,
-            shops: cityShops,
-            competitors: game.competitorsIn(city.id),
-            selected: selected,
-            onSelect: (location) => setState(() => _selected = location),
-          ).animate().fadeIn(duration: 260.ms).slideY(begin: 0.04, end: 0),
-          const SizedBox(height: 16),
-          if (selected != null)
-            _LocationPanel(
-              city: city,
-              location: selected,
-              shopCount: cityShops
-                  .where((shop) => shop.locationName == selected.template.name)
-                  .length,
-              cash: game.cash,
-              competition: competition,
-              latestCompetitorAction: latestCompetitorAction,
-              onOpenShop: () => context.push(
-                '/open-shop/${city.id}?location=${Uri.encodeComponent(selected.template.name)}',
-              ),
-            ),
-          const SizedBox(height: 14),
-          if (cityShops.isNotEmpty) ...[
-            Text(
-              'Deine Filialen',
-              style: AppText.label(color: AppColors.secondary),
-            ),
-            const SizedBox(height: 8),
-            for (final shop in cityShops)
-              _ShopMapCard(
-                title: shop.displayName,
-                subtitle:
-                    '${shop.locationName} · ${shop.reputation.toStringAsFixed(1)} ★',
-                revenue: GameEngine.calculateDailyRevenue(
-                  shop,
-                  day: game.currentDay,
-                  state: game,
-                ),
-                onTap: () => context.push('/shop/${shop.id}'),
-              ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _SummaryStrip extends StatelessWidget {
-  final CityMapSummary summary;
-  final CityCompetitionBrief competition;
-  final CompetitorActionEvent? latestCompetitorAction;
-
-  const _SummaryStrip({
-    required this.summary,
-    required this.competition,
-    required this.latestCompetitorAction,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.bgCard,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        children: [
-          Row(
+          Column(
             children: [
-              _Metric(
-                label: 'Filialen',
-                value: '${summary.shopCount}',
-                color: AppColors.primary,
+              SafeArea(
+                bottom: false,
+                child: _Header(
+                  title: title,
+                  subtitle: subtitle,
+                  cash: game.cash,
+                  onBack: _onBack,
+                ),
               ),
-              _Metric(
-                label: 'Laufkundschaft',
-                value: _fmt.format(summary.totalFootTraffic),
-                color: AppColors.accent,
-              ),
-              _Metric(
-                label: 'Miete/Woche',
-                value: '${_fmt.format(summary.weeklyRent)} €',
-                color: AppColors.warning,
-              ),
-              _Metric(
-                label: 'Konkurrenz',
-                value: competition.pressureLabel,
-                color:
-                    competition.hasRivals ? AppColors.danger : AppColors.gold,
-              ),
+              Expanded(child: _buildLevel(game, cityShops)),
             ],
           ),
-          if (latestCompetitorAction != null) ...[
-            const SizedBox(height: 10),
-            _CompetitorActionAlert(action: latestCompetitorAction!),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _Metric extends StatelessWidget {
-  final String label;
-  final String value;
-  final Color color;
-  const _Metric({
-    required this.label,
-    required this.value,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(value, style: AppText.display(size: 15, color: color)),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _LocationPanel extends StatelessWidget {
-  final CityData city;
-  final CityMapLocation location;
-  final int shopCount;
-  final double cash;
-  final CityCompetitionBrief competition;
-  final CompetitorActionEvent? latestCompetitorAction;
-  final VoidCallback onOpenShop;
-
-  const _LocationPanel({
-    required this.city,
-    required this.location,
-    required this.shopCount,
-    required this.cash,
-    required this.competition,
-    required this.latestCompetitorAction,
-    required this.onOpenShop,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final deposit = location.depositFor(city);
-    final canAfford = cash >= deposit;
-    final forecast = LocationEngine.forecastOpening(city, location);
-    final decision = LocationEngine.decisionBrief(
-      city: city,
-      location: location,
-      cash: cash,
-      competition: competition,
-    );
-    final breakEven = forecast.breakEvenDays == null
-        ? 'kritisch'
-        : '${forecast.breakEvenDays} Tage';
-    final cashAfterDeposit = cash - deposit;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.bgCard,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primary.withAlpha(90)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(location.icon, style: const TextStyle(fontSize: 28)),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(location.label, style: AppText.display(size: 20)),
-                    Text(
-                      location.audience,
+          // Tag-beenden-Button: unten-rechts, über der Karte
+          if (showEndDay)
+            Positioned(
+              right: 16,
+              bottom: 24,
+              child: SafeArea(
+                top: false,
+                child: SizedBox(
+                  height: 52,
+                  child: ElevatedButton.icon(
+                    onPressed: _endingDay ? null : _endDay,
+                    icon: Icon(
+                      _endingDay ? Icons.hourglass_empty : Icons.nightlight_round,
+                      size: 18,
+                      color: Colors.white,
+                    ),
+                    label: Text(
+                      _endingDay ? '...' : 'Tag beenden',
                       style: const TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 12,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
-                  ],
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: MapPalette.accent,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: MapPalette.accent.withAlpha(100),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(26),
+                      ),
+                      elevation: 8,
+                      shadowColor: MapPalette.accent.withAlpha(80),
+                    ),
+                  ),
                 ),
               ),
-              if (shopCount > 0)
-                Chip(
-                  label: Text('$shopCount Filiale${shopCount > 1 ? 'n' : ''}'),
-                  backgroundColor: AppColors.accent.withAlpha(35),
-                  side: const BorderSide(color: AppColors.accent),
-                ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              _PanelStat(
-                label: 'Score',
-                value: '${location.attractivenessScore(city).round()}/100',
-              ),
-              _PanelStat(
-                label: 'Traffic',
-                value: _fmt.format(location.footTrafficFor(city)),
-              ),
-              _PanelStat(
-                label: 'Miete',
-                value: '${_fmt.format(location.weeklyRentFor(city))} €',
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              _PanelStat(
-                label: 'Prognose',
-                value:
-                    '${_fmt.format(forecast.estimatedProfitPerDay.round())} EUR/Tag',
-              ),
-              _PanelStat(label: 'Break-even', value: breakEven),
-              _PanelStat(
-                label: 'Cash danach',
-                value: '${_fmt.format(cashAfterDeposit.round())} EUR',
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          _DecisionCallout(decision: decision),
-          if (_actionAppliesToLocation) ...[
-            const SizedBox(height: 8),
-            _Insight(
-              icon: Icons.local_fire_department_outlined,
-              text: _locationActionText(latestCompetitorAction!),
-              color: AppColors.danger,
             ),
-          ],
-          const SizedBox(height: 14),
-          _Insight(
-            icon: Icons.warning_amber_rounded,
-            text: location.risk,
-            color: AppColors.warning,
-          ),
-          const SizedBox(height: 8),
-          _Insight(
-            icon: Icons.lightbulb_outline_rounded,
-            text: location.recommendation,
-            color: AppColors.accent,
-          ),
-          const SizedBox(height: 8),
-          _Insight(
-            icon: Icons.shield_outlined,
-            text: competition.recommendation,
-            color: competition.hasRivals ? AppColors.danger : AppColors.gold,
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: canAfford ? onOpenShop : null,
-              icon: const Icon(Icons.storefront_rounded),
-              label: Text(
-                canAfford
-                    ? 'Filiale hier eröffnen · Kaution ${_fmt.format(deposit)} €'
-                    : 'Zu wenig Kapital · ${_fmt.format(deposit)} € Kaution',
-              ),
-            ),
-          ),
         ],
       ),
     );
   }
 
-  bool get _actionAppliesToLocation {
-    final action = latestCompetitorAction;
-    return action != null &&
-        (action.locationName == null ||
-            action.locationName == location.template.name);
-  }
-
-  String _locationActionText(CompetitorActionEvent action) {
-    switch (action.type) {
-      case CompetitorActionType.priceWar:
-        return 'Preiskampf aktiv: Marge schützen und Tempo hochhalten.';
-      case CompetitorActionType.expansion:
-        return 'Rivale expandiert: Standortdruck steigt hier spürbar.';
-      case CompetitorActionType.qualityPush:
-        return 'Rivale setzt auf Qualität: Reputation absichern.';
-      case CompetitorActionType.localMarketing:
-        return 'Lokales Marketing läuft: Stammkundenbindung wird wichtiger.';
+  Widget _buildLevel(GameState game, List<Shop> cityShops) {
+    switch (_level) {
+      case _MapLevel.deutschland:
+        return MapDeutschland(
+          unlockedCityIds: game.unlockedCityIds.toSet(),
+          cityIdsWithShops: game.shops.map((s) => s.cityId).toSet(),
+          onSelectCity: _onSelectCity,
+        );
+      case _MapLevel.city:
+        return MapCityOverview(
+          city: _city,
+          locations: LocationEngine.locationsFor(_city),
+          cityShops: cityShops,
+          competitors: game.competitorsIn(_cityId),
+          onEnterLocation: _onEnterLocation,
+        );
+      case _MapLevel.street:
+        final loc = _location ?? LocationEngine.locationsFor(_city).first;
+        Shop? playerShop;
+        for (final s in cityShops) {
+          if (s.locationName == loc.template.name) {
+            playerShop = s;
+            break;
+          }
+        }
+        return MapStreetView(
+          city: _city,
+          location: loc,
+          playerShop: playerShop,
+          competitors: game.competitorsIn(_cityId),
+          cash: game.cash,
+          onManage: _onManage,
+          onCustomize: _onCustomize,
+          onOpenFree: _onOpenFree,
+          onAcquire: _onAcquire,
+        );
     }
   }
 }
 
-class _DecisionCallout extends StatelessWidget {
-  final LocationDecisionBrief decision;
-
-  const _DecisionCallout({required this.decision});
-
-  @override
-  Widget build(BuildContext context) {
-    final color = decision.recommended ? AppColors.accent : AppColors.warning;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color.withAlpha(24),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: color.withAlpha(130)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                decision.recommended
-                    ? Icons.check_circle_outline_rounded
-                    : Icons.report_gmailerrorred_outlined,
-                color: color,
-                size: 18,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                decision.label,
-                style: TextStyle(
-                  color: color,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  decision.headline,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            decision.reason,
-            style: const TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 12,
-              height: 1.3,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            decision.nextStep,
-            style: const TextStyle(
-              color: AppColors.textMuted,
-              fontSize: 11,
-              height: 1.25,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CompetitorActionAlert extends StatelessWidget {
-  final CompetitorActionEvent action;
-
-  const _CompetitorActionAlert({required this.action});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.danger.withAlpha(24),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.danger.withAlpha(110)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(
-            Icons.radar_rounded,
-            color: AppColors.danger,
-            size: 17,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              action.message,
-              style: const TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 12,
-                height: 1.3,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PanelStat extends StatelessWidget {
-  final String label;
-  final String value;
-  const _PanelStat({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        margin: const EdgeInsets.only(right: 8),
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: AppColors.bgSurface,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              value,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: const TextStyle(color: AppColors.textMuted, fontSize: 10),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Insight extends StatelessWidget {
-  final IconData icon;
-  final String text;
-  final Color color;
-  const _Insight({required this.icon, required this.text, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, color: color, size: 18),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            text,
-            style: const TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 12,
-              height: 1.35,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _ShopMapCard extends StatelessWidget {
+// ── Header (back + Titel + Cash + Tag-beenden) ─────────────────────────────
+class _Header extends StatelessWidget {
   final String title;
-  final String subtitle;
-  final double revenue;
-  final VoidCallback onTap;
+  final String? subtitle;
+  final double cash;
+  
+  final VoidCallback onBack;
 
-  const _ShopMapCard({
+  const _Header({
     required this.title,
     required this.subtitle,
-    required this.revenue,
-    required this.onTap,
+    required this.cash,
+    
+    required this.onBack,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        onTap: onTap,
-        leading: const CircleAvatar(
-          backgroundColor: AppColors.primary,
-          child: Text('🥙'),
-        ),
-        title: Text(
-          title,
-          style: const TextStyle(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.w700,
+    return Container(
+      height: 56,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      decoration: const BoxDecoration(
+        color: MapPalette.bgPanel,
+        border: Border(bottom: BorderSide(color: MapPalette.border)),
+      ),
+      child: Row(
+        children: [
+          IconButton(
+            onPressed: onBack,
+            icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                color: MapPalette.textMuted, size: 18),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
           ),
-        ),
-        subtitle: Text(
-          subtitle,
-          style: const TextStyle(color: AppColors.textMuted),
-        ),
-        trailing: Text(
-          '${_fmt.format(revenue)} €',
-          style: const TextStyle(
-            color: AppColors.accent,
-            fontWeight: FontWeight.w800,
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontFamily: 'Baloo2',
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: MapPalette.textMain,
+                  ),
+                ),
+                if (subtitle != null)
+                  Text(
+                    subtitle!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                        fontSize: 11, color: MapPalette.textDim),
+                  ),
+              ],
+            ),
           ),
-        ),
+          const SizedBox(width: 6),
+          const Icon(Icons.account_balance_wallet_outlined,
+              color: MapPalette.accent, size: 16),
+          const SizedBox(width: 4),
+          Text(
+            '${_fmt.format(cash.round())} €',
+            style: const TextStyle(
+              fontFamily: 'Baloo2',
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: MapPalette.accent,
+            ),
+          ),
+        ],
       ),
     );
   }

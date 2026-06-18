@@ -646,6 +646,18 @@ class GameNotifier extends Notifier<GameState?> {
     return s.cash < 0;
   }
 
+  /// Akzentfarbe einer eigenen Filiale setzen (2.5D-Straßenzug-Look).
+  /// Wird in dieser Runde nicht persistiert — nur Laufzeit-State.
+  void setShopAccentColor(String shopId, int argb) {
+    if (state == null) return;
+    final s = state!;
+    final newShops = s.shops
+        .map((sh) => sh.id == shopId ? sh.copyWith(accentColor: argb) : sh)
+        .toList();
+    state = s.copyWith(shops: newShops);
+    SoundService.play(Sfx.tap);
+  }
+
   void updateProductPrice(String shopId, String productId, double newPrice) {
     if (state == null) return;
     state = GameEngine.updateProductPrice(state!, shopId, productId, newPrice);
@@ -690,9 +702,7 @@ class GameNotifier extends Notifier<GameState?> {
     final current = currentTutorialStep;
     if (current == null) return;
     switch (current) {
-      case TutorialStep.understandLocationValues:
-      case TutorialStep.viewDashboardMetrics:
-      case TutorialStep.understandHrCompetitionGrowth:
+      case TutorialStep.viewCityMapMetrics:
         _completeTutorialStep(current);
         break;
       case TutorialStep.finishTutorial:
@@ -706,12 +716,9 @@ class GameNotifier extends Notifier<GameState?> {
   void onTutorialTabOpened(int tabIndex) {
     final current = currentTutorialStep;
     if (current == null) return;
-    if (current == TutorialStep.openEmpireMenu && tabIndex == 2) {
-      _completeTutorialStep(TutorialStep.openEmpireMenu);
-      return;
-    }
-    if (current == TutorialStep.understandLocationValues && tabIndex == 1) {
-      _completeTutorialStep(TutorialStep.understandLocationValues);
+    // Nur noch openFirstShop wird auf Tab 0 (City Map) geprüft
+    if (current == TutorialStep.openFirstShop && tabIndex == 0) {
+      _completeTutorialStep(TutorialStep.openFirstShop);
       return;
     }
   }

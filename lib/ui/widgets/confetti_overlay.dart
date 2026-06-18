@@ -20,7 +20,6 @@ class ConfettiOverlay extends StatefulWidget {
       AppColors.primary,
       AppColors.accent,
       AppColors.cream,
-      AppColors.onion,
     ],
   });
 

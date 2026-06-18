@@ -702,9 +702,9 @@ class _CostBreakdownCard extends StatelessWidget {
     final items = [
       ('Miete', rent, AppColors.warning),
       ('Gehälter', sal, AppColors.accent),
-      ('Zutaten', ing, AppColors.tomato),
-      ('Lieferprovision', del, AppColors.danger),
-      ('Kreditraten', loan, AppColors.onion),
+      ('Zutaten', ing, AppColors.danger),
+      ('Lieferprovision', del, AppColors.warning),
+      ('Kreditraten', loan, AppColors.accent),
       ('Investitionen', inv, AppColors.secondary),
     ];
 

@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart'; // StateProvider (riverpod 3: nach legacy verschoben)
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:go_router/go_router.dart';
 import '../core/theme.dart';
+import '../core/constants.dart';
+import '../models/game_state.dart';
 import '../services/haptics_service.dart';
 import '../models/tutorial_model.dart';
 import '../providers/game_provider.dart';
 import '../services/sound_service.dart';
-import 'screens/dashboard_screen.dart';
+import 'screens/city_map_screen.dart';
 import 'screens/cities_screen.dart';
 import 'screens/stats_screen.dart';
 import 'screens/corporate_screen.dart';
@@ -17,7 +19,7 @@ import 'screens/bank_screen.dart';
 final navIndexProvider = StateProvider<int>((ref) => 0);
 final tutorialCardCollapsedProvider = StateProvider<bool>((ref) => true);
 
-const int kTabDashboard = 0;
+const int kTabCityMap = 0;
 const int kTabCities = 1;
 const int kTabStats = 2;
 const int kTabCorporate = 3;
@@ -27,14 +29,12 @@ const int kTabBank = 5;
 class MainScaffold extends ConsumerWidget {
   const MainScaffold({super.key});
 
-  static final _screens = [
-    const DashboardScreen(),
-    const CitiesScreen(),
-    const StatsScreen(),
-    const CorporateScreen(),
-    const FinanceScreen(),
-    const BankScreen(),
-  ];
+  String _getInitialCityId(GameState? game) {
+    if (game != null && game.unlockedCityIds.isNotEmpty) {
+      return game.unlockedCityIds.first;
+    }
+    return kAllCities.first.id;
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -51,6 +51,9 @@ class MainScaffold extends ConsumerWidget {
     ref.listen<int>(navIndexProvider, (prev, next) {
       ref.read(gameProvider.notifier).onTutorialTabOpened(next);
     });
+
+    // Initial city ID für CityMapScreen
+    final initialCityId = game != null ? _getInitialCityId(game) : kAllCities.first.id;
 
     return Scaffold(
       backgroundColor: AppColors.bg,
@@ -72,7 +75,7 @@ class MainScaffold extends ConsumerWidget {
             ),
             child: KeyedSubtree(
               key: ValueKey(idx),
-              child: _screens[idx],
+              child: _buildScreen(idx, initialCityId),
             ),
           ),
           const Positioned(
@@ -162,6 +165,25 @@ class MainScaffold extends ConsumerWidget {
         },
       ),
     );
+  }
+
+  Widget _buildScreen(int index, String initialCityId) {
+    switch (index) {
+      case kTabCityMap:
+        return CityMapScreen(cityId: initialCityId);
+      case kTabCities:
+        return const CitiesScreen();
+      case kTabStats:
+        return const StatsScreen();
+      case kTabCorporate:
+        return const CorporateScreen();
+      case kTabFinance:
+        return const FinanceScreen();
+      case kTabBank:
+        return const BankScreen();
+      default:
+        return CityMapScreen(cityId: initialCityId);
+    }
   }
 }
 
@@ -338,8 +360,8 @@ class _BottomNav extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _NavItem(
-                icon: Icons.storefront_rounded,
-                label: 'Imbiss',
+                icon: Icons.map_rounded,
+                label: 'Stadtkarte',
                 index: 0,
                 current: currentIndex,
                 highlight: highlightIndex == 0,
