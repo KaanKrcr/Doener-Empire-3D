@@ -64,6 +64,7 @@ TilemapData buildBerlinScene() {
       accent: MapPalette.accent,
       label: 'Döner Empire',
       rating: 4.6,
+      upgradeLevel: BuildingUpgrade.basic,
     ),
   );
 
@@ -94,6 +95,7 @@ TilemapData buildBerlinScene() {
         accent: MapPalette.danger,
         label: competitor.name,
         rating: competitor.rating,
+        upgradeLevel: BuildingUpgrade.none,
       ),
     );
   }

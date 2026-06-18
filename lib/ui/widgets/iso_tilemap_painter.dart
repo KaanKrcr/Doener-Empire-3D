@@ -16,6 +16,8 @@ enum TileType {
   competitor,
 }
 
+enum BuildingUpgrade { none, basic, normal, premium }
+
 @immutable
 class IsoTile {
   final TileType type;
@@ -23,6 +25,10 @@ class IsoTile {
   final Color? accent;
   final String? label;
   final double? rating;
+  final BuildingUpgrade upgradeLevel;
+  final bool hasAwning;
+  final bool hasOutdoorSeating;
+  final bool hasNeonSign;
 
   const IsoTile({
     required this.type,
@@ -30,6 +36,10 @@ class IsoTile {
     this.accent,
     this.label,
     this.rating,
+    this.upgradeLevel = BuildingUpgrade.none,
+    this.hasAwning = false,
+    this.hasOutdoorSeating = false,
+    this.hasNeonSign = false,
   });
 
   const IsoTile.grass()
@@ -202,6 +212,11 @@ class IsoTilemapPainter extends CustomPainter {
     IsoTile tile,
   ) {
     final accent = tile.accent ?? MapPalette.success;
+    final halfW = grid.halfWidth * 0.72;
+    final halfH = grid.halfHeight * 0.72;
+    final baseY = center.dy + halfH * 0.35;
+    final scaffoldTop = center.dy - grid.tileHeight * 1.35;
+
     canvas.drawPath(
       path,
       Paint()
@@ -209,18 +224,54 @@ class IsoTilemapPainter extends CustomPainter {
         ..strokeWidth = 2
         ..color = accent.withAlpha(210),
     );
-    canvas.drawCircle(
-      center,
-      5,
-      Paint()
-        ..color = accent.withAlpha(70)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5),
+
+    final scaffold = Paint()
+      ..color = MapPalette.textDim.withAlpha(220)
+      ..strokeWidth = 1.4;
+    final posts = [
+      center.dx - halfW,
+      center.dx - halfW * 0.32,
+      center.dx + halfW * 0.32,
+      center.dx + halfW,
+    ];
+    for (final x in posts) {
+      canvas.drawLine(
+        Offset(x, baseY),
+        Offset(x, scaffoldTop),
+        scaffold,
+      );
+    }
+    for (var i = 0; i < 4; i++) {
+      final y = baseY - i * grid.tileHeight * 0.38;
+      canvas.drawLine(
+        Offset(center.dx - halfW, y),
+        Offset(center.dx + halfW, y),
+        scaffold,
+      );
+    }
+    canvas.drawLine(
+      Offset(center.dx - halfW, baseY),
+      Offset(center.dx + halfW, scaffoldTop),
+      scaffold..color = MapPalette.textDim.withAlpha(130),
     );
-    canvas.drawCircle(center, 2.5, Paint()..color = accent);
+    canvas.drawLine(
+      Offset(center.dx + halfW, baseY),
+      Offset(center.dx - halfW, scaffoldTop),
+      scaffold,
+    );
+
+    _drawSignText(
+      canvas,
+      'ZU VERKAUFEN',
+      center.translate(0, -grid.tileHeight * 0.55),
+      accent,
+      fontSize: 7,
+      glow: false,
+    );
     _drawLabel(
       canvas,
       tile,
-      center.translate(0, -grid.tileHeight * 0.9),
+      center.translate(0, -grid.tileHeight * 1.85),
       accent,
     );
   }
@@ -253,17 +304,31 @@ class IsoTilemapPainter extends CustomPainter {
     int y, {
     required bool selected,
   }) {
+    final shopUpgrade = _effectiveShopUpgrade(tile, x, y);
+    final isShop =
+        tile.type == TileType.hero || tile.type == TileType.competitor;
+    final isCompetitor = tile.type == TileType.competitor;
     final accent = switch (tile.type) {
       TileType.hero => MapPalette.accent,
       TileType.competitor => MapPalette.danger,
       _ => tile.accent ?? MapPalette.textDim,
     };
-    final height = switch (tile.type) {
-      TileType.hero => grid.tileHeight * 3.45,
-      TileType.competitor => grid.tileHeight * 2.45,
-      _ => grid.tileHeight * (1.65 + ((x * 13 + y * 7) % 4) * 0.28),
-    };
-    final footprintScale = tile.type == TileType.hero ? 0.94 : 0.78;
+    final height = isShop
+        ? switch (shopUpgrade) {
+            BuildingUpgrade.none ||
+            BuildingUpgrade.basic =>
+              grid.tileHeight * 1.55,
+            BuildingUpgrade.normal => grid.tileHeight * 1.85,
+            BuildingUpgrade.premium => grid.tileHeight * 2.65,
+          }
+        : grid.tileHeight * (1.45 + ((x * 13 + y * 7) % 3) * 0.22);
+    final footprintScale = isShop
+        ? switch (shopUpgrade) {
+            BuildingUpgrade.none || BuildingUpgrade.basic => 0.78,
+            BuildingUpgrade.normal => 0.88,
+            BuildingUpgrade.premium => 0.96,
+          }
+        : 0.74;
     final halfW = grid.halfWidth * footprintScale;
     final halfH = grid.halfHeight * footprintScale;
 
@@ -299,7 +364,14 @@ class IsoTilemapPainter extends CustomPainter {
       ..lineTo(topLeft.dx, topLeft.dy)
       ..close();
 
-    final base = tile.color;
+    final base = isCompetitor
+        ? _darken(MapPalette.danger, 0.25)
+        : switch (shopUpgrade) {
+            BuildingUpgrade.basic => MapPalette.bgCard,
+            BuildingUpgrade.normal => _lighten(MapPalette.bgCard, 0.08),
+            BuildingUpgrade.premium => _lighten(MapPalette.bgCard, 0.14),
+            BuildingUpgrade.none => tile.color,
+          };
     _fillGradient(
       canvas,
       leftFace,
@@ -323,17 +395,56 @@ class IsoTilemapPainter extends CustomPainter {
     );
 
     _drawBuildingEdges(canvas, leftFace, rightFace, roof, accent, tile.type);
-    _drawWindows(
-      canvas,
-      bottomLeft,
-      bottomBottom,
-      bottomRight,
-      height,
-      accent,
-      tile.type,
-    );
+    if (isShop) {
+      _drawShopFacade(
+        canvas,
+        tile,
+        bottomLeft,
+        bottomBottom,
+        bottomRight,
+        height,
+        accent,
+        shopUpgrade,
+        isCompetitor: isCompetitor,
+      );
+      _drawShopExterior(
+        canvas,
+        tile,
+        center,
+        halfW,
+        halfH,
+        accent,
+        shopUpgrade,
+        isCompetitor: isCompetitor,
+      );
+    } else {
+      _drawGenericWindows(
+        canvas,
+        bottomLeft,
+        bottomBottom,
+        bottomRight,
+        height,
+      );
+    }
     _drawRoofUnit(canvas, Offset.lerp(topTop, topBottom, 0.48)!, base);
     _drawLabel(canvas, tile, topTop.translate(0, -18), accent);
+  }
+
+  BuildingUpgrade _effectiveShopUpgrade(IsoTile tile, int x, int y) {
+    if (tile.type == TileType.hero) {
+      return tile.upgradeLevel == BuildingUpgrade.none
+          ? BuildingUpgrade.basic
+          : tile.upgradeLevel;
+    }
+    if (tile.type == TileType.competitor) {
+      if (tile.upgradeLevel == BuildingUpgrade.normal) {
+        return BuildingUpgrade.normal;
+      }
+      return (x + y).isEven
+          ? BuildingUpgrade.basic
+          : BuildingUpgrade.normal;
+    }
+    return tile.upgradeLevel;
   }
 
   void _drawBuildingGlow(
@@ -389,14 +500,12 @@ class IsoTilemapPainter extends CustomPainter {
     canvas.drawPath(roof, edge);
   }
 
-  void _drawWindows(
+  void _drawGenericWindows(
     Canvas canvas,
     Offset bottomLeft,
     Offset bottomBottom,
     Offset bottomRight,
     double height,
-    Color accent,
-    TileType type,
   ) {
     final rows = math.max(2, (height / 28).floor());
     for (var row = 0; row < rows; row++) {
@@ -407,14 +516,11 @@ class IsoTilemapPainter extends CustomPainter {
       final rightB = Offset.lerp(bottomBottom, bottomRight, 0.8)!;
       final yOffset = -height * v;
       final warm = (row + rows) % 3 != 0;
-      final windowColor = warm
-          ? (type == TileType.hero
-              ? MapPalette.accent
-              : const Color(0xFFD69A51))
-          : const Color(0xFF17130F);
+      final windowColor =
+          warm ? const Color(0xFFD69A51) : const Color(0xFF17130F);
       final paint = Paint()
         ..color = windowColor.withAlpha(warm ? 205 : 230)
-        ..strokeWidth = type == TileType.hero ? 2.4 : 1.8
+        ..strokeWidth = 1.8
         ..strokeCap = StrokeCap.round;
       canvas.drawLine(
         leftA.translate(0, yOffset),
@@ -427,23 +533,309 @@ class IsoTilemapPainter extends CustomPainter {
         paint,
       );
     }
+  }
 
-    if (type == TileType.hero || type == TileType.competitor) {
-      final signPaint = Paint()
-        ..color = accent
-        ..strokeWidth = 3
-        ..strokeCap = StrokeCap.round;
-      canvas.drawLine(
-        Offset.lerp(bottomLeft, bottomBottom, 0.18)!.translate(0, -16),
-        Offset.lerp(bottomLeft, bottomBottom, 0.82)!.translate(0, -16),
-        signPaint,
-      );
-      canvas.drawLine(
-        Offset.lerp(bottomBottom, bottomRight, 0.18)!.translate(0, -16),
-        Offset.lerp(bottomBottom, bottomRight, 0.82)!.translate(0, -16),
-        signPaint,
+  void _drawShopFacade(
+    Canvas canvas,
+    IsoTile tile,
+    Offset bottomLeft,
+    Offset bottomBottom,
+    Offset bottomRight,
+    double height,
+    Color accent,
+    BuildingUpgrade upgrade, {
+    required bool isCompetitor,
+  }) {
+    final windowCount = switch (upgrade) {
+      BuildingUpgrade.none || BuildingUpgrade.basic => 1,
+      BuildingUpgrade.normal => 2,
+      BuildingUpgrade.premium => 3,
+    };
+    final facadeTop = -height * 0.72;
+    final facadeBottom = -height * 0.16;
+    final doorWidth = upgrade == BuildingUpgrade.premium ? 0.19 : 0.22;
+
+    _drawFaceOpening(
+      canvas,
+      bottomLeft,
+      bottomBottom,
+      0.09,
+      0.09 + doorWidth,
+      facadeBottom,
+      facadeTop,
+      const Color(0xFF21150D),
+      frameColor: accent.withAlpha(210),
+    );
+
+    for (var i = 0; i < windowCount; i++) {
+      final start = 0.34 + i * (0.58 / windowCount);
+      final end = start + (0.48 / windowCount);
+      _drawFaceOpening(
+        canvas,
+        bottomLeft,
+        bottomBottom,
+        start,
+        end.clamp(0.0, 0.94),
+        facadeBottom,
+        facadeTop + height * 0.08,
+        isCompetitor
+            ? const Color(0xFF6A3027)
+            : const Color(0xFFD79042),
+        frameColor: MapPalette.border,
       );
     }
+
+    final rightWindows = upgrade == BuildingUpgrade.premium ? 2 : 1;
+    for (var i = 0; i < rightWindows; i++) {
+      final start = 0.18 + i * 0.38;
+      _drawFaceOpening(
+        canvas,
+        bottomBottom,
+        bottomRight,
+        start,
+        start + 0.28,
+        facadeBottom,
+        facadeTop + height * 0.08,
+        isCompetitor
+            ? const Color(0xFF5C2923)
+            : const Color(0xFFC77C35),
+        frameColor: MapPalette.border,
+      );
+    }
+
+    if (upgrade == BuildingUpgrade.premium) {
+      for (var i = 0; i < 3; i++) {
+        final start = 0.12 + i * 0.29;
+        _drawFaceOpening(
+          canvas,
+          bottomLeft,
+          bottomBottom,
+          start,
+          start + 0.18,
+          -height * 0.58,
+          -height * 0.82,
+          const Color(0xFFD9A25E),
+          frameColor: MapPalette.border,
+        );
+      }
+    }
+
+    final wantsAwning = !isCompetitor &&
+        (tile.hasAwning ||
+            upgrade == BuildingUpgrade.normal ||
+            upgrade == BuildingUpgrade.premium);
+    if (wantsAwning) {
+      _drawAwning(
+        canvas,
+        bottomLeft,
+        bottomBottom,
+        height,
+        accent,
+      );
+    }
+
+    final wantsNeon = !isCompetitor &&
+        (tile.hasNeonSign ||
+            upgrade == BuildingUpgrade.normal ||
+            upgrade == BuildingUpgrade.premium);
+    final signCenter = Offset.lerp(bottomLeft, bottomBottom, 0.53)!
+        .translate(0, -height * (upgrade == BuildingUpgrade.premium ? 0.72 : 0.9));
+    _drawSignText(
+      canvas,
+      'DÖNER',
+      signCenter,
+      isCompetitor ? MapPalette.danger : accent,
+      fontSize: upgrade == BuildingUpgrade.premium ? 10 : 8,
+      glow: wantsNeon,
+    );
+  }
+
+  void _drawFaceOpening(
+    Canvas canvas,
+    Offset faceStart,
+    Offset faceEnd,
+    double uStart,
+    double uEnd,
+    double yBottom,
+    double yTop,
+    Color fill, {
+    required Color frameColor,
+  }) {
+    final p0 = Offset.lerp(faceStart, faceEnd, uStart)!.translate(0, yBottom);
+    final p1 = Offset.lerp(faceStart, faceEnd, uEnd)!.translate(0, yBottom);
+    final p2 = Offset.lerp(faceStart, faceEnd, uEnd)!.translate(0, yTop);
+    final p3 = Offset.lerp(faceStart, faceEnd, uStart)!.translate(0, yTop);
+    final path = Path()
+      ..moveTo(p0.dx, p0.dy)
+      ..lineTo(p1.dx, p1.dy)
+      ..lineTo(p2.dx, p2.dy)
+      ..lineTo(p3.dx, p3.dy)
+      ..close();
+    canvas.drawPath(path, Paint()..color = fill);
+    canvas.drawPath(
+      path,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 0.9
+        ..color = frameColor,
+    );
+  }
+
+  void _drawAwning(
+    Canvas canvas,
+    Offset bottomLeft,
+    Offset bottomBottom,
+    double height,
+    Color accent,
+  ) {
+    final left = Offset.lerp(bottomLeft, bottomBottom, 0.04)!
+        .translate(0, -height * 0.24);
+    final right = Offset.lerp(bottomLeft, bottomBottom, 0.96)!
+        .translate(0, -height * 0.24);
+    final ridge = Offset.lerp(left, right, 0.5)!.translate(0, -8);
+    final awning = Path()
+      ..moveTo(left.dx, left.dy)
+      ..lineTo(ridge.dx, ridge.dy)
+      ..lineTo(right.dx, right.dy)
+      ..lineTo(right.dx, right.dy + 5)
+      ..lineTo(left.dx, left.dy + 5)
+      ..close();
+    canvas.drawPath(awning, Paint()..color = accent);
+    canvas.drawPath(
+      awning,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1
+        ..color = _lighten(accent, 0.18),
+    );
+  }
+
+  void _drawSignText(
+    Canvas canvas,
+    String text,
+    Offset center,
+    Color color, {
+    required double fontSize,
+    required bool glow,
+  }) {
+    final painter = TextPainter(
+      text: TextSpan(
+        text: text,
+        style: TextStyle(
+          color: color,
+          fontSize: fontSize,
+          fontWeight: FontWeight.w900,
+          fontStyle: FontStyle.italic,
+          letterSpacing: 0.7,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    final offset =
+        center.translate(-painter.width / 2, -painter.height / 2);
+    if (glow) {
+      final glowPainter = TextPainter(
+        text: TextSpan(
+          text: text,
+          style: TextStyle(
+            color: color.withAlpha(180),
+            fontSize: fontSize,
+            fontWeight: FontWeight.w900,
+            fontStyle: FontStyle.italic,
+            shadows: [
+              Shadow(color: color, blurRadius: 7),
+              Shadow(color: color.withAlpha(150), blurRadius: 12),
+            ],
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      glowPainter.paint(canvas, offset);
+    }
+    painter.paint(canvas, offset);
+  }
+
+  void _drawShopExterior(
+    Canvas canvas,
+    IsoTile tile,
+    Offset center,
+    double halfW,
+    double halfH,
+    Color accent,
+    BuildingUpgrade upgrade, {
+    required bool isCompetitor,
+  }) {
+    final wantsSeating = !isCompetitor &&
+        (tile.hasOutdoorSeating ||
+            upgrade == BuildingUpgrade.normal ||
+            upgrade == BuildingUpgrade.premium);
+    if (!wantsSeating) return;
+
+    final tableCount = upgrade == BuildingUpgrade.premium ? 4 : 2;
+    final anchors = <Offset>[
+      center.translate(-halfW * 1.08, halfH * 0.55),
+      center.translate(-halfW * 0.58, halfH * 1.1),
+      center.translate(halfW * 0.65, halfH * 1.08),
+      center.translate(halfW * 1.12, halfH * 0.48),
+    ];
+    for (var i = 0; i < tableCount; i++) {
+      _drawCafeTable(canvas, anchors[i]);
+    }
+
+    if (upgrade == BuildingUpgrade.premium) {
+      _drawUmbrella(canvas, anchors[2].translate(0, -2), accent);
+      _drawPlant(canvas, center.translate(-halfW * 1.22, -halfH * 0.15));
+      _drawPlant(canvas, center.translate(halfW * 1.22, -halfH * 0.1));
+    }
+  }
+
+  void _drawCafeTable(Canvas canvas, Offset center) {
+    canvas.drawLine(
+      center.translate(0, 1),
+      center.translate(0, 7),
+      Paint()
+        ..color = MapPalette.textDim
+        ..strokeWidth = 1.2,
+    );
+    canvas.drawCircle(
+      center,
+      3.2,
+      Paint()..color = const Color(0xFFB77736),
+    );
+    final chairPaint = Paint()..color = MapPalette.textDim;
+    canvas.drawCircle(center.translate(-5, 2), 1.6, chairPaint);
+    canvas.drawCircle(center.translate(5, 2), 1.6, chairPaint);
+  }
+
+  void _drawUmbrella(Canvas canvas, Offset center, Color accent) {
+    canvas.drawLine(
+      center.translate(0, -11),
+      center.translate(0, 5),
+      Paint()
+        ..color = MapPalette.textMuted
+        ..strokeWidth = 1.2,
+    );
+    final canopy = Path()
+      ..moveTo(center.dx - 8, center.dy - 10)
+      ..quadraticBezierTo(
+        center.dx,
+        center.dy - 20,
+        center.dx + 8,
+        center.dy - 10,
+      )
+      ..close();
+    canvas.drawPath(canopy, Paint()..color = accent);
+  }
+
+  void _drawPlant(Canvas canvas, Offset center) {
+    final paint = Paint()..color = MapPalette.success;
+    canvas.drawCircle(center.translate(-2, -3), 2.5, paint);
+    canvas.drawCircle(center.translate(2, -4), 2.7, paint);
+    canvas.drawCircle(center.translate(0, -7), 2.4, paint);
+    canvas.drawRect(
+      Rect.fromCenter(center: center, width: 5, height: 4),
+      Paint()..color = const Color(0xFF6D4323),
+    );
   }
 
   void _drawRoofUnit(Canvas canvas, Offset center, Color base) {

@@ -45,6 +45,20 @@ void main() {
         data.tileAt(data.heroTile.x, data.heroTile.y).type,
         TileType.hero,
       );
+      expect(
+        data.tileAt(data.heroTile.x, data.heroTile.y).upgradeLevel,
+        BuildingUpgrade.basic,
+      );
+      final competitors = data.tiles
+          .expand((row) => row)
+          .where((tile) => tile.type == TileType.competitor);
+      expect(competitors, isNotEmpty);
+      expect(
+        competitors.every(
+          (tile) => tile.upgradeLevel == BuildingUpgrade.none,
+        ),
+        isTrue,
+      );
     });
 
     testWidgets('IsoTilemapPainter rendert ohne Exception', (tester) async {
@@ -75,4 +89,53 @@ void main() {
       expect(find.byType(CustomPaint), findsWidgets);
     });
   });
+
+  group('Dönerladen Upgrade-Render', () {
+    for (final upgrade in BuildingUpgrade.values) {
+      testWidgets('${upgrade.name} rendert ohne Exception', (tester) async {
+        final data = _singleShopScene(upgrade);
+        final grid = const IsoGrid().centeredFor(data.width, data.height);
+        final sceneSize = grid.sceneSize(data.width, data.height);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: CustomPaint(
+                size: sceneSize,
+                painter: IsoTilemapPainter(
+                  data: data,
+                  grid: grid,
+                  selectedTile: data.heroTile,
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+
+        expect(tester.takeException(), isNull);
+      });
+    }
+  });
+}
+
+TilemapData _singleShopScene(BuildingUpgrade upgrade) {
+  final tiles = List<List<IsoTile>>.generate(
+    3,
+    (_) => List<IsoTile>.filled(3, const IsoTile.sidewalk()),
+  );
+  tiles[1][1] = IsoTile(
+    type: TileType.hero,
+    color: const Color(0xFF4A2A15),
+    accent: const Color(0xFFF07010),
+    label: 'Döner',
+    rating: 4.6,
+    upgradeLevel: upgrade,
+  );
+  return TilemapData(
+    width: 3,
+    height: 3,
+    tiles: tiles,
+    heroTile: const math.Point<int>(1, 1),
+  );
 }
