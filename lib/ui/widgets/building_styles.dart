@@ -8,22 +8,22 @@ import '../../models/shop_model.dart';
 class MapPalette {
   const MapPalette._();
 
-  static const bgDeep = Color(0xFF07080A);
-  static const bgBase = Color(0xFF0C0E11);
-  static const bgPanel = Color(0xFF121418);
-  static const bgCard = Color(0xFF1A1C20);
-  static const accent = Color(0xFFF5A623); // Orange (Spieler)
+  static const bgDeep = Color(0xFF0A0806);
+  static const bgBase = Color(0xFF130E0A);
+  static const bgPanel = Color(0xFF1A130E);
+  static const bgCard = Color(0xFF221810);
+  static const accent = Color(0xFFF07010); // Warmes Orange (Spieler)
   static const gold = Color(0xFFD46816);
   static const danger = Color(0xFFE74C3C); // Rot (Konkurrenz)
   static const success = Color(0xFF7BC950); // Grün (frei)
   static const textMain = Color(0xFFFFFAE6);
   static const textMuted = Color(0xFFC4B5A0);
-  static const textDim = Color(0xFF8A8E96);
+  static const textDim = Color(0xFF8C7B6C);
 
   // Strassen-Töne (Ebene 3)
-  static const asphalt = Color(0xFF0A0B0D);
-  static const sidewalk = Color(0xFF1A1C20);
-  static const marking = Color(0xFF3A3D44);
+  static const asphalt = Color(0xFF0C0905);
+  static const sidewalk = Color(0xFF221810);
+  static const marking = Color(0xFF3D3028);
   static const border = Color(0xFF3A2C20);
 }
 

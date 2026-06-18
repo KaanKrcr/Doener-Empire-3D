@@ -1,252 +1,419 @@
-# Map Design Spec — Premium Iso City (Mockup-Look)
+# Map Design Spec — Premium Iso City
 
-Referenz für KI-Coding-Assistenten (Aider) zur Ableitung exakter
-Flutter/CustomPainter-Implementierungen. Alle Maße beziehen sich auf einen
-**Design-Frame 1080 × 1620 px (2:3)**. In Flutter: `scale = screenWidth / 1080`.
+Diese Spezifikation beschreibt das verbindliche Zielbild der City Map: eine
+zusammenhängende, zoombare Iso-Stadt in Flutter. Die bestehende
+Wirtschaftssimulation bleibt unverändert; neu aufgebaut wird die visuelle
+Karten- und Interaktionsebene.
 
-Starter-Implementierung: [`lib/ui/widgets/iso_city_map_painter.dart`](../lib/ui/widgets/iso_city_map_painter.dart)
+Visuelle Referenzen:
 
-## Status — Umsetzung (Stand 2026-06-14)
+- `docs/assets/doener_empire_3d_mobile_concept.png`
+- `docs/assets/doener_empire_mobile_premium_ui.png`
+- `docs/UI_STYLE_GUIDE.md`
 
-**Gewählter Weg: Hybrid (Sprite + Flutter-Overlays), KEIN Engine-Wechsel.**
-Begründung in [`MAP_ENGINE_ENTSCHEIDUNG.md`](MAP_ENGINE_ENTSCHEIDUNG.md).
+Alle Referenzmaße beziehen sich auf einen Design-Frame von **1080 × 1620 px
+(2:3)**. Flutter-Komponenten müssen responsiv umgesetzt werden; Pixelwerte aus
+diesem Dokument sind Richtwerte, keine festen Gerätemaße.
 
-- **Feld/Nachbarn:** `IsoMapPainter` (Vektor, dunkle Nacht-Blöcke) — Fallback.
-- **Aktive/eigene Filiale:** vorgerendertes Sprite `assets/iso/building_owned.png`
-  (freier Standort: `building_empty.png`) via `IsoCityMapCanvas`, Halo per
-  `ShaderMask` (radialer Alpha-Cut) entfernt.
-- **UI-Overlays** (Label-Bubble, Header, Pins, Detail-Panel, Donut, Sparklines)
-  = reine Flutter-Widgets. Voller Referenz-Screen: `lib/ui/widgets/hybrid_shop_screen.dart`.
-- **Integriert in** `city_map_view.dart`; Sprite & Painter teilen die statische
-  Projektion `IsoMapPainter.originFor()/projectTile()`; Tap via `toScene()`.
-- **Headless-Render-Helfer** (PNG nach `build/`): `test/iso_canvas_test.dart`,
-  `test/hybrid_screen_test.dart` u. a.
+## Status — 2026-06-18
 
-**Offene Punkte:** (1) Sprites brauchen echten transparenten Hintergrund
-(Alpha-Cutout) statt eingebackenem Halo — aktuell per ShaderMask kaschiert.
-(2) `InteractiveViewer(constrained:false)` zeigt anfangs die obere-linke Ecke
-→ initiales Transform auf eigene/zentrale Filiale setzen.
+### Produktiver Stand
 
-> **Wichtig — Palette weicht vom aktuellen Theme ab.**
-> Das Mockup ist ein *kühler* Premium-Dark-Look mit Neon-Orange. Das aktuelle
-> `AppColors` in `lib/core/theme.dart` ist *warm braun-orange*. Diese Spec
-> beschreibt den Mockup-Look. Mapping-Tabelle in §8. Nicht blind `AppColors`
-> überschreiben — erst entscheiden, ob die Karte auf kühl umgestellt wird.
+Der aktive `CityMapScreen` besteht derzeit aus drei getrennten Ebenen:
+
+1. `map_deutschland.dart` — Deutschlandkarte für die Stadtauswahl
+2. `map_city_overview.dart` — Stadtteile als organische Polygone
+3. `map_street_view.dart` und `street_building_painter.dart` — separater
+   2.5D-Straßenzug mit sechs prozedural gezeichneten Gebäuden
+
+Dieser Aufbau bleibt während der Migration funktionsfähig, ist aber nicht mehr
+das Zielbild.
+
+### Vorhandene Prototypen und Assets
+
+- `hybrid_shop_screen.dart` demonstriert den Premium-Screen mit
+  Sprite-Hintergrund, Flutter-Overlays und echten Spieldaten.
+- `hybrid_map_preview.dart` ist die isolierte visuelle Referenz für
+  Hero-Gebäude, Label-Bubble, Konkurrenz-Pins und Status-Header.
+- `assets/iso/building_owned.png` und
+  `assets/iso/building_empty.png` sind vorhanden.
+- Die Sprites sind noch **nicht** in die produktive City Map integriert.
+- Die vorhandenen PNGs besitzen einen eingebackenen Hintergrund/Halo und
+  müssen langfristig durch Exporte mit echtem Alpha ersetzt werden.
+
+### Verbindliche Entscheidung
+
+Die drei Kartenebenen werden langfristig durch **eine zusammenhängende
+Flutter-native Iso-Tilemap pro Stadt** ersetzt.
+
+- Die Deutschlandkarte bleibt als separate Expansions- und Stadtauswahl-UI.
+- `CityMapScreen` zeigt nach Auswahl einer Stadt direkt deren zoombare
+  Iso-Karte.
+- Standorte, eigene Filialen, Konkurrenz, Landmarken und Dekoration verwenden
+  dasselbe Tile-Koordinatensystem.
+- Header, Markerlabels, Kartensteuerung und Bottom Sheet bleiben normale
+  Flutter-Widgets.
+- Es gibt keinen Unity-/Godot-Wechsel.
+- Flame gehört nicht zum MVP und wird erst bei vielen gleichzeitig animierten
+  Kunden oder Fahrzeugen neu bewertet.
+
+Die Art-Pipeline und Exportkonventionen stehen in
+[`BLENDER_SPRITE_PIPELINE.md`](BLENDER_SPRITE_PIPELINE.md).
 
 ---
 
-## 0. Master-Palette (Mockup)
+## 0. Verbindliche warme Kartenpalette
+
+`MapPalette` in `lib/ui/widgets/building_styles.dart` ist die Quelle der
+Wahrheit. Die frühere kühle, blaugraue Mockup-Palette ist verworfen.
 
 ```dart
-// HINTERGRUND / BÜHNE
-const cBgDeepest  = Color(0xFF07080A); // App-Rand, ganz außen
-const cBgBase     = Color(0xFF0C0E11); // Karten-Grundfläche (Nacht-Asphalt)
-const cBgPanel    = Color(0xFF121418); // Floating-Panel unten, Header-Pill
-const cBgPanelHi  = Color(0xFF1A1D22); // Stat-Kacheln
+// HINTERGRUND / PANELS
+const bgDeep   = Color(0xFF0A0806);
+const bgBase   = Color(0xFF130E0A);
+const bgPanel  = Color(0xFF1A130E);
+const bgCard   = Color(0xFF221810);
 
-// GEBÄUDE
-const cRoofDark   = Color(0xFF15171B);
-const cRoofMid    = Color(0xFF1E2127);
-const cRoofLight  = Color(0xFF262A31); // beleuchtete Dachkante
-const cWallLight  = Color(0xFF1C1F25); // linke (beleuchtete) Fassade
-const cWallDark   = Color(0xFF101216); // rechte (Schatten-)Fassade
-const cWinOff     = Color(0xFF0E1014); // dunkles Fenster
-const cWinWarm    = Color(0xFFE8A24B); // warm beleuchtet
-const cWinCool    = Color(0xFF4A6B8A); // kühl beleuchtet
-
-// STRASSEN / BODEN
-const cRoad       = Color(0xFF0A0B0D);
-const cRoadEdge   = Color(0xFF16181C); // Bordstein
-const cRoadLine   = Color(0xFF3A3D44); // Fahrbahnmarkierung
-const cSidewalk   = Color(0xFF1A1C20);
-const cGrass      = Color(0xFF14201A);
-const cTree       = Color(0xFF1B2D22);
-const cWater      = Color(0xFF0B1620);
-const cWaterGlow  = Color(0xFF13283A);
-
-// MARKE / NEON-AKZENT
-const cAccent       = Color(0xFFF5A623); // Primär-Orange (Button, Glow-Kern)
-const cAccentBright = Color(0xFFFFB845); // Glow-Höhepunkt
-const cAccentDeep   = Color(0xFFE07B1A); // Verlauf-Ende
-const cAccentGlow   = Color(0x66F5A623); // mit Alpha für Schein/Blur
+// MARKE / STATUS
+const accent   = Color(0xFFF07010);
+const gold     = Color(0xFFD46816);
+const danger   = Color(0xFFE74C3C);
+const success  = Color(0xFF7BC950);
 
 // TEXT
-const cTextTitle  = Color(0xFFF3E9D6); // Creme (Logo, Überschriften)
-const cTextWhite  = Color(0xFFF5F3EF); // große Werte/Zahlen
-const cTextMuted  = Color(0xFF8A8E96); // Labels
-const cTextDim    = Color(0xFF5C606A); // inaktiv
+const textMain  = Color(0xFFFFFAE6);
+const textMuted = Color(0xFFC4B5A0);
+const textDim   = Color(0xFF8C7B6C);
 
-// STERNE / RATING
-const cStarGold   = Color(0xFFF5A623);
-const cStarEmpty  = Color(0xFF3A3D44);
-
-// KONKURRENZ
-const cCompMid    = Color(0xFF5A6470); // mittleres Rating (kühl grau)
-const cCompBad    = Color(0xFF2E4A3A); // schlechtes Rating (grünlich gedämpft)
-const cCompChip   = Color(0xFF1C1F25);
-
-// MISC
-const cMoneyGreen = Color(0xFF7FB069);
-const cNotifyDot  = Color(0xFFF5662E);
-const cDivider    = Color(0xFF22252B);
+// STRASSE / KANTEN
+const asphalt  = Color(0xFF0C0905);
+const sidewalk = Color(0xFF221810);
+const marking  = Color(0xFF3D3028);
+const border   = Color(0xFF3A2C20);
 ```
 
----
+### Nutzungsregeln
 
-## 1. Gebäude
-
-**Isometrie:** dimetrische 2.5D-Projektion, **2:1** (horizontal:vertikal),
-Winkel ≈ 26,57°. Jede Grundfläche ist eine Raute (Diamond), Höhe per Extrusion
-nach oben. Kachel: `TILE_W = 64`, `TILE_H = 32`.
-
-**Aufbau (von unten gezeichnet):**
-1. Boden-Schlagschatten (Iso-Raute, nach unten-rechts versetzt).
-2. Linke Fassade `cWallLight` (#1C1F25) — Licht von oben-links.
-3. Rechte Fassade `cWallDark` (#101216).
-4. Dach-Raute `cRoofMid` (#1E2127), Kante `cRoofLight` (#262A31) 1 px.
-
-**Dächer:** flach, kleine Aufbauten (Klima/Lüftung) als 6–12 px Mini-Quader in
-`cRoofDark`. Dachkante 1 px Highlight (#2E323A).
-
-**Fenster:** Raster auf jeder Fassade, Fenster **8 × 12 px**, Abstand 6 px.
-Verteilung deterministisch (fester Seed je Gebäude):
-~70 % `cWinOff` (#0E1014), ~25 % `cWinWarm` (#E8A24B), ~5 % `cWinCool` (#4A6B8A).
-Warme Fenster mit kleinem Blur-Glow (radius 2–3 px).
-
-**Türen:** Erdgeschoss-Fenster größer (12 × 16 px), oft warm, ebenerdig.
-
-**Texturen:** keine Bitmaps — flache Flächen + 1-px-Kantenhighlights +
-subtiler vertikaler Gradient (oben +8 % heller → unten dunkler).
+- Orange markiert primäre Aktionen, Auswahl und eigene Filialen.
+- Grün markiert freie Standorte oder positive Performance.
+- Rot markiert Konkurrenz, Risiko und Verlust.
+- Große Kartenflächen bleiben dunkel und warm.
+- Creme ist die primäre Textfarbe; reines Weiß nur ausnahmsweise.
+- Pro Ansicht sind höchstens zwei kräftige Akzentfarben gleichzeitig dominant.
 
 ---
 
-## 2. Straßen / Stadtstruktur
+## 1. Iso-Projektion und Tile-System
 
-- **Asphalt** `cRoad` (#0A0B0D), Iso-Bänder zwischen Blöcken, Breite 50–70 px.
-- **Markierung:** gestrichelte Mittellinie `cRoadLine` (#3A3D44), Strich 12 px /
-  Lücke 16 px, Breite 2 px, entlang Iso-Achse.
-- **Bordstein/Gehweg:** `cRoadEdge` (#16181C), 6–10 px, 1 px Highlight (#22252B).
-- **Gehwegplatten:** `cSidewalk` (#1A1C20).
-- **Bäume:** Krone `cTree` (#1B2D22), Iso-Kugel Ø 14–20 px, Stamm #0E1410 (3 px),
-  Schlagschatten. An Gehwegkanten, leicht zufällig.
-- **Grünflächen:** `cGrass` (#14201A) flache Iso-Rauten.
-- **Wasser (unten links):** `cWater` (#0B1620) + horizontale Reflexstreifen
-  `cWaterGlow` (#13283A) @ 30–50 %, leicht versetzt; warme Lichter als blasse
-  Orange-Punkte (#E8A24B @ 15 %).
+Die Stadt nutzt eine dimetrische **2:1-Projektion** mit einem sichtbaren Winkel
+von ungefähr **26,57°**.
 
----
+Referenzgröße eines Tiles:
 
-## 3. Eigene aktive Filiale (Hero)
+```dart
+const tileWidth = 64.0;
+const tileHeight = 32.0;
 
-Kein klassischer Pin — **leuchtendes Gebäude-Highlight + Label-Bubble**:
-
-- **Neon-Outline:** Strich `cAccent` (#F5A623), 3 px, darunter Blur-Glow
-  (`cAccentGlow`, blur 18–24 px).
-- **Boden-Lichtteppich:** radialer Gradient #F5A623 @ 40 % → transparent,
-  Radius ~120 px, auf dem Gehweg.
-- Leuchtreklame mit Döner-Icon in Orange-Glow; Fenster überwiegend warm.
-
-**Label-Bubble (über dem Gebäude):**
-- Pill, BG `cBgPanel` @ 92 %, Border 1,5 px `cAccent`, Radius 14 px.
-- Padding 16 × 10 px, ~70 px über Gebäudespitze.
-- Name `cTextTitle` 28 px bold; Zeile ★ (#F5A623, 18 px) + Wert (22 px).
-- Tail: Dreieck 10 px nach unten. Shadow `0x80000000`, blur 20, y 8.
-
----
-
-## 4. Konkurrenz
-
-Teardrop-Pins, farblich gedämpft (kein Orange):
-
-- **Pin:** Kreis Ø 18 px + Spitze, Höhe ~26 px. Innenpunkt #8A8E96 Ø 6 px.
-  Farbe nach Rating: schlecht → `cCompBad` (#2E4A3A), mittel → `cCompMid`
-  (#5A6470). Boden-Schatten (#000 @ 40 %, blur 6).
-- **Chip:** BG `cCompChip` (#1C1F25) @ 85 %, Radius 8 px, Border 1 px `cDivider`,
-  Padding 10 × 6 px. Name `cTextMuted` (#8A8E96) 20 px; ★ gedämpft (#9A8456).
-  **Kein Glow**, kleiner + transparenter → tritt zurück.
-
-Beispiele: „LEZZET DÖNER ★3.2“, „CITY KEBAP ★3.6“, „BERLIN DÖNER ★2.8“.
-
----
-
-## 5. Schatten & Tiefe (2.5D)
-
-- **Zeichenreihenfolge:** Painter's Algorithm, sortiert nach `tileX + tileY`
-  (hinten → vorne).
-- **Schlagschatten:** je Gebäude Iso-Raute am Boden, nach unten-rechts versetzt,
-  `0x66000000`, blur 8–12 px.
-- **Fassaden-Shading:** links heller, rechts dunkler, Dach am hellsten.
-- **Globale Vignette:** RadialGradient, Mitte transparent → Rand `cBgDeepest`
-  (#07080A) @ 70 %.
-- **Atmosphäre:** entferntere (obere) Gebäude leicht entsättigt + 8 % aufgehellt.
-
----
-
-## 6. UI-Overlays (als Flutter-Widgets, nicht im Painter)
-
-### 6.1 Floating Header
-- App-Bar (y 40–120): Logo-Icon (64 px Rundeck, BG #15171B, Orange-Glyph) +
-  „Döner Empire“ (`cTextTitle`, Serif/Display ~52 px). Rechts 3 Icons je 36 px
-  (#8A8E96); Glocke mit `cNotifyDot` (#F5662E) Badge Ø 10 px.
-- Status-Pill (y 130–230): BG `cBgPanel`, Radius 20, Border 1 `cDivider`,
-  Padding 28. Links 💵 (#7FB069) + „€ …“ (#F5F3EF 40 px) / „KONTOSTAND“
-  (#8A8E96 20 px, spacing 1,5). Trennlinie #22252B. Rechts 📅 + „Tag 47“/Wochentag.
-
-### 6.2 Map-Steuerung (rechts vertikal)
-- 3 Quadrat-Buttons je 56 px, Radius 14, BG `cBgPanel` @ 80 %, Border 1 `cDivider`,
-  Gap 12, rechter Rand 24, vertikal mittig. Icons: Zentrieren, Layer, Trend.
-
-### 6.3 Bottom-Sheet (Filial-Detail)
-- Rundeck Radius 28, BG `cBgPanel`. Drag-Handle 40 × 5 (#3A3D44, Radius 3).
-- Kopf: Name (#F3E9D6, Serif 46 px) + ✏️ (#5C606A 22 px); 📍 Adresse (#8A8E96
-  22 px). Rechts „AKTIVE FILIALE ●“ (#F5A623) + 4½ Sterne (32 px) + „4.6“ (40 px)
-  / „REPUTATION“.
-- Stat-Grid (4×): Kachel BG `cBgPanelHi` (#1A1D22), Radius 16, Padding 20, Gap 12.
-  - MARKTANTEIL: Donut — Track #2A2E35, Arc `cAccent`, Stroke 14, Mitte „34%“
-    (#F5F3EF 36 px), Subtext „STADT: 12%“.
-  - Übrige: Icon (#5C606A) → Wert (#F5F3EF 38 px) → Einheit (#8A8E96) →
-    Mini-Sparkline (Polyline 2 px `cAccent`, steigend, ohne Achsen).
-- Actions: „⤴ OPTIMIEREN“ Gradient #F5A623→#E07B1A, Radius 16, Höhe 88, Text
-  #1A1209 bold 30 px, Glow-Shadow (`cAccentGlow` blur 24 y6). „⊕ FILIALE ÖFFNEN“
-  Outline, Border 1,5 `cDivider`, Text #F3E9D6.
-
-### 6.4 Bottom-Nav
-- 5 Items (ÜBERSICHT/FILIALEN/MANAGER/FORSCHUNG/SHOP), Icon 28 + Label 16.
-  Aktiv `cAccent` (#F5A623), inaktiv `cTextDim` (#5C606A).
-
----
-
-## 7. Flutter-Architektur
-
-```
-IsoMapPainter extends CustomPainter      // Boden, Straßen, Wasser, Gebäude, Schatten
-worldToScreen(tx, ty):
-  sx = origin.dx + (tx - ty) * TILE_W/2
-  sy = origin.dy + (tx + ty) * TILE_H/2     // TILE_W=64, TILE_H=32
-buildings.sort((a,b) => (a.tx+a.ty).compareTo(b.tx+b.ty));
-Fenster: Random(building.seed) → Glow nur für warme Fenster.
-Pins/Labels: Overlay-Layer (Stack über CustomPaint), KEINE Zoom-Skalierung.
-Hero-Glow: 2. Pass mit MaskFilter.blur(BlurStyle.normal, 12) in cAccentGlow.
-Vignette + Bottom-Sheet als Widgets, nicht im Painter.
+Offset projectTile(IsoTileCoord tile, Offset origin) {
+  return Offset(
+    origin.dx + (tile.x - tile.y) * tileWidth / 2,
+    origin.dy + (tile.x + tile.y) * tileHeight / 2 - tile.elevation,
+  );
+}
 ```
 
+Alle Objekte werden über ihren Boden-/Fußpunkt verankert. Die visuelle Höhe
+eines Sprites verändert nicht seine logische Tile-Position.
+
+### Vorgesehene Kartenmodelle
+
+```dart
+class IsoTileCoord {
+  final int x;
+  final int y;
+  final double elevation;
+}
+
+class IsoMapEntity {
+  final String id;
+  final IsoEntityKind kind;
+  final IsoTileCoord tile;
+  final String assetKey;
+  final IsoFootprint footprint;
+  final Offset anchor;
+}
+
+class CityIsoLayout {
+  final int width;
+  final int height;
+  final List<IsoGroundTile> groundTiles;
+  final List<IsoMapEntity> entities;
+  final Map<String, IsoTileCoord> locationTiles;
+}
+```
+
+Die konkrete Dart-Implementierung darf immutable Records oder Klassen
+verwenden, muss aber diese Verantwortlichkeiten erhalten.
+
+### Bezug zu bestehenden Daten
+
+- `CityMapLocation` bleibt Adapter für Zielgruppe, Traffic, Miete, Risiko und
+  Empfehlung.
+- `mapPosition` wird während der Migration beibehalten und um eine feste
+  Tile-Koordinate ergänzt oder anschließend dadurch ersetzt.
+- `Shop.locationName` und `Competitor.locationName` bleiben die Verbindung zur
+  Wirtschaftssimulation.
+- Kartenlayouts sind Präsentationsdaten und dürfen keine parallele
+  Wirtschaftssimulation einführen.
+
 ---
 
-## 8. Mapping: Mockup-Palette ↔ bestehendes `AppColors`
+## 2. Stadtstruktur und Rendering-Layer
 
-| Zweck            | Mockup       | Aktuelles AppColors      | Hinweis                       |
-|------------------|--------------|--------------------------|-------------------------------|
-| Akzent/Marke     | #F5A623      | `primary` #E85D2F        | Mockup ist gelber, weniger rot|
-| Akzent dunkel    | #E07B1A      | `primaryDark` #C44820    |                               |
-| BG Basis         | #0C0E11      | `bg` #14100E             | Mockup kühl, Theme warm       |
-| Panel            | #121418      | `bgCard` #1F1813         | "                             |
-| Panel hell       | #1A1D22      | `bgCardHover` #2A1F18    | "                             |
-| Text Titel       | #F3E9D6      | `textPrimary` #FAF4E8    | nah dran                      |
-| Text muted       | #8A8E96      | `textMuted` #7A6A5C      | Mockup grau, Theme sandbraun  |
-| Divider/Border   | #22252B      | `border` #2F2419         | kühl vs. braun                |
-| Geld-Grün        | #7FB069      | `accent` #7BC950         | nah dran                      |
-| Stern-Gold       | #F5A623      | `gold` #FFC93C           |                               |
+Die Karte besteht aus einer statischen Stadtkomposition mit klaren
+Entscheidungspunkten, nicht aus einer frei editierbaren City-Builder-Simulation.
 
-**Entscheidung offen:** Entweder (a) Karte auf kühle Mockup-Palette umstellen
-(neue `MapColors`-Gruppe), oder (b) Mockup-Töne an das warme `AppColors`
-angleichen. Der Starter-Painter nutzt (a) lokal — siehe `iso_city_map_painter.dart`.
+### Layer-Reihenfolge
+
+1. Boden, Straßen, Gehwege, Wasser und Grünflächen
+2. Gebäude, Landmarken, Bäume, Fahrzeuge und Dekoration
+3. Auswahlglow, Kundenströme, Warnungen und Einflusszonen
+4. Marker und Labels als Flutter-Overlay
+5. Header, Kartensteuerung und Bottom Sheet
+
+### Sortierung
+
+Sichtbare Weltobjekte werden stabil sortiert nach:
+
+1. `tile.x + tile.y`
+2. `tile.elevation`
+3. stabiler `entity.id`
+
+Bei mehrteiligen Footprints ist der vorderste Bodenpunkt des Objekts für die
+Sortierung maßgeblich. Damit überdecken vordere Gebäude zuverlässig hintere
+Objekte, ohne von ihrer Sprite-Höhe abhängig zu sein.
+
+### Stadtinhalt
+
+Eine MVP-Stadt enthält:
+
+- 6–10 spielbare Standorte
+- eigene Filialen und freie Grundstücke
+- sichtbare Konkurrenzfilialen
+- 1–3 Landmarken wie Bahnhof, Universität oder Innenstadtplatz
+- 8–12 Füllgebäude-Varianten
+- Straßen, Gehwege, Bäume, Wasser oder Parkflächen
+- sparsame dekorative Fahrzeuge und Personen
+
+Gebäude sind Hintergrund und Orientierung. Spielbare Standorte müssen trotz
+der Detailmenge in weniger als drei Sekunden erkennbar bleiben.
+
+---
+
+## 3. Gebäude und Sprites
+
+Die Zielqualität entsteht aus vorgerenderten Blender-Sprites, nicht aus
+komplexeren Vektor-Paintern.
+
+### Eigene Filiale
+
+- größtes und kontrastreichstes Gebäude im aktuellen Kartenausschnitt
+- warme Fenster und Leuchtreklame
+- orange Kontur oder separater Auswahlglow
+- Label-Bubble mit Name und Reputation
+- Bodenlicht nur bei Auswahl oder aktiver Filiale
+
+### Konkurrenz
+
+- eigene Gebäude-Sprites statt bloßer Punkte
+- rote Akzente, aber weniger Bloom als bei der Spielerfiliale
+- gedämpfte Label-Chips mit Name und Rating
+- Markt- oder Einflusszonen nur als optionaler Layer
+
+### Freier Standort
+
+- klar lesbares leeres Grundstück, Rohbau oder unbeleuchtetes Ladenlokal
+- grüner Marker für Verfügbarkeit
+- kein permanenter starker Glow
+
+### Füllgebäude
+
+- geringe Kontraste und wenig gesättigte Materialien
+- keine dominanten Markenschilder
+- Varianten bei Dach, Höhe und Fassade
+- identischer Kamerawinkel, Fußpunkt und Beleuchtungsaufbau
+
+Assetnamen und Blender-Exportregeln sind in
+[`BLENDER_SPRITE_PIPELINE.md`](BLENDER_SPRITE_PIPELINE.md) verbindlich
+definiert.
+
+---
+
+## 4. Karteninteraktion und Kamera
+
+Das MVP verwendet Flutter `InteractiveViewer` mit einem
+`TransformationController`.
+
+### Kameraverhalten
+
+- initial auf eine vorhandene eigene Filiale zentrieren
+- ohne eigene Filiale auf den empfohlenen Startstandort zentrieren
+- Pan und Pinch-Zoom unterstützen
+- sinnvolle Mindest- und Maximalvergrößerung definieren
+- Zentrieren-Button setzt auf das aktuell ausgewählte Objekt zurück
+- Layer-Button öffnet Marktanteil, Konkurrenz und Nachfrage als exklusive
+  Kartenmodi
+
+Viewport-Koordinaten werden für Hit-Tests mit
+`TransformationController.toScene()` in Szenenkoordinaten umgerechnet.
+
+### Auswahl
+
+- Tap auf Standort oder Gebäude setzt genau eine aktive Auswahl.
+- Die Auswahl skaliert oder pulsiert kurz, ohne dauerhaft zu springen.
+- Das Bottom Sheet wechselt per Crossfade auf die neuen Daten.
+- Ein Tap auf freie Kartenfläche schließt Detailinformationen nicht
+  automatisch, sofern das Bottom Sheet bereits eine relevante Entscheidung
+  zeigt.
+- Labels werden als Flutter-Widgets über projizierten Fußpunkten positioniert
+  und bleiben bei Zoom lesbar; sie werden nicht in Sprites eingebrannt.
+
+---
+
+## 5. UI-Overlays
+
+### Floating Header
+
+- Kontostand und aktueller Tag sind immer sichtbar.
+- Stadtname und Navigation zur Deutschlandkarte bleiben kompakt.
+- Der Header darf die wichtigsten Standorte im oberen Kartenbereich nicht
+  verdecken.
+
+### Kartensteuerung
+
+- Zentrieren
+- Kartenlayer
+- optional Prognose/Trend
+
+Die Buttons liegen vertikal am rechten Rand und verwenden `bgPanel`,
+`border` und `textMuted`.
+
+### Kontext-Bottom-Sheet
+
+Das Sheet ist der primäre Entscheidungskontext und zeigt abhängig von der
+Auswahl:
+
+- Name und Standorttyp
+- eigene Filiale, Konkurrenz oder freier Standort
+- Reputation beziehungsweise Standortattraktivität
+- Foot Traffic
+- Wochenmiete
+- Marktanteil oder Konkurrenzdruck
+- kurze operative Empfehlung
+- eine primäre und höchstens eine sekundäre Aktion
+
+Beispiele:
+
+- `Optimieren`
+- `Filiale eröffnen`
+- `Marketing starten`
+- `Personal erhöhen`
+
+Der Map-Bereich bleibt auch bei geöffnetem Sheet sichtbar und visuell dominant.
+
+---
+
+## 6. Effekte und Bewegung
+
+### Statische Tiefe
+
+- gebackene Schatten und Ambient Occlusion in den Sprites
+- warmer Fenster- und Neonanteil
+- globale, sehr leichte Vignette
+- Boden-Glow als Flutter-Effekt, nicht als permanenter Sprite-Halo
+- keine deckenden rechteckigen Hintergründe in Sprite-Dateien
+
+### MVP-Motion
+
+- sanfter Karten-Einstieg
+- kurzer Scale-/Glow-Impuls bei Auswahl
+- Bottom-Sheet-Crossfade
+- Umsatz- oder Warnungs-Popup nach Tagesabschluss
+
+### Später
+
+- kleine Kundenpunkte auf festgelegten Wegen
+- Konkurrenz-Ping
+- Marktanteils- und Nachfragezonen
+- wenige dekorative Fahrzeuge
+
+Flame wird erst geprüft, wenn die Anzahl gleichzeitig animierter Weltobjekte
+mit Flutter-Animationen nicht mehr zuverlässig performant ist.
+
+---
+
+## 7. Zielarchitektur in Flutter
+
+```text
+CityMapScreen
+├── CityIsoMap
+│   ├── InteractiveViewer
+│   │   └── IsoScene
+│   │       ├── GroundLayer
+│   │       ├── SortedEntityLayer
+│   │       └── WorldEffectLayer
+│   └── ScreenSpaceLabelLayer
+├── MapHeader
+├── MapControls
+└── LocationBottomSheet
+```
+
+### Verantwortlichkeiten
+
+- `CityMapScreen`: GameState anbinden, Stadt wechseln, Auswahl und Aktionen
+  koordinieren.
+- `CityIsoLayout`: statische Geometrie und Platzierung einer Stadt.
+- `CityIsoMap`: Projektion, Kamera, Hit-Tests und Layerkomposition.
+- `IsoMapEntity`: renderbares Weltobjekt ohne Wirtschaftsdaten.
+- Overlay-Widgets: dynamische Zahlen, Labels und Aktionen.
+- `LocationEngine`: bestehende Standortanalyse und Prognosen weiterverwenden.
+
+Die Route `/city-map/:cityId` bleibt stabil.
+
+---
+
+## 8. Migrationsfolge
+
+1. Tile-Datenmodelle und ein statisches Layout für eine Pilotstadt ergänzen.
+2. Iso-Canvas parallel zu `MapCityOverview` renderbar machen.
+3. `CityMapLocation`, eigene Shops und Auswahl an feste Tile-Koordinaten
+   anbinden.
+4. Header, Label-Bubble und Bottom Sheet aus den Hybrid-Prototypen
+   datengetrieben übernehmen.
+5. Konkurrenzgebäude und freie Grundstücke integrieren.
+6. Funktionale und visuelle Parität für Öffnen, Verwalten, Anpassen und
+   Übernehmen herstellen.
+7. `MapCityOverview` und `MapStreetView` aus dem produktiven Pfad entfernen.
+8. `_MapLevel` in `CityMapScreen` auflösen. Die Deutschlandkarte wird über eine
+   eigene Expansions-/Stadtauswahlaktion geöffnet.
+9. Alte Painter und Drill-down-Komponenten erst nach grünen Tests und
+   visueller Abnahme löschen.
+
+Während der Migration dürfen bestehende Simulation, Saves und
+Standortbezeichnungen nicht verändert werden.
+
+---
+
+## 9. Abnahmekriterien
+
+- Eine Stadt ist auf einem zusammenhängenden Iso-Screen erkennbar.
+- Eigene Filiale, freie Standorte und Konkurrenz sind ohne Drill-down
+  auswählbar.
+- Kamera startet auf einem relevanten Standort und kann zuverlässig
+  zentriert werden.
+- Labels bleiben bei allen erlaubten Zoomstufen lesbar.
+- Bottom Sheet zeigt höchstens fünf entscheidende Kennzahlen.
+- Primäraktion ist eindeutig.
+- Sprites besitzen echtes Alpha und teilen Kamera, Licht und Fußpunkt.
+- Route, Shop-Aktionen und Wirtschaftssimulation bleiben kompatibel.
+- `flutter analyze` und `flutter test` bleiben grün.

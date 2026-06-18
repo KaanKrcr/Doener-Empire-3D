@@ -1,38 +1,76 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
-/// PROTOTYP — vollständiger „Übersicht"-Screen im Mockup-Look (Hybrid).
-///
-/// Map-Bereich = vorgerendertes Sprite (assets/iso/building_owned.png) +
-/// Flutter-Overlays (Label-Bubble, Boden-Glow, Konkurrenz-Pins, Header,
-/// Map-Controls). Darunter das Detail-Panel (Reputation, Stat-Kacheln,
-/// Aktionen) und die Bottom-Nav — alles in Flutter gezeichnet.
-///
-/// Zeigt, wie nah Flutter + Sprites an den Ziel-Screen kommt, ohne 3D-Engine.
-class HybridShopScreen extends StatelessWidget {
-  const HybridShopScreen({super.key});
+import '../../providers/game_provider.dart';
+import '../../models/shop_model.dart';
+import '../../services/game_engine.dart';
+import '../widgets/building_styles.dart';
 
-  static const _bg = Color(0xFF07080A);
-  static const _panel = Color(0xFF121418);
-  static const _panelHi = Color(0xFF1A1D22);
-  static const _accent = Color(0xFFF5A623);
-  static const _accentDeep = Color(0xFFE07B1A);
-  static const _muted = Color(0xFF8A8E96);
-  static const _dim = Color(0xFF5C606A);
-  static const _cream = Color(0xFFF3E9D6);
-  static const _white = Color(0xFFF5F3EF);
-  static const _divider = Color(0xFF22252B);
-  static const _money = Color(0xFF7FB069);
+final _fmt = NumberFormat('#,##0', 'de_DE');
+
+const _weekdays = [
+  'MONTAG', 'DIENSTAG', 'MITTWOCH', 'DONNERSTAG',
+  'FREITAG', 'SAMSTAG', 'SONNTAG',
+];
+
+/// Übersicht-Screen für eine einzelne Filiale.
+/// Map-Bereich + Detail-Panel + Bottom-Nav — an echten GameState gebunden.
+class HybridShopScreen extends ConsumerWidget {
+  final String shopId;
+
+  const HybridShopScreen({super.key, required this.shopId});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final game = ref.watch(gameProvider)!;
+    final shop = game.shops.firstWhere(
+      (s) => s.id == shopId,
+      orElse: () => game.shops.first,
+    );
+    final cash = game.cash;
+    final day = game.currentDay;
+    final weekday = _weekdays[(day - 1) % 7];
+
+    // Berechnete Werte
+    final rating = shop.reputation;
+    final locationLabel =
+        '${shop.locationName.toUpperCase()}, ${shop.cityId.toUpperCase()}';
+    final footTraffic = shop.footTraffic;
+    final weeklyRent = shop.weeklyRent;
+
+    final dailyRevenue =
+        GameEngine.calculateDailyRevenue(shop, day: day, state: game);
+    final prognosis = dailyRevenue * 7;
+
+    // Marktanteil: Anteil der Spieler-Filialen an Gesamt-Filialen in der Stadt
+    final cityShops =
+        game.shops.where((s) => s.cityId == shop.cityId).toList();
+    final cityCompetitors = game.competitorsIn(shop.cityId);
+    final totalShopCount = cityShops.length +
+        cityCompetitors.fold<int>(0, (s, c) => s + c.shopCount);
+    final marketShare =
+        totalShopCount > 0 ? cityShops.length / totalShopCount : 0.0;
+
     return ColoredBox(
-      color: _bg,
+      color: MapPalette.bgDeep,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: const [
-          Expanded(child: _MapArea()),
-          _DetailPanel(),
-          _BottomNav(),
+        children: [
+          Expanded(child: _MapArea(shop: shop, rating: rating, cash: cash, day: day, weekday: weekday)),
+          _DetailPanel(
+            shop: shop,
+            rating: rating,
+            locationLabel: locationLabel,
+            footTraffic: footTraffic,
+            weeklyRent: weeklyRent,
+            prognosis: prognosis,
+            marketShare: marketShare,
+            totalCityShops: totalShopCount,
+            playerCityShops: cityShops.length,
+          ),
+          _BottomNav(shopId: shop.id, cityId: shop.cityId),
         ],
       ),
     );
@@ -42,7 +80,19 @@ class HybridShopScreen extends StatelessWidget {
 // ─────────────────────────────────────────────────────────── Map-Bereich ──
 
 class _MapArea extends StatelessWidget {
-  const _MapArea();
+  final Shop shop;
+  final double rating;
+  final double cash;
+  final int day;
+  final String weekday;
+
+  const _MapArea({
+    required this.shop,
+    required this.rating,
+    required this.cash,
+    required this.day,
+    required this.weekday,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +101,7 @@ class _MapArea extends StatelessWidget {
         gradient: RadialGradient(
           center: Alignment(0, -0.1),
           radius: 1.2,
-          colors: [Color(0xFF12161C), HybridShopScreen._bg],
+          colors: [Color(0xFF12161C), MapPalette.bgDeep],
         ),
       ),
       child: Stack(
@@ -91,7 +141,7 @@ class _MapArea extends StatelessWidget {
                         gradient: RadialGradient(
                           center: Alignment(0, 0.05),
                           radius: 0.72,
-                          colors: [Color(0x0007080A), HybridShopScreen._bg],
+                          colors: [Color(0x0007080A), MapPalette.bgDeep],
                           stops: [0.62, 1.0],
                         ),
                       ),
@@ -102,29 +152,20 @@ class _MapArea extends StatelessWidget {
             ),
           ),
           // Label-Bubble
-          const Align(
-            alignment: Alignment(0, -0.32),
-            child: _LabelBubble(name: 'HAUPTSTRASSE 12', rating: 4.6),
-          ),
-          // Konkurrenz-Pins
-          const Align(
-            alignment: Alignment(-0.78, -0.12),
-            child: _CompPin(name: 'LEZZET DÖNER', rating: 3.2),
-          ),
-          const Align(
-            alignment: Alignment(0.8, -0.2),
-            child: _CompPin(name: 'CITY KEBAP', rating: 3.6),
-          ),
-          const Align(
-            alignment: Alignment(-0.66, 0.55),
-            child: _CompPin(name: 'BERLIN DÖNER', rating: 2.8, bad: true),
+          Align(
+            alignment: const Alignment(0, -0.32),
+            child: _LabelBubble(name: shop.displayName, rating: rating),
           ),
           // Floating-Header
-          const Positioned(
+          Positioned(
             top: 14,
             left: 14,
             right: 14,
-            child: _HeaderPill(cash: '€ 1.248.750', day: 'Tag 47'),
+            child: _HeaderPill(
+              cash: '€ ${_fmt.format(cash.round())}',
+              day: 'Tag $day',
+              weekday: weekday,
+            ),
           ),
           // Map-Controls rechts
           Positioned(
@@ -159,11 +200,11 @@ class _MapButton extends StatelessWidget {
       width: 46,
       height: 46,
       decoration: BoxDecoration(
-        color: HybridShopScreen._panel.withAlpha(205),
+        color: MapPalette.bgPanel.withAlpha(205),
         borderRadius: BorderRadius.circular(13),
-        border: Border.all(color: HybridShopScreen._divider),
+        border: Border.all(color: MapPalette.border),
       ),
-      child: Icon(icon, color: HybridShopScreen._muted, size: 20),
+      child: Icon(icon, color: MapPalette.textMuted, size: 20),
     );
   }
 }
@@ -171,16 +212,36 @@ class _MapButton extends StatelessWidget {
 // ───────────────────────────────────────────────────────── Detail-Panel ──
 
 class _DetailPanel extends StatelessWidget {
-  const _DetailPanel();
+  final Shop shop;
+  final double rating;
+  final String locationLabel;
+  final int footTraffic;
+  final double weeklyRent;
+  final double prognosis;
+  final double marketShare;
+  final int totalCityShops;
+  final int playerCityShops;
+
+  const _DetailPanel({
+    required this.shop,
+    required this.rating,
+    required this.locationLabel,
+    required this.footTraffic,
+    required this.weeklyRent,
+    required this.prognosis,
+    required this.marketShare,
+    required this.totalCityShops,
+    required this.playerCityShops,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(18, 10, 18, 16),
       decoration: const BoxDecoration(
-        color: HybridShopScreen._panel,
+        color: MapPalette.bgPanel,
         borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
-        border: Border(top: BorderSide(color: HybridShopScreen._divider)),
+        border: Border(top: BorderSide(color: MapPalette.border)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -203,22 +264,26 @@ class _DetailPanel extends StatelessWidget {
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text('Hauptstrasse 12',
-                        style: TextStyle(
-                            color: HybridShopScreen._cream,
-                            fontSize: 26,
-                            fontWeight: FontWeight.w800)),
-                    SizedBox(height: 2),
+                  children: [
+                    Text(
+                      shop.displayName,
+                      style: const TextStyle(
+                          color: MapPalette.textMain,
+                          fontSize: 26,
+                          fontWeight: FontWeight.w800),
+                    ),
+                    const SizedBox(height: 2),
                     Row(children: [
-                      Icon(Icons.place_outlined,
-                          color: HybridShopScreen._muted, size: 14),
-                      SizedBox(width: 4),
-                      Text('MITTE, BERLIN',
-                          style: TextStyle(
-                              color: HybridShopScreen._muted,
-                              fontSize: 12,
-                              letterSpacing: 1)),
+                      const Icon(Icons.place_outlined,
+                          color: MapPalette.textMuted, size: 14),
+                      const SizedBox(width: 4),
+                      Text(
+                        locationLabel,
+                        style: const TextStyle(
+                            color: MapPalette.textMuted,
+                            fontSize: 12,
+                            letterSpacing: 1),
+                      ),
                     ]),
                   ],
                 ),
@@ -226,11 +291,11 @@ class _DetailPanel extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Row(
-                    children: const [
+                  const Row(
+                    children: [
                       Text('AKTIVE FILIALE',
                           style: TextStyle(
-                              color: HybridShopScreen._accent,
+                              color: MapPalette.accent,
                               fontSize: 10,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 1)),
@@ -242,22 +307,35 @@ class _DetailPanel extends StatelessWidget {
                   Row(
                     children: [
                       ...List.generate(
-                          4,
-                          (_) => const Icon(Icons.star,
-                              color: HybridShopScreen._accent, size: 18)),
-                      const Icon(Icons.star_half,
-                          color: HybridShopScreen._accent, size: 18),
+                        rating.floor(),
+                        (_) => const Icon(Icons.star,
+                            color: MapPalette.accent, size: 18),
+                      ),
+                      if (rating - rating.floor() >= 0.5 && rating < 5.0)
+                        const Icon(Icons.star_half,
+                            color: MapPalette.accent, size: 18),
+                      if (rating < 5.0)
+                        ...List.generate(
+                          (5 -
+                                  rating.floor() -
+                                  (rating - rating.floor() >= 0.5 ? 1 : 0))
+                              .clamp(0, 5),
+                          (_) => const Icon(Icons.star_border,
+                              color: MapPalette.textDim, size: 18),
+                        ),
                       const SizedBox(width: 6),
-                      const Text('4.6',
-                          style: TextStyle(
-                              color: HybridShopScreen._cream,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w800)),
+                      Text(
+                        rating.toStringAsFixed(1),
+                        style: const TextStyle(
+                            color: MapPalette.textMain,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w800),
+                      ),
                     ],
                   ),
                   const Text('REPUTATION',
                       style: TextStyle(
-                          color: HybridShopScreen._muted,
+                          color: MapPalette.textMuted,
                           fontSize: 9,
                           letterSpacing: 1.5)),
                 ],
@@ -267,29 +345,40 @@ class _DetailPanel extends StatelessWidget {
           const SizedBox(height: 16),
           // Stat-Kacheln
           Row(
-            children: const [
-              Expanded(child: _DonutTile()),
-              SizedBox(width: 10),
+            children: [
               Expanded(
-                  child: _StatTile(
-                      label: 'FUSSGÄNGER',
-                      icon: Icons.groups_outlined,
-                      value: '1.842',
-                      unit: 'PRO TAG')),
-              SizedBox(width: 10),
+                child: _DonutTile(
+                  value: marketShare,
+                  cityShare: _cityShare(),
+                ),
+              ),
+              const SizedBox(width: 10),
               Expanded(
-                  child: _StatTile(
-                      label: 'WOCHENMIETE',
-                      icon: Icons.receipt_long_outlined,
-                      value: '€ 8.750',
-                      unit: 'PRO WOCHE')),
-              SizedBox(width: 10),
+                child: _StatTile(
+                  label: 'FUSSGÄNGER',
+                  icon: Icons.groups_outlined,
+                  value: _fmt.format(footTraffic),
+                  unit: 'PRO TAG',
+                ),
+              ),
+              const SizedBox(width: 10),
               Expanded(
-                  child: _StatTile(
-                      label: 'PROGNOSE',
-                      icon: Icons.bar_chart,
-                      value: '€ 15.430',
-                      unit: 'NÄCHSTE WOCHE')),
+                child: _StatTile(
+                  label: 'WOCHENMIETE',
+                  icon: Icons.receipt_long_outlined,
+                  value: '€ ${_fmt.format(weeklyRent.round())}',
+                  unit: 'PRO WOCHE',
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _StatTile(
+                  label: 'PROGNOSE',
+                  icon: Icons.bar_chart,
+                  value: '€ ${_fmt.format(prognosis.round())}',
+                  unit: 'NÄCHSTE WOCHE',
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -298,39 +387,42 @@ class _DetailPanel extends StatelessWidget {
             children: [
               Expanded(
                 flex: 5,
-                child: Container(
-                  height: 56,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [
-                        HybridShopScreen._accent,
-                        HybridShopScreen._accentDeep
+                child: InkWell(
+                  onTap: () => context.push('/shop/${shop.id}'),
+                  child: Container(
+                    height: 56,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [
+                          MapPalette.accent,
+                          MapPalette.gold,
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(15),
+                      boxShadow: const [
+                        BoxShadow(
+                            color: Color(0x66F5A623),
+                            blurRadius: 22,
+                            offset: Offset(0, 6)),
                       ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
                     ),
-                    borderRadius: BorderRadius.circular(15),
-                    boxShadow: const [
-                      BoxShadow(
-                          color: Color(0x66F5A623),
-                          blurRadius: 22,
-                          offset: Offset(0, 6)),
-                    ],
-                  ),
-                  child: const Center(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.trending_up,
-                            color: Color(0xFF1A1209), size: 20),
-                        SizedBox(width: 8),
-                        Text('OPTIMIEREN',
-                            style: TextStyle(
-                                color: Color(0xFF1A1209),
-                                fontSize: 16,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.5)),
-                      ],
+                    child: const Center(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.trending_up,
+                              color: Color(0xFF1A1209), size: 20),
+                          SizedBox(width: 8),
+                          Text('OPTIMIEREN',
+                              style: TextStyle(
+                                  color: Color(0xFF1A1209),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.5)),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -338,27 +430,31 @@ class _DetailPanel extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 flex: 5,
-                child: Container(
-                  height: 56,
-                  decoration: BoxDecoration(
-                    color: HybridShopScreen._panelHi,
-                    borderRadius: BorderRadius.circular(15),
-                    border: Border.all(
-                        color: HybridShopScreen._divider, width: 1.5),
-                  ),
-                  child: const Center(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.add_circle_outline,
-                            color: HybridShopScreen._cream, size: 18),
-                        SizedBox(width: 8),
-                        Text('FILIALE ÖFFNEN',
-                            style: TextStyle(
-                                color: HybridShopScreen._cream,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700)),
-                      ],
+                child: InkWell(
+                  onTap: () =>
+                      context.push('/open-shop/${shop.cityId}'),
+                  child: Container(
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: MapPalette.bgCard,
+                      borderRadius: BorderRadius.circular(15),
+                      border: Border.all(
+                          color: MapPalette.border, width: 1.5),
+                    ),
+                    child: const Center(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.add_circle_outline,
+                              color: MapPalette.textMain, size: 18),
+                          SizedBox(width: 8),
+                          Text('FILIALE ÖFFNEN',
+                              style: TextStyle(
+                                  color: MapPalette.textMain,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700)),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -368,6 +464,13 @@ class _DetailPanel extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  double _cityShare() {
+    if (totalCityShops <= 0 || playerCityShops <= 0) return 0;
+    final others = totalCityShops - playerCityShops;
+    if (others <= 0) return 1.0;
+    return playerCityShops / (playerCityShops + others);
   }
 }
 
@@ -380,7 +483,7 @@ class _GlowDot extends StatelessWidget {
       height: 9,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: HybridShopScreen._accent,
+        color: MapPalette.accent,
         boxShadow: const [
           BoxShadow(color: Color(0xAAF5A623), blurRadius: 8, spreadRadius: 1),
         ],
@@ -394,11 +497,12 @@ class _StatTile extends StatelessWidget {
   final IconData icon;
   final String value;
   final String unit;
-  const _StatTile(
-      {required this.label,
-      required this.icon,
-      required this.value,
-      required this.unit});
+  const _StatTile({
+    required this.label,
+    required this.icon,
+    required this.value,
+    required this.unit,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -406,7 +510,7 @@ class _StatTile extends StatelessWidget {
       height: 150,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: HybridShopScreen._panelHi,
+        color: MapPalette.bgCard,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -414,21 +518,21 @@ class _StatTile extends StatelessWidget {
         children: [
           Text(label,
               style: const TextStyle(
-                  color: HybridShopScreen._muted,
+                  color: MapPalette.textMuted,
                   fontSize: 9,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.5)),
           const SizedBox(height: 8),
-          Icon(icon, color: HybridShopScreen._dim, size: 20),
+          Icon(icon, color: MapPalette.textDim, size: 20),
           const Spacer(),
           Text(value,
               style: const TextStyle(
-                  color: HybridShopScreen._white,
+                  color: MapPalette.textMain,
                   fontSize: 19,
                   fontWeight: FontWeight.w800)),
           Text(unit,
               style: const TextStyle(
-                  color: HybridShopScreen._muted, fontSize: 8.5)),
+                  color: MapPalette.textMuted, fontSize: 8.5)),
           const SizedBox(height: 6),
           SizedBox(
             height: 18,
@@ -442,14 +546,22 @@ class _StatTile extends StatelessWidget {
 }
 
 class _DonutTile extends StatelessWidget {
-  const _DonutTile();
+  final double value;
+  final double cityShare;
+  const _DonutTile({
+    required this.value,
+    required this.cityShare,
+  });
+
   @override
   Widget build(BuildContext context) {
+    final pct = (value * 100).round();
+    final cityPct = (cityShare * 100).round();
     return Container(
       height: 150,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: HybridShopScreen._panelHi,
+        color: MapPalette.bgCard,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -457,7 +569,7 @@ class _DonutTile extends StatelessWidget {
         children: [
           const Text('MARKTANTEIL',
               style: TextStyle(
-                  color: HybridShopScreen._muted,
+                  color: MapPalette.textMuted,
                   fontSize: 9,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.5)),
@@ -467,11 +579,11 @@ class _DonutTile extends StatelessWidget {
               width: 74,
               height: 74,
               child: CustomPaint(
-                painter: _DonutPainter(0.34),
-                child: const Center(
-                  child: Text('34%',
-                      style: TextStyle(
-                          color: HybridShopScreen._white,
+                painter: _DonutPainter(value),
+                child: Center(
+                  child: Text('$pct%',
+                      style: const TextStyle(
+                          color: MapPalette.textMain,
                           fontSize: 18,
                           fontWeight: FontWeight.w800)),
                 ),
@@ -479,10 +591,10 @@ class _DonutTile extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          const Center(
-            child: Text('STADT: 12%',
-                style: TextStyle(
-                    color: HybridShopScreen._muted, fontSize: 9)),
+          Center(
+            child: Text('STADT: $cityPct%',
+                style: const TextStyle(
+                    color: MapPalette.textMuted, fontSize: 9)),
           ),
         ],
       ),
@@ -503,13 +615,13 @@ class _DonutPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 12;
     final arc = Paint()
-      ..color = HybridShopScreen._accent
+      ..color = MapPalette.accent
       ..style = PaintingStyle.stroke
       ..strokeWidth = 12
       ..strokeCap = StrokeCap.round;
     canvas.drawCircle(center, radius, track);
     canvas.drawArc(Rect.fromCircle(center: center, radius: radius), -1.5708,
-        value * 6.2832, false, arc);
+        value.clamp(0.0, 1.0) * 6.2832, false, arc);
   }
 
   @override
@@ -521,7 +633,7 @@ class _SparkPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     const pts = [0.2, 0.35, 0.25, 0.5, 0.42, 0.65, 0.6, 0.8, 0.95];
     final paint = Paint()
-      ..color = HybridShopScreen._accent
+      ..color = MapPalette.accent
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2
       ..strokeCap = StrokeCap.round
@@ -542,20 +654,31 @@ class _SparkPainter extends CustomPainter {
 // ─────────────────────────────────────────────────────────── Bottom-Nav ──
 
 class _BottomNav extends StatelessWidget {
-  const _BottomNav();
+  final String shopId;
+  final String cityId;
+
+  const _BottomNav({
+    required this.shopId,
+    required this.cityId,
+  });
+
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.only(top: 8, bottom: 10),
-      color: HybridShopScreen._bg,
+      color: MapPalette.bgDeep,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: const [
-          _NavItem(Icons.home_filled, 'ÜBERSICHT', active: true),
-          _NavItem(Icons.location_on_outlined, 'FILIALEN'),
-          _NavItem(Icons.groups_outlined, 'MANAGER'),
-          _NavItem(Icons.science_outlined, 'FORSCHUNG'),
-          _NavItem(Icons.shopping_cart_outlined, 'SHOP'),
+        children: [
+          _NavItem(Icons.home_filled, 'ÜBERSICHT', active: true,
+              onTap: () {}),
+          _NavItem(Icons.location_on_outlined, 'FILIALEN',
+              onTap: () {}),
+          _NavItem(Icons.groups_outlined, 'MANAGER', onTap: () {}),
+          _NavItem(Icons.science_outlined, 'FORSCHUNG',
+              onTap: () {}),
+          _NavItem(Icons.shopping_cart_outlined, 'SHOP',
+              onTap: () {}),
         ],
       ),
     );
@@ -566,21 +689,26 @@ class _NavItem extends StatelessWidget {
   final IconData icon;
   final String label;
   final bool active;
-  const _NavItem(this.icon, this.label, {this.active = false});
+  final VoidCallback onTap;
+  const _NavItem(this.icon, this.label,
+      {this.active = false, required this.onTap});
   @override
   Widget build(BuildContext context) {
-    final c = active ? HybridShopScreen._accent : HybridShopScreen._dim;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, color: c, size: 22),
-        const SizedBox(height: 4),
-        Text(label,
-            style: TextStyle(
-                color: c,
-                fontSize: 9,
-                fontWeight: active ? FontWeight.w700 : FontWeight.w500)),
-      ],
+    final c = active ? MapPalette.accent : MapPalette.textDim;
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: c, size: 22),
+          const SizedBox(height: 4),
+          Text(label,
+              style: TextStyle(
+                  color: c,
+                  fontSize: 9,
+                  fontWeight: active ? FontWeight.w700 : FontWeight.w500)),
+        ],
+      ),
     );
   }
 }
@@ -599,9 +727,9 @@ class _LabelBubble extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
           decoration: BoxDecoration(
-            color: HybridShopScreen._panel.withAlpha(235),
+            color: MapPalette.bgPanel.withAlpha(235),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: HybridShopScreen._accent, width: 1.5),
+            border: Border.all(color: MapPalette.accent, width: 1.5),
             boxShadow: const [
               BoxShadow(
                   color: Color(0x99000000),
@@ -614,17 +742,17 @@ class _LabelBubble extends StatelessWidget {
             children: [
               Text(name,
                   style: const TextStyle(
-                      color: HybridShopScreen._cream,
+                      color: MapPalette.textMain,
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.3)),
               const SizedBox(width: 10),
               const Icon(Icons.star,
-                  color: HybridShopScreen._accent, size: 14),
+                  color: MapPalette.accent, size: 14),
               const SizedBox(width: 3),
               Text(rating.toStringAsFixed(1),
                   style: const TextStyle(
-                      color: HybridShopScreen._cream,
+                      color: MapPalette.textMain,
                       fontSize: 14,
                       fontWeight: FontWeight.w700)),
             ],
@@ -632,7 +760,7 @@ class _LabelBubble extends StatelessWidget {
         ),
         CustomPaint(
           size: const Size(16, 9),
-          painter: _TailPainter(HybridShopScreen._panel.withAlpha(235)),
+          painter: _TailPainter(MapPalette.bgPanel.withAlpha(235)),
         ),
       ],
     );
@@ -655,86 +783,41 @@ class _TailPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _TailPainter old) => old.color != color;
 }
-
-class _CompPin extends StatelessWidget {
-  final String name;
-  final double rating;
-  final bool bad;
-  const _CompPin({required this.name, required this.rating, this.bad = false});
-  @override
-  Widget build(BuildContext context) {
-    final pinColor = bad ? const Color(0xFF3E6B4F) : const Color(0xFF5A6470);
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1C1F25).withAlpha(220),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: HybridShopScreen._divider),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(name,
-                  style: const TextStyle(
-                      color: HybridShopScreen._muted,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.4)),
-              const SizedBox(height: 1),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.star, color: pinColor, size: 10),
-                  const SizedBox(width: 2),
-                  Text(rating.toStringAsFixed(1),
-                      style: TextStyle(
-                          color: HybridShopScreen._muted.withAlpha(220),
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600)),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 2),
-        Icon(Icons.location_on, color: pinColor, size: 22),
-      ],
-    );
-  }
-}
-
 class _HeaderPill extends StatelessWidget {
   final String cash;
   final String day;
-  const _HeaderPill({required this.cash, required this.day});
+  final String weekday;
+  const _HeaderPill({
+    required this.cash,
+    required this.day,
+    required this.weekday,
+  });
+
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
       decoration: BoxDecoration(
-        color: HybridShopScreen._panel.withAlpha(235),
+        color: MapPalette.bgPanel.withAlpha(235),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: HybridShopScreen._divider),
+        border: Border.all(color: MapPalette.border),
       ),
       child: Row(
         children: [
           const Icon(Icons.payments_outlined,
-              color: HybridShopScreen._money, size: 22),
+              color: MapPalette.success, size: 22),
           const SizedBox(width: 8),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(cash,
                   style: const TextStyle(
-                      color: HybridShopScreen._white,
+                      color: MapPalette.textMain,
                       fontSize: 18,
                       fontWeight: FontWeight.w800)),
               const Text('KONTOSTAND',
                   style: TextStyle(
-                      color: HybridShopScreen._muted,
+                      color: MapPalette.textMuted,
                       fontSize: 9,
                       letterSpacing: 1.5)),
             ],
@@ -745,19 +828,19 @@ class _HeaderPill extends StatelessWidget {
             children: [
               Text(day,
                   style: const TextStyle(
-                      color: HybridShopScreen._white,
+                      color: MapPalette.textMain,
                       fontSize: 18,
                       fontWeight: FontWeight.w800)),
-              const Text('MITTWOCH',
-                  style: TextStyle(
-                      color: HybridShopScreen._muted,
+              Text(weekday,
+                  style: const TextStyle(
+                      color: MapPalette.textMuted,
                       fontSize: 9,
                       letterSpacing: 1.5)),
             ],
           ),
           const SizedBox(width: 6),
           const Icon(Icons.calendar_today_outlined,
-              color: HybridShopScreen._muted, size: 20),
+              color: MapPalette.textMuted, size: 20),
         ],
       ),
     );

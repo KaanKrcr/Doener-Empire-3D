@@ -12,6 +12,7 @@ import '../ui/screens/branding_screen.dart';
 import '../ui/screens/empire_card_screen.dart';
 import '../ui/screens/settings_screen.dart';
 import '../ui/main_scaffold.dart';
+import '../ui/widgets/hybrid_shop_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/',
@@ -71,6 +72,13 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/empire-card',
       pageBuilder: (_, __) => _slideUpPage(const EmpireCardScreen()),
+    ),
+    // Test-Route: Hybrid-Prototyp
+    GoRoute(
+      path: '/hybrid-test/:shopId',
+      pageBuilder: (_, state) => _slideUpPage(
+        HybridShopScreen(shopId: state.pathParameters['shopId']!),
+      ),
     ),
   ],
 );

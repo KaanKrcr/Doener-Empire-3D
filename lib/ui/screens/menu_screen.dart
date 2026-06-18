@@ -212,13 +212,29 @@ class _MenuScreenState extends ConsumerState<MenuScreen>
                     ),
 
                   const SizedBox(height: 12),
-                  const Center(
-                    child: Text(
-                      'Version 1.0',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: AppColors.textMuted,
-                        letterSpacing: 0.5,
+                  // Dev: Hybrid-Prototyp testen
+                  Center(
+                    child: TextButton.icon(
+                      onPressed: () async {
+                        final g = ref.read(gameProvider);
+                        if (g != null && g.shops.isNotEmpty) {
+                          if (context.mounted) {
+                            context.push('/hybrid-test/${g.shops.first.id}');
+                          }
+                        } else {
+                          // Neues Spiel starten damit es Shops gibt
+                          if (context.mounted) context.go('/new-game');
+                        }
+                      },
+                      icon: const Icon(Icons.science_outlined,
+                          size: 14, color: AppColors.textMuted),
+                      label: const Text(
+                        '🧪 Hybrid-Prototyp',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textMuted,
+                          letterSpacing: 0.5,
+                        ),
                       ),
                     ),
                   ),
