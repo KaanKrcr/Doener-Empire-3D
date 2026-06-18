@@ -171,22 +171,64 @@ class _CityMapScreenState extends ConsumerState<CityMapScreen> {
       _MapLevel.street => (_city.name, _location?.label),
     };
 
+    final showEndDay = _level != _MapLevel.deutschland;
+
     return Scaffold(
       backgroundColor: MapPalette.bgBase,
-      body: Column(
+      body: Stack(
         children: [
-          SafeArea(
-            bottom: false,
-            child: _Header(
-              title: title,
-              subtitle: subtitle,
-              cash: game.cash,
-              endingDay: _endingDay,
-              onEndDay: _endDay,
-              onBack: _onBack,
-            ),
+          Column(
+            children: [
+              SafeArea(
+                bottom: false,
+                child: _Header(
+                  title: title,
+                  subtitle: subtitle,
+                  cash: game.cash,
+                  onBack: _onBack,
+                ),
+              ),
+              Expanded(child: _buildLevel(game, cityShops)),
+            ],
           ),
-          Expanded(child: _buildLevel(game, cityShops)),
+          // Tag-beenden-Button: unten-rechts, über der Karte
+          if (showEndDay)
+            Positioned(
+              right: 16,
+              bottom: 24,
+              child: SafeArea(
+                top: false,
+                child: SizedBox(
+                  height: 52,
+                  child: ElevatedButton.icon(
+                    onPressed: _endingDay ? null : _endDay,
+                    icon: Icon(
+                      _endingDay ? Icons.hourglass_empty : Icons.nightlight_round,
+                      size: 18,
+                      color: Colors.white,
+                    ),
+                    label: Text(
+                      _endingDay ? '...' : 'Tag beenden',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: MapPalette.accent,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: MapPalette.accent.withAlpha(100),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(26),
+                      ),
+                      elevation: 8,
+                      shadowColor: MapPalette.accent.withAlpha(80),
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -237,16 +279,14 @@ class _Header extends StatelessWidget {
   final String title;
   final String? subtitle;
   final double cash;
-  final bool endingDay;
-  final VoidCallback onEndDay;
+  
   final VoidCallback onBack;
 
   const _Header({
     required this.title,
     required this.subtitle,
     required this.cash,
-    required this.endingDay,
-    required this.onEndDay,
+    
     required this.onBack,
   });
 
@@ -307,32 +347,6 @@ class _Header extends StatelessWidget {
               color: MapPalette.accent,
             ),
           ),
-          const SizedBox(width: 8),
-          SizedBox(
-            height: 36,
-            child: ElevatedButton.icon(
-              onPressed: endingDay ? null : onEndDay,
-              icon: Icon(
-                endingDay ? Icons.hourglass_empty : Icons.nightlight_round,
-                size: 14,
-                color: Colors.white,
-              ),
-              label: Text(
-                endingDay ? '...' : 'Tag ▸',
-                style:
-                    const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: MapPalette.accent,
-                foregroundColor: Colors.white,
-                disabledBackgroundColor: MapPalette.accent.withAlpha(100),
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18)),
-              ),
-            ),
-          ),
-          const SizedBox(width: 4),
         ],
       ),
     );

@@ -1,5 +1,34 @@
 # HANDOFF_LOG
 
+## 2026-06-14 - Claude Code (Flat-2D City Map Redesign)
+
+Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
+
+Auslöser:
+- Kaan: "Baue die Flat-2D City Map von Grund auf neu. Lösche alle Iso/2.5D-Dateien."
+
+Gelöscht (Iso/2.5D):
+- `lib/core/isometric_camera.dart`
+- `lib/models/world_city_data.dart`
+- `lib/ui/widgets/premium_city_map.dart`
+- `lib/ui/widgets/premium_city_map_painter.dart`
+
+Erstellt (Flat-2D):
+- `lib/ui/widgets/flat_district_card.dart` — Bezirks-Kachel (colored card + personality accent)
+- `lib/ui/widgets/flat_marker.dart` — Standort-Marker (owned=orange🥙, competitor=red👤, free=green+)
+- `lib/ui/widgets/flat_detail_panel.dart` — Slide-up Panel (3 Varianten: owned/competitor/free)
+- `lib/ui/widgets/flat_city_map.dart` — Haupt-Widget (FlatSlot, 2-Spalten-Grid, Selection-State)
+
+Neu geschrieben:
+- `lib/ui/screens/city_map_screen.dart` — ConsumerStatefulWidget, kein Iso-Code, Header mit Cash+Tag-beenden, FlatCityMap-Integration
+
+Validation:
+- `flutter analyze` → 0 issues ✅
+- `flutter test` → 102/102 grün ✅
+- `flutter build apk --debug` → app-debug.apk ✅
+
+---
+
 ## 2026-06-12 06:04 - Codex (Flutter City Map competition pressure)
 
 Arbeitsverzeichnis: `C:\Users\Kaan\Documents\GitHub\Doener-Empire-3D`.
@@ -5317,3 +5346,52 @@ Validation:
 Naechster kleinster Schritt:
 - Naechster Tick: n8n/Claude-Review fuer `53321e6` erneut dispatchen; erst nach
   Review/Queue-Item wieder Codex-Codearbeit starten.
+
+---
+
+## 2026-06-14 13:30 - Clemens/OpenClaw (Premium City Map � Handoff an Claude Code)
+
+Status:
+- Clemens hat neue Map-Dateien implementiert (IsometricCamera, WorldCityData,
+  PremiumCityMapPainter, PremiumCityMap).
+- Erste Version hatte 3 Bugs: un�bersichtlich, Geb�ude-Flackern, falsche Route.
+  Alle 3 gefixt (Cache, InteractiveViewer, korrekte Router-URL).
+- lutter analyze: 0 issues. lutter test: 102/102 gr�n.
+- Kaan hat getestet: Map un�bersichtlich.
+- Kaan entscheidet: CLAUDE CODE soll die Map KOMPLETT NEU BAUEN.
+
+Handoff an Claude Code:
+- CLAUDE_TASK.md wurde mit vollst�ndiger Spec geschrieben (MAP_DESIGN_SPEC.md
+  + UI_STYLE_GUIDE.md).
+- Claude Code implementiert: Strassen, Gehwege, B�ume, 81 Geb�ude mit
+  deterministischen Fenstern, Neon-Hero, ged�mpfte Konkurrenz, Marker,
+  korrekte Detail-Levels, InteractiveViewer + Tap-Overlay.
+- REVIEW_QUEUE.md ist Status: empty.
+
+N�chster Schritt:
+- Claude Code: CLAUDE_TASK.md lesen, MAP_DESIGN_SPEC.md + UI_STYLE_GUIDE.md
+  studieren, dann implementieren.
+
+---
+
+## 2026-06-14 19:05 - Clemens/OpenClaw (Redesign: Flat-2D City Map)
+
+Kaan hat entschieden: Der 2.5D-Iso-Look wird komplett verworfen.
+Neue Richtung: **Flat-2D, skizziert, Clean, auf einen Screen passend.**
+
+Weg:
+- isometric_camera.dart, world_city_data.dart, premium_city_map*.dart
+- Iso-Rendering, CustomPainter-Geb�ude, InteractiveViewer
+
+Hin:
+- lat_city_map.dart, lat_district_card.dart, lat_marker.dart, lat_detail_panel.dart
+- Bezirke als farbige 2D-Kacheln im Grid
+- Orange-Marker f�r eigene Filialen, Rot-Marker f�r Konkurrenz
+- Detail-Panel bei Klick (eigene = alle Infos, Konkurrenz = Ruf+Kaufpreis)
+- Tag-beenden-Button oben-rechts (kein Overlap!)
+- lutter analyze = 0, lutter test = gr�n, APK = Build
+
+Handoff an Claude Code:
+- CLAUDE_TASK.md aktualisiert (komplette Flat-2D-Spec)
+- Claude Code baut mit Opus 4.8 / Ultracode
+- city_map_screen.dart wird neu geschrieben
