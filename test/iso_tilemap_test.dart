@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+﻿import 'dart:math' as math;
 
 import 'package:doener_empire/data/berlin_scene.dart';
 import 'package:doener_empire/ui/widgets/iso_tilemap.dart';
@@ -34,8 +34,8 @@ void main() {
   });
 
   group('Berlin scene', () {
-    test('ist 20x20 und enthält den Hero am angegebenen Tile', () {
-      final data = buildBerlinScene();
+    test('ist 20x20 und ohne Shops ist Hero-Tile empty', () {
+      final data = buildCityScene('berlin', []);
 
       expect(data.width, 20);
       expect(data.height, 20);
@@ -43,11 +43,7 @@ void main() {
       expect(data.tiles.every((row) => row.length == 20), isTrue);
       expect(
         data.tileAt(data.heroTile.x, data.heroTile.y).type,
-        TileType.hero,
-      );
-      expect(
-        data.tileAt(data.heroTile.x, data.heroTile.y).upgradeLevel,
-        BuildingUpgrade.basic,
+        TileType.empty,
       );
       final competitors = data.tiles
           .expand((row) => row)
@@ -62,7 +58,7 @@ void main() {
     });
 
     testWidgets('IsoTilemapPainter rendert ohne Exception', (tester) async {
-      final data = buildBerlinScene();
+      final data = buildCityScene('berlin', []);
       final grid = const IsoGrid().centeredFor(data.width, data.height);
       final sceneSize = grid.sceneSize(data.width, data.height);
 
@@ -90,7 +86,7 @@ void main() {
     });
   });
 
-  group('Dönerladen Upgrade-Render', () {
+  group('DÃ¶nerladen Upgrade-Render', () {
     for (final upgrade in BuildingUpgrade.values) {
       testWidgets('${upgrade.name} rendert ohne Exception', (tester) async {
         final data = _singleShopScene(upgrade);
@@ -128,7 +124,7 @@ TilemapData _singleShopScene(BuildingUpgrade upgrade) {
     type: TileType.hero,
     color: const Color(0xFF4A2A15),
     accent: const Color(0xFFF07010),
-    label: 'Döner',
+    label: 'DÃ¶ner',
     rating: 4.6,
     upgradeLevel: upgrade,
   );
@@ -139,3 +135,5 @@ TilemapData _singleShopScene(BuildingUpgrade upgrade) {
     heroTile: const math.Point<int>(1, 1),
   );
 }
+
+

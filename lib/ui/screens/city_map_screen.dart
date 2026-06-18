@@ -349,8 +349,8 @@ class _CityMapScreenState extends ConsumerState<CityMapScreen> {
               ),
               Expanded(
                 child: _IsoCityMap(
-                  key: ValueKey(_cityId),
-                  data: buildBerlinScene(),
+                  key: ValueKey('|'),
+                  data: buildCityScene(_cityId, game.shops),
                   onTileTapped: (type, label, rating, isHero) =>
                       _onTileTapped(type, label, rating, isHero),
                 ),
@@ -688,6 +688,8 @@ class _Header extends StatelessWidget {
     );
   }
 }
+
+
 
 
 
