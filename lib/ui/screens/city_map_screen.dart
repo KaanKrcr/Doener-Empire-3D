@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+﻿import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -24,8 +24,8 @@ import '../widgets/weekly_report_dialog.dart';
 
 final _fmt = NumberFormat('#,##0', 'de_DE');
 
-/// Zusammenhängende, zoombare Iso-Stadt. Die Deutschlandkarte dient nur noch
-/// als Auswahl-UI für einen Stadtwechsel.
+/// ZusammenhÃ¤ngende, zoombare Iso-Stadt. Die Deutschlandkarte dient nur noch
+/// als Auswahl-UI fÃ¼r einen Stadtwechsel.
 class CityMapScreen extends ConsumerStatefulWidget {
   final String cityId;
 
@@ -76,7 +76,7 @@ class _CityMapScreenState extends ConsumerState<CityMapScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Steuern (30 Tage): -${_fmt.format(result.taxPaid)} €',
+              'Steuern (30 Tage): -${_fmt.format(result.taxPaid)} â‚¬',
             ),
             duration: const Duration(seconds: 3),
           ),
@@ -89,6 +89,214 @@ class _CityMapScreenState extends ConsumerState<CityMapScreen> {
   void _onSelectCity(String cityId) {
     Navigator.of(context).pop();
     setState(() => _cityId = cityId);
+  }
+
+  void _onTileTapped(TileType type, String? label, double? rating, bool isHero) {
+    final game = ref.read(gameProvider);
+    if (game == null) return;
+
+    switch (type) {
+      case TileType.hero:
+        final shop = game.shops.firstWhere(
+          (s) => s.cityId == _cityId,
+          orElse: () => game.shops.first,
+        );
+        context.push('/shop/${shop.id}');
+
+      case TileType.empty:
+        _showLocationInfo(label);
+
+      case TileType.competitor:
+        _showCompetitorInfo(label, rating);
+
+      case TileType.building:
+      case TileType.grass:
+      case TileType.road:
+      case TileType.sidewalk:
+      case TileType.water:
+        // Keine Interaktion fÃ¼r FÃ¼ll-GebÃ¤ude und Boden
+        break;
+    }
+  }
+
+  void _showLocationInfo(String? label) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: MapPalette.bgPanel,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        side: BorderSide(color: MapPalette.border),
+      ),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 38, height: 5,
+                decoration: BoxDecoration(
+                  color: MapPalette.border,
+                  borderRadius: BorderRadius.circular(3),
+                ),
+              ),
+            ),
+            const SizedBox(height: 18),
+            Row(
+              children: [
+                Container(
+                  width: 44, height: 44,
+                  decoration: BoxDecoration(
+                    color: MapPalette.success.withAlpha(30),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.store_outlined,
+                      color: MapPalette.success, size: 22),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        label ?? 'Freier Standort',
+                        style: const TextStyle(
+                          fontFamily: 'Baloo2',
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: MapPalette.textMain,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      const Text(
+                        'VerfÃ¼gbar Â· GewerbeflÃ¤che',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: MapPalette.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                const Icon(Icons.euro_outlined,
+                    color: MapPalette.accent, size: 16),
+                const SizedBox(width: 6),
+                const Text('Kaution: ', style: TextStyle(
+                    color: MapPalette.textMuted, fontSize: 13)),
+                const Text('15.000 â‚¬', style: TextStyle(
+                    fontFamily: 'Baloo2', fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: MapPalette.textMain)),
+              ],
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  context.push('/open-shop/$_cityId');
+                },
+                icon: const Icon(Icons.add_business_outlined, size: 20),
+                label: const Text('Filiale erÃ¶ffnen',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: MapPalette.accent,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showCompetitorInfo(String? label, double? rating) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: MapPalette.bgPanel,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        side: BorderSide(color: MapPalette.border),
+      ),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 38, height: 5,
+                decoration: BoxDecoration(
+                  color: MapPalette.border,
+                  borderRadius: BorderRadius.circular(3),
+                ),
+              ),
+            ),
+            const SizedBox(height: 18),
+            Row(
+              children: [
+                Container(
+                  width: 44, height: 44,
+                  decoration: BoxDecoration(
+                    color: MapPalette.danger.withAlpha(30),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.store_mall_directory_outlined,
+                      color: MapPalette.danger, size: 22),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        label ?? 'Wettbewerber',
+                        style: const TextStyle(
+                          fontFamily: 'Baloo2',
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: MapPalette.textMain,
+                        ),
+                      ),
+                      if (rating != null) ...[
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            Icon(Icons.star, color: MapPalette.gold, size: 14),
+                            const SizedBox(width: 4),
+                            Text(
+                              rating.toStringAsFixed(1),
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: MapPalette.textMuted,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _showCityPicker() async {
@@ -142,6 +350,8 @@ class _CityMapScreenState extends ConsumerState<CityMapScreen> {
                 child: _IsoCityMap(
                   key: ValueKey(_cityId),
                   data: buildBerlinScene(),
+                  onTileTapped: (type, label, rating, isHero) =>
+                      _onTileTapped(type, label, rating, isHero),
                 ),
               ),
             ],
@@ -191,7 +401,16 @@ class _CityMapScreenState extends ConsumerState<CityMapScreen> {
 class _IsoCityMap extends StatefulWidget {
   final TilemapData data;
 
-  const _IsoCityMap({super.key, required this.data});
+  /// Wird aufgerufen, wenn ein Tile ausgewÃ¤hlt wird. Liefert Tile-Typ,
+  /// Label und ob es das Hero-Tile ist.
+  final void Function(TileType type, String? label, double? rating, bool isHero)
+      onTileTapped;
+
+  const _IsoCityMap({
+    super.key,
+    required this.data,
+    required this.onTileTapped,
+  });
 
   @override
   State<_IsoCityMap> createState() => _IsoCityMapState();
@@ -256,7 +475,19 @@ class _IsoCityMapState extends State<_IsoCityMap> {
             Positioned.fill(
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
-                onTapUp: _selectTile,
+                onTapUp: (details) {
+                  _selectTile(details);
+                  final tile = _selectedTile;
+                  if (tile != null && widget.data.contains(tile)) {
+                    final iso = widget.data.tileAt(tile.x, tile.y);
+                    widget.onTileTapped(
+                      iso.type,
+                      iso.label,
+                      iso.rating,
+                      tile == widget.data.heroTile,
+                    );
+                  }
+                },
                 child: InteractiveViewer(
                   transformationController: _controller,
                   constrained: false,
@@ -399,7 +630,7 @@ class _Header extends StatelessWidget {
           ),
           const SizedBox(width: 4),
           Text(
-            '${_fmt.format(cash.round())} €',
+            '${_fmt.format(cash.round())} â‚¬',
             style: const TextStyle(
               fontFamily: 'Baloo2',
               fontSize: 14,
