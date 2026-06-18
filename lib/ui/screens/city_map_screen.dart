@@ -1,5 +1,6 @@
 ﻿import 'dart:math' as math;
 
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -417,9 +418,37 @@ class _IsoCityMap extends StatefulWidget {
 }
 
 class _IsoCityMapState extends State<_IsoCityMap> {
+  Map<String, ui.Image> _sprites = {};
+  bool _loading = true;
   final TransformationController _controller = TransformationController();
   math.Point<int>? _selectedTile;
   Size? _initializedViewport;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSprites();
+  }
+
+  Future<void> _loadSprites() async {
+    final assetPaths = <String>{
+      'assets/iso/building_owned.png',
+      'assets/iso/building_empty.png',
+      'assets/iso/building_competitor.png',
+      'assets/iso/building_filler.png',
+    };
+    final loaded = <String, ui.Image>{};
+    for (final path in assetPaths) {
+      try {
+        final bundle = DefaultAssetBundle.of(context);
+        final data = await bundle.load(path);
+        final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
+        final frame = await codec.getNextFrame();
+        loaded[path] = frame.image;
+      } catch (_) {}
+    }
+    if (mounted) setState(() { _sprites = loaded; _loading = false; });
+  }
 
   IsoGrid get _grid => const IsoGrid().centeredFor(
         widget.data.width,
@@ -500,6 +529,7 @@ class _IsoCityMapState extends State<_IsoCityMap> {
                       data: widget.data,
                       grid: _grid,
                       selectedTile: _selectedTile,
+                      sprites: _sprites,
                     ),
                   ),
                 ),
@@ -658,3 +688,7 @@ class _Header extends StatelessWidget {
     );
   }
 }
+
+
+
+

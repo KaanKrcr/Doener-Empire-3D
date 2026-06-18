@@ -65,6 +65,7 @@ TilemapData buildBerlinScene() {
       label: 'Döner Empire',
       rating: 4.6,
       upgradeLevel: BuildingUpgrade.basic,
+      spriteAsset: 'assets/iso/building_owned.png',
     ),
   );
 
@@ -96,6 +97,7 @@ TilemapData buildBerlinScene() {
         label: competitor.name,
         rating: competitor.rating,
         upgradeLevel: BuildingUpgrade.none,
+        spriteAsset: 'assets/iso/building_competitor.png',
       ),
     );
   }
@@ -114,6 +116,7 @@ TilemapData buildBerlinScene() {
         color: MapPalette.bgBase,
         accent: MapPalette.success,
         label: location.label,
+        spriteAsset: 'assets/iso/building_empty.png',
       ),
     );
   }
@@ -154,6 +157,7 @@ void _placeFillerBuildings(
         type: TileType.building,
         color: MapPalette.textDim,
         accent: MapPalette.textDim,
+        spriteAsset: 'assets/iso/building_filler.png',
       );
     }
   }

@@ -1,4 +1,5 @@
-import 'dart:math' as math;
+﻿import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
@@ -29,6 +30,7 @@ class IsoTile {
   final bool hasAwning;
   final bool hasOutdoorSeating;
   final bool hasNeonSign;
+  final String? spriteAsset;
 
   const IsoTile({
     required this.type,
@@ -40,6 +42,7 @@ class IsoTile {
     this.hasAwning = false,
     this.hasOutdoorSeating = false,
     this.hasNeonSign = false,
+    this.spriteAsset,
   });
 
   const IsoTile.grass()
@@ -84,11 +87,13 @@ class IsoTilemapPainter extends CustomPainter {
   final TilemapData data;
   final IsoGrid grid;
   final math.Point<int>? selectedTile;
+  final Map<String, ui.Image> sprites;
 
   const IsoTilemapPainter({
     required this.data,
     required this.grid,
     this.selectedTile,
+    this.sprites = const {},
   });
 
   @override
@@ -304,6 +309,11 @@ class IsoTilemapPainter extends CustomPainter {
     int y, {
     required bool selected,
   }) {
+    // Sprite-Pfad: Wenn ein geladenes Sprite existiert, zeichne das
+    if (tile.spriteAsset != null && sprites.containsKey(tile.spriteAsset)) {
+      _drawSprite(canvas, tile, sprites[tile.spriteAsset]!, center, selected);
+      return;
+    }
     final shopUpgrade = _effectiveShopUpgrade(tile, x, y);
     final isShop =
         tile.type == TileType.hero || tile.type == TileType.competitor;
@@ -446,7 +456,45 @@ class IsoTilemapPainter extends CustomPainter {
     }
     return tile.upgradeLevel;
   }
-
+  void _drawSprite(
+    Canvas canvas,
+    IsoTile tile,
+    ui.Image sprite,
+    Offset center,
+    bool selected,
+  ) {
+    final scale = grid.tileWidth / 64.0 * 2.8;
+    final w = sprite.width.toDouble() * scale;
+    final h = sprite.height.toDouble() * scale;
+    final rect = Rect.fromCenter(
+      center: center.translate(0, -h * 0.45),
+      width: w,
+      height: h,
+    );
+    if (selected || tile.type == TileType.hero) {
+      final glowRect = Rect.fromCircle(
+        center: center.translate(0, h * 0.1),
+        radius: w * 0.5,
+      );
+      canvas.drawOval(
+        glowRect,
+        Paint()
+          ..shader = RadialGradient(colors: [
+            MapPalette.accent.withAlpha(selected ? 100 : 70),
+            MapPalette.accent.withAlpha(0),
+          ]).createShader(glowRect),
+      );
+    }
+    canvas.drawImageRect(
+      sprite,
+      Rect.fromLTWH(0, 0, sprite.width.toDouble(), sprite.height.toDouble()),
+      rect,
+      Paint()..filterQuality = FilterQuality.high,
+    );
+    if (tile.type == TileType.competitor) {
+      canvas.drawRect(rect, Paint()..color = MapPalette.danger.withAlpha(30)..blendMode = BlendMode.color);
+    }
+  }
   void _drawBuildingGlow(
     Canvas canvas,
     Offset center,
@@ -642,7 +690,7 @@ class IsoTilemapPainter extends CustomPainter {
         .translate(0, -height * (upgrade == BuildingUpgrade.premium ? 0.72 : 0.9));
     _drawSignText(
       canvas,
-      'DÖNER',
+      'DÃ–NER',
       signCenter,
       isCompetitor ? MapPalette.danger : accent,
       fontSize: upgrade == BuildingUpgrade.premium ? 10 : 8,
@@ -864,7 +912,7 @@ class IsoTilemapPainter extends CustomPainter {
     final label = tile.label;
     if (label == null || label.isEmpty) return;
     final rating = tile.rating;
-    final text = rating == null ? label : '$label  ★ ${rating.toStringAsFixed(1)}';
+    final text = rating == null ? label : '$label  â˜… ${rating.toStringAsFixed(1)}';
     final textPainter = TextPainter(
       text: TextSpan(
         text: text,
@@ -876,7 +924,7 @@ class IsoTilemapPainter extends CustomPainter {
         ),
       ),
       maxLines: 1,
-      ellipsis: '…',
+      ellipsis: 'â€¦',
       textDirection: TextDirection.ltr,
     )..layout(maxWidth: 150);
     final rect = Rect.fromCenter(
@@ -960,3 +1008,5 @@ class IsoTilemapPainter extends CustomPainter {
         oldDelegate.selectedTile != selectedTile;
   }
 }
+
+
